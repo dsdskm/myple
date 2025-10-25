@@ -1,7 +1,10 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  reactStrictMode: true,
+  experimental: {
+    serverComponentsExternalPackages: ['@react-google-maps/api'], // 필요 시 추가
+  },
 };
 
 export default nextConfig;
