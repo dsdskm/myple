@@ -16,11 +16,6 @@ const mapContainerStyle = {
     height: '100%',
 };
 
-const initialCenter = {
-    lat: 37.5665, // 서울의 위도
-    lng: 126.9780, // 서울의 경도
-};
-
 const MenuButton = styled(Button)`
     background-color: white;
     border: none;
@@ -57,6 +52,12 @@ const ButtonArea = styled.div`
  * 검색 버튼
  * 마커 표시
  */
+
+export const initialCenter = {
+    lat: 37.5665, // 서울의 위도
+    lng: 126.9780, // 서울의 경도
+};
+
 export default function MapPage() {
     const navigate = useNavigate()
     const [isSearchFieldOpen, setIsSearchFieldOpen] = useState<boolean>(false)

@@ -9,13 +9,22 @@ export default defineConfig({
     bridgeColorMode: 'basic',
   },
   web: {
-    host: '192.168.0.2', // magok
+    host: '192.168.0.5', // magok
     port: 3000,
     commands: {
       dev: 'react-scripts start',
       build: 'react-scripts build',
     },
   },
-  permissions: [],
+  permissions: [
+    {
+      name: "camera",
+      access: "access",
+    },
+    {
+      name: "photos",
+      access: "read",
+    },
+  ],
   outdir: 'dist',
 });
