@@ -1,0 +1,44 @@
+substitutions:
+  _PROJECT_ID: "myple-15ea9"
+  _REGION: asia-northeast3
+  _REPO: myple-be-repo
+  _SERVICE: myple-be-service
+  _TAG: latest
+
+steps:
+  # 1. Docker 이미지 빌드
+  - name: gcr.io/cloud-builders/docker
+    args:
+      [
+        "build",
+        "-t",
+        "${_REGION}-docker.pkg.dev/${_PROJECT_ID}/${_REPO}/${_SERVICE}:${_TAG}",
+        ".",
+      ]
+
+  # 2. Artifact Registry 푸시
+  - name: gcr.io/cloud-builders/docker
+    args:
+      [
+        "push",
+        "${_REGION}-docker.pkg.dev/${_PROJECT_ID}/${_REPO}/${_SERVICE}:${_TAG}",
+      ]
+
+  # 3. Cloud Run 배포
+  - name: gcr.io/cloud-builders/gcloud
+    args:
+      [
+        "run",
+        "deploy",
+        "${_SERVICE}",
+        "--image",
+        "${_REGION}-docker.pkg.dev/${_PROJECT_ID}/${_REPO}/${_SERVICE}:${_TAG}",
+        "--region",
+        "${_REGION}",
+        "--platform",
+        "managed",
+        "--allow-unauthenticated",
+      ]
+
+images:
+  - "${_REGION}-docker.pkg.dev/${_PROJECT_ID}/${_REPO}/${_SERVICE}:${_TAG}"

@@ -9,6 +9,7 @@ dotenv.config();
 // Firebase 초기화 코드를 import하여 실행되도록 합니다.
 import './config/firebase';
 import cors from 'cors';
+import accountRouter from './router/account.router';
 
 const app: Application = express();
 const port = process.env.PORT || 3000;

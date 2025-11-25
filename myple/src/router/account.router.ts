@@ -11,4 +11,3 @@ router.delete('/:id', accountController.deleteAccount);
 router.post('/withdraw', accountController.deleteAccount);
 
 export default router;
-

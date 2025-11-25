@@ -44,4 +44,3 @@ EXPOSE 3000
 
 # 컨테이너가 시작될 때 실행할 명령어
 CMD ["node", "dist/app.js"]
-
