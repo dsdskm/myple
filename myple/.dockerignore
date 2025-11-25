@@ -1,0 +1,16 @@
+# 의존성 폴더
+node_modules
+
+# 빌드 결과물 폴더
+dist
+
+# Git 관련 파일
+.git
+.gitignore
+
+# Docker 관련 파일
+Dockerfile
+
+# 환경변수 파일 (이미지에 포함되면 안 됨)
+.env
+*.log

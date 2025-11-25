@@ -1,6 +1,7 @@
 import express, { Application, Request, Response } from 'express';
 import dotenv from 'dotenv';
 import placeRouter from './router/place.router';
+import accountRouter from "./router/account.router"
 
 // .env 파일의 환경 변수를 로드합니다.
 dotenv.config();
@@ -22,6 +23,7 @@ app.get('/', (req: Request, res: Response) => {
     res.send('Welcome to the myple API Server!');
 });
 
+app.use('/account', accountRouter);
 app.use('/place', placeRouter);
 
 // 서버 시작
