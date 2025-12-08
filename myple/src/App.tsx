@@ -9,7 +9,7 @@ import PlaceListPage from "./view/PlaceListPage";
 function App() {
   return (
     <div className="App">
-      <Routes>
+      <Routes>     
         <Route path={ROUTES.LOGIN} element={<LoginPage />} />
         <Route path={ROUTES.MAP} element={<MapPage />} />
         <Route path={ROUTES.PLACE_LIST} element={<PlaceListPage />} />

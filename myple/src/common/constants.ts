@@ -32,6 +32,7 @@ export const TEXT = {
     YES: "예",
     NO: "아니오",
     GET_POHOTO: "사진 가져오기",
+    LOGIN: "로그인",
     MSG_DELETE_CONFORM: "삭제하시겠습니까?(복구불가)",
     MSG_PLACE_NAME: "장소 이름을 입력하세요.(10자이내)",
     MSG_LOCATION_GUIDE: "지도에서 위치를 선택하세요.",

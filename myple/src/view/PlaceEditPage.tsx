@@ -151,6 +151,8 @@ const PlaceEditPage = () => {
     }
 
     const onCreateClick = async () => {
+        console.log(`onCreateClick`)
+        // 파일 업로드 후에 파일 url을 삽입해야함
         const data: Place = {
             id: "",
             name: name,
@@ -168,10 +170,12 @@ const PlaceEditPage = () => {
             tags: []
         }
 
+        console.log(`pictures`,pictures)
+
         try {
             setIsLoading(true)
-            const res = await createPlace(data)
-            console.log(res)
+            // const res = await createPlace(data)
+            // console.log(res)
         } finally {
             setIsLoading(false)
             navigate(ROUTES.MAP, { replace: true })

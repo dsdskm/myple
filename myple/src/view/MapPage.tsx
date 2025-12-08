@@ -59,6 +59,7 @@ export const initialCenter = {
 };
 
 export default function MapPage() {
+    console.log(`MapPage`)
     const navigate = useNavigate()
     const [isSearchFieldOpen, setIsSearchFieldOpen] = useState<boolean>(false)
     const [markerPosition, setMarkerPosition] = useState(initialCenter);

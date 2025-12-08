@@ -9,7 +9,7 @@ export default defineConfig({
     bridgeColorMode: 'basic',
   },
   web: {
-    host: '192.168.0.5', // magok
+    host: '192.168.0.14', // 내 PC의 IP,
     port: 3000,
     commands: {
       dev: 'react-scripts start',
