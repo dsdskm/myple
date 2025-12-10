@@ -1,4 +1,4 @@
-import { Button } from '@toss/tds-mobile';
+import { Button, Toast } from '@toss/tds-mobile';
 import styled from 'styled-components';
 import { ROUTES, TEXT } from '../common/constants';
 import { useState } from 'react';
@@ -6,7 +6,8 @@ import Loading from './common/Loading';
 import { useNavigate } from 'react-router-dom';
 import { appLogin } from '@apps-in-toss/web-framework';
 import { requestUserInfo } from '../service/api';
-import { decrypt } from '../service/decyrpt';
+import { Account, ACTION_TYPE_SET_ACCOUNT, initialAccountState } from '../types/account';
+import { useApp } from '../context/AppContext';
 
 const Wrapper = styled.div`
     height:100vh;
@@ -17,31 +18,46 @@ const Wrapper = styled.div`
     align-items:center;
 `;
 
+interface ToastInfo {
+    show: boolean;
+    message: string;
+}
+
 const LoginPage = () => {
     console.log(`LoginPage`)
     const navigate = useNavigate()
-
-    const [isLoading, setIsLoading] = useState<Boolean>()
+    const { setAccount } = useApp()
+    const [toastInfo, setToastInfo] = useState<ToastInfo>({
+        show: false,
+        message: ""
+    })
+    const [showToast, setShowToast] = useState<boolean>(false)
+    const [isLoading, setIsLoading] = useState<boolean>()
     const onLoginClick = async () => {
-        console.log(`onLoginClick`)
         setIsLoading(true)
         try {
             const { authorizationCode, referrer } = await appLogin();
-            console.log(`authorizationCode=${authorizationCode} referrer=${referrer}`)
-            const userInfo = await requestUserInfo(authorizationCode, referrer)
+            const userInfo: Account | null = await requestUserInfo(authorizationCode, referrer)
+            console.log(`userInfo`, userInfo)
             if (userInfo) {
-                console.log(`name=${decrypt(userInfo.name)}`)
+                setAccount({ type: ACTION_TYPE_SET_ACCOUNT, payload: userInfo })
+                navigate(ROUTES.MAP, { replace: true })
+                toastInfo.message = TEXT.MSG_LOGIN_SUCCESS
+            } else {
+                setAccount({ type: ACTION_TYPE_SET_ACCOUNT, payload: initialAccountState })
+                toastInfo.message = TEXT.MSG_LOGIN_FAILED
             }
 
-            // navigate(ROUTES.MAP, { replace: true })    
+            toastInfo.show = true
+            setToastInfo({ ...toastInfo })
         } catch (e) {
-            console.log(JSON.stringify(e))
             console.log(e)
+            toastInfo.show = true
+            toastInfo.message = TEXT.MSG_LOGIN_FAILED
+            setToastInfo({ ...toastInfo })
         } finally {
             setIsLoading(false)
         }
-
-
     }
 
     if (isLoading) {
@@ -50,6 +66,13 @@ const LoginPage = () => {
 
     return <Wrapper>
         <Button onClick={onLoginClick}>{TEXT.LOGIN}</Button>
+        <Toast
+            position="bottom"
+            open={showToast}
+            text="하단 토스트 메시지이에요"
+            duration={3000}
+            onClose={() => setShowToast(false)}
+        />
     </Wrapper>
 }
 

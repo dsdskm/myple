@@ -1,6 +1,6 @@
 import axios from 'axios';
 import { Place } from '../types/place';
-import { TossUser } from '../types/toss.user';
+import { Account } from '../types/account';
 
 const serverApiClient = axios.create({
     baseURL: process.env.REACT_APP_BACKEND_URL,
@@ -64,6 +64,12 @@ export const deletePlace = async (id: string): Promise<void> => {
     await serverApiClient.delete(`/place/${id}`);
 };
 
-export const requestUserInfo = async (authorizationCode: string, referrer: string): Promise<TossUser | null> => {
-    return await serverApiClient.get(`/toss/user/${authorizationCode}/${referrer}`)
+export const requestUserInfo = async (authorizationCode: string, referrer: string): Promise<Account | null> => {
+    const response = await serverApiClient.get(`/toss/user/${authorizationCode}/${referrer}`)
+    return response.data
+}
+
+export const requestLogout = async (userKey: number) => {
+    console.log(`requestLogout`)
+    return await serverApiClient.post("/toss/logout", { "userKey": userKey })
 }

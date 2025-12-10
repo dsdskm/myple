@@ -10,7 +10,6 @@ export interface Place {
     visitAt: string;
     created: string;
     updated: string;
-    pictures: [];
-    videos: [];
+    medias: [];
     tags: []
 }

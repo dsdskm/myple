@@ -1,5 +1,5 @@
 export interface TossUser {
-    userKey: string
+    userKey: number
     scope: string
     agreedTerms: string[]
     name: string

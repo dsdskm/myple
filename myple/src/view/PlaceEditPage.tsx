@@ -14,7 +14,6 @@ import 'dayjs/locale/ko';
 import { Place } from "../types/place";
 import Loading from "./common/Loading";
 import { useNavigate } from 'react-router-dom';
-import { createPlace } from "../service/api";
 
 const mapContainerStyle = {
     width: '100%',
@@ -54,6 +53,7 @@ const PlaceEditPage = () => {
 
 
     const handleMapClick = useCallback((event: google.maps.MapMouseEvent) => {
+        console.log(`handleMapClick event`, event)
         if (event.latLng) {
             const lat = event.latLng.lat();
             const lng = event.latLng.lng();
@@ -165,12 +165,12 @@ const PlaceEditPage = () => {
             visitAt: formatDateWithDay(visitDate),
             created: formatDateWithDay(dayjs(new Date())),
             updated: formatDateWithDay(dayjs(new Date())),
-            pictures: [],
-            videos: [],
+            medias: [],
             tags: []
         }
 
-        console.log(`pictures`,pictures)
+        console.log(`pictures`, pictures)
+        console.log(`data`, data)
 
         try {
             setIsLoading(true)
@@ -210,18 +210,13 @@ const PlaceEditPage = () => {
         <Post.H3>{TEXT.LOCATION}</Post.H3>
         <Post.Paragraph>{TEXT.MSG_LOCATION_GUIDE}</Post.Paragraph>
         <Post.Paragraph>
-            <LoadScript
-                id="google-maps-script"
-                googleMapsApiKey={process.env.REACT_APP_GOOGLE_MAPS_API_KEY || ""}
-            >
-                <GoogleMap
-                    mapContainerStyle={mapContainerStyle}
-                    center={initialCenter}
-                    zoom={15}
-                    onClick={handleMapClick}>
-                    {latitude !== 0 && longitude !== 0 && < Marker position={{ lat: latitude, lng: longitude }} />}
-                </GoogleMap>
-            </LoadScript>
+            <GoogleMap
+                mapContainerStyle={mapContainerStyle}
+                center={initialCenter}
+                zoom={15}
+                onClick={handleMapClick}>
+                {latitude !== 0 && longitude !== 0 && < Marker position={{ lat: latitude, lng: longitude }} />}
+            </GoogleMap>
         </Post.Paragraph>
         <Post.H3>{TEXT.ADDRESS}</Post.H3>
         <TextField

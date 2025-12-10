@@ -68,7 +68,6 @@ const PlaceDetailPage = () => {
     };
 
     const deleteDialog = () => {
-
         return (
             <ConfirmDialog
                 open={isDeleteDialogOpen}
