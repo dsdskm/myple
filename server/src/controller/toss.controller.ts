@@ -46,7 +46,6 @@ export const getUserInfo = async (req: Request, res: Response) => {
 
 
 export const logout = async (req: Request, res: Response) => {
-    console.log(`logout`)
     try {
         const { userKey } = req.body;
         await tossService.requestLogout(userKey)
