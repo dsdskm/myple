@@ -1,8 +1,7 @@
-export interface Account {
-    id: string;
-    name: string;
-    gender: string;
-    phone: string;
-    birthday: string;
-    created: string;
+import { TossUser } from "./toss.user";
+
+export interface Account extends TossUser {
+    id: string
+    type: "user" | "master"
+    status: "active"
 }

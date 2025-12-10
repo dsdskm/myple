@@ -3,7 +3,7 @@ import dotenv from 'dotenv';
 import placeRouter from './router/place.router';
 import accountRouter from "./router/account.router"
 import tossRouter from "./router/toss.router"
-
+import fileRouter from "./router/file.router"
 // .env 파일의 환경 변수를 로드합니다.
 dotenv.config();
 
@@ -27,6 +27,7 @@ app.get('/', (req: Request, res: Response) => {
 app.use('/account', accountRouter);
 app.use('/place', placeRouter);
 app.use('/toss', tossRouter);
+app.use('/file', fileRouter);
 
 // 서버 시작
 app.listen(port, () => {

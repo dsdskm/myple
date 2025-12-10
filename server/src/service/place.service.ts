@@ -1,6 +1,6 @@
 import { db } from '../config/firebase';
 import { Place } from '../types/place';
-import { getFormattedDate } from '../utils';
+import { getFormattedDateForAccount } from '../common/utils';
 
 const placeCollection = db.collection('places');
 
@@ -27,7 +27,7 @@ export const createNewPlace = async (placeData: Place): Promise<void> => {
     try {
         const time = new Date()
         placeData.id = time.getTime().toString()
-        placeData.created = getFormattedDate(time)
+        placeData.created = getFormattedDateForAccount(time)
         console.log(`createNewPlace ${JSON.stringify(placeData)}`)
         await placeCollection.doc(placeData.id).set(placeData);
     } catch (e) {

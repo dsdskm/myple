@@ -1,72 +1,65 @@
-import { Request, Response } from 'express';
-import * as placeService from '../service/place.service';
-import { Place } from '../types/place';
+import { Request, Response, NextFunction } from 'express';
+import multer from 'multer';
+import { bucket } from '../config/firebase';
+import { uploadFiles } from '../service/file.service';
+import * as path from 'path';
 
-export const getAllPlaces = async (req: Request, res: Response) => {
-    try {
-        const places = await placeService.findAllPlaces();
-        res.status(200).json(places);
-    } catch (error) {
-        res.status(500).json({ message: 'Error fetching places', error });
-    }
+export type MediaItem = {
+    file: Express.Multer.File;
+    type: 'image' | 'video';
 };
 
-export const getPlaceById = async (req: Request, res: Response) => {
-    try {
-        const { id } = req.params;
-        const place = await placeService.findPlaceById(id);
-        if (!place) {
-            return res.status(404).json({ message: 'Place not found' });
-        }
-        res.status(200).json(place);
-    } catch (error) {
-        res.status(500).json({ message: 'Error fetching place', error });
-    }
+export type MediaItemResponse = {
+    url: string
+    type: string
 };
 
-export const createPlace = async (req: Request, res: Response) => {
+const upload = multer({
+    storage: multer.memoryStorage(), // 메모리에 저장
+    limits: { fileSize: 10 * 1024 * 1024 }, // 10MB 제한
+    fileFilter: (req, file, cb) => {
+        const allowed = ['image/jpeg', 'image/png', 'video/mp4'];
+        cb(null, allowed.includes(file.mimetype));
+    },
+});
+
+
+export const uploadMediaFiles = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+) => {
     try {
-        const newPlace = await placeService.createNewPlace(req.body);
-        res.status(201).json(newPlace);
-    } catch (error) {
-        res.status(500).json({ message: 'Error creating place', error });
-    }
-};
+        await new Promise<void>((resolve, reject) => {
+            upload.array('files', 10)(req, res, async (err) => {
+                console.log(`uploadMediaFiles`)
+                if (err) return reject(err);
+                const files = req.files as Express.Multer.File[];
+                const placeId = req.body.placeId as string;
 
-export const updatePlace = async (req: Request, res: Response) => {
-    try {
-        const { id } = req.params;
-        const updateData: Partial<Omit<Place, 'id'>> = req.body; // Partial을 사용하여 부분 업데이트 허용
+                if (!placeId) return reject(new Error('placeId query param is required'));
 
-        if (Object.keys(updateData).length === 0) {
-            return res.status(400).json({ message: 'No update data provided' });
-        }
+                // 파일이 없을 경우 바로 응답
+                if (!files?.length) {
+                    return res
+                        .status(200)
+                        .json({});
+                }
 
-        const updatedPlace = await placeService.updatePlace(id, updateData);
+                // Multer.File 배열을 MediaItem 배열로 변환
+                const mediaItems: MediaItem[] = files.map((file) => {
+                    const isImage = file.mimetype.startsWith('image/');
+                    const type = isImage ? 'image' : 'video';
+                    return { file, type };
+                });
 
-        if (!updatedPlace) {
-            return res.status(404).json({ message: 'Place not found' });
-        }
-
-        res.status(200).json(updatedPlace);
-    } catch (error) {
-        console.error('Error updating place:', error); // 에러 로깅
-        res.status(500).json({ message: 'Error updating place', error: error instanceof Error ? error.message : 'Unknown error' });
-    }
-};
-
-export const deletePlace = async (req: Request, res: Response) => {
-    try {
-        const { id } = req.params;
-        const deleted = await placeService.deletePlace(id);
-
-        if (!deleted) {
-            return res.status(404).json({ message: 'Place not found' });
-        }
-
-        res.status(200).json({ message: 'Place deleted successfully' }); // 204 No Content를 반환할 수도 있습니다.
-    } catch (error) {
-        console.error('Error deleting place:', error); // 에러 로깅
-        res.status(500).json({ message: 'Error deleting place', error: error instanceof Error ? error.message : 'Unknown error' });
+                // 변환된 배열을 uploadFiles에 전달
+                const result = await uploadFiles(placeId, mediaItems);
+                res.status(200).json(result);
+                resolve();
+            });
+        });
+    } catch (e) {
+        next(e);
     }
 };
