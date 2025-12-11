@@ -6,7 +6,6 @@ import { Account } from '../types/account';
 import { updateAccount } from './account.controller';
 
 export const getUserInfo = async (req: Request, res: Response) => {
-    console.log(`getUserInfo`)
     try {
         const { authorizationCode, referrer } = req.params;
         const tossToken = await tossService.requestAccessToken(authorizationCode, referrer)
@@ -47,8 +46,8 @@ export const getUserInfo = async (req: Request, res: Response) => {
 
 export const logout = async (req: Request, res: Response) => {
     try {
-        const { userKey } = req.body;
-        await tossService.requestLogout(userKey)
+        const { userKey, referrer } = req.body;
+        await tossService.requestLogout(userKey, referrer)
         res.status(200).json(true);
     } catch (error) {
         res.status(500);

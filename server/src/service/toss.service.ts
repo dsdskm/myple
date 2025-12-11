@@ -18,7 +18,7 @@ export const requestUserInfo = async (tossToken: TossToken): Promise<TossUser | 
     return tossUser
 };
 
-export const requestLogout = async (userKey: string): Promise<Boolean> => {
-    return await requestTossLogout(userKey)
+export const requestLogout = async (userKey: string, referrer: string): Promise<Boolean> => {
+    return await requestTossLogout(userKey, referrer)
 
 }

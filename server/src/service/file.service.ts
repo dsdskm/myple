@@ -10,7 +10,6 @@ import { MediaItem, MediaItemResponse } from '../controller/file.controller';
 const placeCollection = db.collection('places');
 
 async function uploadToBucket(placeId: string, mediaItems: MediaItem[]): Promise<MediaItemResponse[]> {
-    console.log(`uploadToBucket`);
     const uploaded: MediaItemResponse[] = [];
 
     try {
@@ -42,7 +41,6 @@ async function computeMedias(
     placeId: string,
     uploaded: MediaItemResponse[]
 ): Promise<MediaItemResponse[]> {
-    console.log(`computeMedias`)
     const placeSnap = await placeCollection
         .doc(placeId)
         .get()

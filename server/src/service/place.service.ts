@@ -23,16 +23,18 @@ export const findPlaceById = async (id: string): Promise<Place | null> => {
     return { id: doc.id, ...(doc.data() as Omit<Place, 'id'>) };
 };
 
-export const createNewPlace = async (placeData: Place): Promise<void> => {
+export const createNewPlace = async (placeData: Place): Promise<Place | null> => {
     try {
         const time = new Date()
         placeData.id = time.getTime().toString()
         placeData.created = getFormattedDateForAccount(time)
-        console.log(`createNewPlace ${JSON.stringify(placeData)}`)
         await placeCollection.doc(placeData.id).set(placeData);
+        return placeData
     } catch (e) {
         console.log(e)
     }
+
+    return null
 
 
 };

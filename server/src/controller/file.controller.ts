@@ -32,11 +32,9 @@ export const uploadMediaFiles = async (
     try {
         await new Promise<void>((resolve, reject) => {
             upload.array('files', 10)(req, res, async (err) => {
-                console.log(`uploadMediaFiles`)
                 if (err) return reject(err);
                 const files = req.files as Express.Multer.File[];
                 const placeId = req.body.placeId as string;
-
                 if (!placeId) return reject(new Error('placeId query param is required'));
 
                 // 파일이 없을 경우 바로 응답

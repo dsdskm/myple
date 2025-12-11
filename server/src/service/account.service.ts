@@ -37,8 +37,6 @@ export const update = async (
     id: string,
     accountData: Partial<Account>
 ): Promise<void> => {
-    console.log(`update id=${id} accountData=${JSON.stringify(accountData)}`);
-
     try {
         // set() 에 merge:true 를 주면 "업데이트 + 생성"을 한 번에 처리합니다.
         await accountCollection
@@ -49,7 +47,6 @@ export const update = async (
                 console.error('Firestore error:', err);
             });
 
-        console.log(`✅ id=${id} 에 대한 ${accountData ? '업데이트' : '생성'} 완료`);
     } catch (e) {
         console.error('update 함수 내부 오류:', e);
     }

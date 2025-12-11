@@ -53,9 +53,11 @@ export const requestTossAccessToken = async (
     })
 };
 
-export const requestTossLogout = async (userKey: string) => {
+export const requestTossLogout = async (userKey: string, referrer: string) => {
+
     const body = JSON.stringify({
-        "userKey": userKey
+        "userKey": userKey,
+        "referrer": referrer
     });
 
     const options: https.RequestOptions = {
@@ -76,7 +78,6 @@ export const requestTossLogout = async (userKey: string) => {
             res.on('data', (chunk) => (data += chunk));
             res.on('end', () => {
                 const jsonResult = JSON.parse(data).success
-                console.log(`logout jsonResult ${JSON.stringify(jsonResult)} `)
                 if (jsonResult["userKey"] == userKey) {
                     resolve(true)
                 } else {
