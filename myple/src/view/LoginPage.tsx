@@ -31,14 +31,12 @@ const LoginPage = () => {
         show: false,
         message: ""
     })
-    const [showToast, setShowToast] = useState<boolean>(false)
     const [isLoading, setIsLoading] = useState<boolean>()
     const onLoginClick = async () => {
         setIsLoading(true)
         try {
             const { authorizationCode, referrer } = await appLogin();
             const userInfo: Account | null = await requestUserInfo(authorizationCode, referrer)
-            console.log(`userInfo`, userInfo)
             if (userInfo) {
                 setAccount({ type: ACTION_TYPE_SET_ACCOUNT, payload: userInfo })
                 navigate(ROUTES.MAP, { replace: true })
@@ -51,7 +49,7 @@ const LoginPage = () => {
             toastInfo.show = true
             setToastInfo({ ...toastInfo })
         } catch (e) {
-            console.log(e)
+            console.log(`login error`, e)
             toastInfo.show = true
             toastInfo.message = TEXT.MSG_LOGIN_FAILED
             setToastInfo({ ...toastInfo })
@@ -68,10 +66,13 @@ const LoginPage = () => {
         <Button onClick={onLoginClick}>{TEXT.LOGIN}</Button>
         <Toast
             position="bottom"
-            open={showToast}
-            text="하단 토스트 메시지이에요"
+            open={toastInfo.show}
+            text={toastInfo.message}
             duration={3000}
-            onClose={() => setShowToast(false)}
+            onClose={() => {
+                toastInfo.show = false
+                setToastInfo({ ...toastInfo })
+            }}
         />
     </Wrapper>
 }

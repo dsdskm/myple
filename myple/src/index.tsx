@@ -17,14 +17,6 @@ const loadGoogleMapsScript = () => {
   }
 };
 
-// Google Maps API가 로드되었는지 확인
-const checkGoogleMapsLoaded = () => {
-  if (window.google) {
-    console.log('Google Maps API loaded');
-  } else {
-    console.warn('Google Maps API not loaded');
-  }
-};
 
 // Google Maps API 로드 후 앱 렌더링
 const root = ReactDOM.createRoot(

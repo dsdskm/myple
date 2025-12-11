@@ -74,6 +74,11 @@ const tabs = [
         icon: <SearchIcon />,
         path: ROUTES.PLACE_EDIT,
     },
+    {
+        label: 'My',
+        icon: <SearchIcon />,
+        path: ROUTES.MY,
+    },
 ];
 
 /* ---------- BottomTabBar 컴포넌트 ---------- */

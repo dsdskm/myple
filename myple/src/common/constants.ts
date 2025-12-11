@@ -3,7 +3,8 @@ export const ROUTES = {
     MAP: "/map",
     PLACE_LIST: "/place/list",
     PLACE_EDIT: "/place/edit",
-    PLACE_DETAIL: "/place/detail"
+    PLACE_DETAIL: "/place/detail",
+    MY: "/my"
 }
 
 export const TEXT = {
@@ -31,6 +32,7 @@ export const TEXT = {
     DELETE: "삭제",
     YES: "예",
     NO: "아니오",
+    TAKE_PHOTO:"사진 촬영하기",
     GET_POHOTO: "사진 가져오기",
     LOGIN: "로그인",
     LOGOUT: "로그아웃",
@@ -39,6 +41,8 @@ export const TEXT = {
     MSG_LOGOUT_CONFIRM: "로그아웃하시겠습니까?",
     MSG_DELETE_CONFORM: "삭제하시겠습니까?(복구불가)",
     MSG_PLACE_NAME: "장소 이름을 입력하세요.(10자이내)",
+    MSG_CATEGORY: "카테고리를 선택하세요.",
+    MSG_CREATE_PLACE_CONFIRM: "장소를 등록하시겠습니까?",
     MSG_LOCATION_GUIDE: "지도에서 위치를 선택하세요.",
     MSG_MEMO: "내용를 입력하세요.",
     MENU_CHOICE_ITEMS: "항목을 선택하세요",
@@ -48,3 +52,9 @@ export const TEXT = {
 export const CATEGORY_LIST = [
     "맛집", "카페", "숙소", "문화", "기타"
 ]
+
+export const LOGOUT_REFERRER = {
+    UNLINK: "UNLINK", // 로그아웃
+    WITHDRAWAL_TERMS: "WITHDRAWAL_TERMS", // 약관 철회
+    WITHDRAWAL_TOSS: "WITHDRAWAL_TOSS" // 탈퇴
+}

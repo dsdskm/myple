@@ -10,6 +10,11 @@ export interface Place {
     visitAt: string;
     created: string;
     updated: string;
-    medias: [];
+    medias: Media[];
     tags: []
+}
+
+export interface Media {
+    type: string;
+    url: string
 }

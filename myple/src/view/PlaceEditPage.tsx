@@ -1,6 +1,6 @@
-import { Button, FixedBottomCTA, Menu, Post, Rating, TextArea, TextField } from "@toss/tds-mobile"
+import { Button, ConfirmDialog, FixedBottomCTA, Menu, Post, Rating, TextArea, TextField, Toast } from "@toss/tds-mobile"
 import { CATEGORY_LIST, ROUTES, TEXT } from "../common/constants"
-import { GoogleMap, LoadScript, Marker } from "@react-google-maps/api"
+import { GoogleMap, Marker } from "@react-google-maps/api"
 import { useCallback, useState } from "react";
 import { initialCenter } from "./MapPage";
 import { formatDateWithDay, roundToFour } from "../common/utils";
@@ -11,9 +11,11 @@ import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import dayjs, { Dayjs } from "dayjs";
 import 'dayjs/locale/ko';
-import { Place } from "../types/place";
+import { Media, Place } from "../types/place";
 import Loading from "./common/Loading";
 import { useNavigate } from 'react-router-dom';
+import { openCamera, OpenCameraPermissionError } from '@apps-in-toss/web-framework';
+import { createPlace, updatePlace, uploadFiles } from "../service/api";
 
 const mapContainerStyle = {
     width: '100%',
@@ -36,6 +38,11 @@ const ImagePreview = styled.img`
 const CommonentWrapper = styled.div`
     margin-left:20px`
 
+interface ToastInfo {
+    show: boolean;
+    message: string;
+}
+
 const PlaceEditPage = () => {
     const navigate = useNavigate()
     const [name, setName] = useState<string>("")
@@ -50,6 +57,22 @@ const PlaceEditPage = () => {
     const [categoryMenuOpen, setCategoryMenuOpen] = useState<boolean>(false)
     const [visitDate, setVisitDate] = useState<Dayjs | null>(dayjs(new Date()))
     const [isLoading, setIsLoading] = useState<boolean>(false)
+    const [toastInfo, setToastInfo] = useState<ToastInfo>({
+        show: false,
+        message: ""
+    })
+    const [isCreateDialogOpen, setIsCreateDialogOpen] = useState<boolean>(false);
+
+    const resetAll = () => {
+        setName("")
+        setCategory("")
+        setAddress("")
+        setLatitude(0)
+        setLongitude(0)
+        setMemo("")
+        setRating(0)
+        setPictures([])
+    }
 
 
     const handleMapClick = useCallback((event: google.maps.MapMouseEvent) => {
@@ -62,7 +85,6 @@ const PlaceEditPage = () => {
             geocoder.geocode({ location: { lat, lng }, language: 'ko' }, (results, status) => {
                 if (status === 'OK') {
                     if (results && results[0]) {
-                        console.log(`results`, results)
                         setAddress(results[0].formatted_address)
                         setLatitude(roundToFour(lat))
                         setLongitude(roundToFour(lng))
@@ -75,6 +97,20 @@ const PlaceEditPage = () => {
             });
         }
     }, []);
+
+    async function handleOpenCamera() {
+        try {
+            const base64 = true;
+            const response = await openCamera({ base64 });
+            const newPictures = [...pictures, { id: response.id, dataUri: response.dataUri }]
+            setPictures(newPictures)
+        } catch (error) {
+            if (error instanceof OpenCameraPermissionError) {
+                console.log('권한 에러');
+            }
+            console.error('사진을 가져오는 데 실패했어요:', error);
+        }
+    }
 
     const handlePictureUpload = async () => {
         try {
@@ -125,6 +161,7 @@ const PlaceEditPage = () => {
         return <>
             <Post.H3>{TEXT.PICTURE}</Post.H3>
             <CommonentWrapper>
+                <Button onClick={handleOpenCamera} color="light" style={{ marginBottom: '10px' }}>{TEXT.TAKE_PHOTO}</Button>
                 <Button onClick={handlePictureUpload} color="light" style={{ marginBottom: '10px' }}>{TEXT.GET_POHOTO}</Button>
                 <ImagePreviewContainer>
                     {pictures.map((image) => {
@@ -151,41 +188,73 @@ const PlaceEditPage = () => {
     }
 
     const onCreateClick = async () => {
-        console.log(`onCreateClick`)
-        // 파일 업로드 후에 파일 url을 삽입해야함
-        const data: Place = {
-            id: "",
-            name: name,
-            category: category,
-            latitude: latitude,
-            longitude: longitude,
-            address: address,
-            memo: memo,
-            rating: rating,
-            visitAt: formatDateWithDay(visitDate),
-            created: formatDateWithDay(dayjs(new Date())),
-            updated: formatDateWithDay(dayjs(new Date())),
-            medias: [],
-            tags: []
+        setIsCreateDialogOpen(false)
+        if (!name || name.length === 0) {
+            toastInfo.show = true
+            toastInfo.message = TEXT.MSG_PLACE_NAME
+            setToastInfo({ ...toastInfo })
+        } else if (!category) {
+            toastInfo.show = true
+            toastInfo.message = TEXT.MSG_CATEGORY
+            setToastInfo({ ...toastInfo })
+        } else {
+            const data: Place = {
+                id: "",
+                name: name,
+                category: category,
+                latitude: latitude,
+                longitude: longitude,
+                address: address,
+                memo: memo,
+                rating: rating,
+                visitAt: formatDateWithDay(visitDate),
+                created: formatDateWithDay(dayjs(new Date())),
+                updated: formatDateWithDay(dayjs(new Date())),
+                medias: [],
+                tags: []
+            }
+
+            try {
+                setIsLoading(true)
+                const res = await createPlace(data)
+                const newId = res.id
+                const medias: Media[] = await uploadFiles(newId, pictures)
+                res.medias = medias
+                await updatePlace(newId, res)
+
+            } finally {
+                setIsLoading(false)
+                resetAll()
+                navigate(ROUTES.MAP, { replace: true })
+            }
         }
 
-        console.log(`pictures`, pictures)
-        console.log(`data`, data)
-
-        try {
-            setIsLoading(true)
-            // const res = await createPlace(data)
-            // console.log(res)
-        } finally {
-            setIsLoading(false)
-            navigate(ROUTES.MAP, { replace: true })
-        }
 
     }
 
     const handleNameError = (value: string) => {
         return value.length > 10;
     };
+
+    const createDialog = () => {
+        return <ConfirmDialog
+            open={isCreateDialogOpen}
+            title={<ConfirmDialog.Title>{TEXT.MSG_CREATE_PLACE_CONFIRM}</ConfirmDialog.Title>}
+            cancelButton={
+                <ConfirmDialog.CancelButton
+                    onClick={() => setIsCreateDialogOpen(false)}
+                >
+                    {TEXT.NO}
+                </ConfirmDialog.CancelButton>
+            }
+            confirmButton={
+                <ConfirmDialog.ConfirmButton onClick={onCreateClick}>
+                    {TEXT.YES}
+                </ConfirmDialog.ConfirmButton>
+            }
+            onClose={() => setIsCreateDialogOpen(false)}
+        />
+    }
 
     if (isLoading) {
         return <Loading />
@@ -245,8 +314,22 @@ const PlaceEditPage = () => {
         {imageView()}
         {visitTimeView()}
         <FixedBottomCTA.Double
-            leftButton={<Button style={{ flex: 1 }} onClick={() => navigate(-1)} variant="weak">{TEXT.CANCEL}</Button>}
-            rightButton={<Button style={{ flex: 1 }} disabled={nameError} onClick={onCreateClick}>{TEXT.CREATE}</Button>}
+            leftButton={<Button style={{ flex: 1 }} onClick={() => {
+                resetAll()
+                navigate(-1)
+            }} variant="weak">{TEXT.CANCEL}</Button>}
+            rightButton={<Button style={{ flex: 1 }} disabled={nameError} onClick={() => setIsCreateDialogOpen(true)}>{TEXT.CREATE}</Button>}
+        />
+        {createDialog()}
+        <Toast
+            position="bottom"
+            open={toastInfo.show}
+            text={toastInfo.message}
+            duration={3000}
+            onClose={() => {
+                toastInfo.show = false
+                setToastInfo({ ...toastInfo })
+            }}
         />
     </div >
 }

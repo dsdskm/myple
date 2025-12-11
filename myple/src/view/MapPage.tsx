@@ -1,12 +1,9 @@
-import { useState, useCallback } from 'react';
-import { GoogleMap, LoadScript, Marker } from '@react-google-maps/api';
+import { useState } from 'react';
+import { GoogleMap } from '@react-google-maps/api';
 import styled from 'styled-components';
-import { BottomSheet, Button, ConfirmDialog, SearchField } from '@toss/tds-mobile';
-import { useNavigate } from 'react-router-dom';
-import { ROUTES, TEXT } from '../common/constants';
+import { BottomSheet, Button, SearchField } from '@toss/tds-mobile';
+import { TEXT } from '../common/constants';
 import BottomTabBar from './BottomTabBar';
-import { useApp } from '../context/AppContext';
-import { requestLogout } from '../service/api';
 
 const MapWrapper = styled.div`
   position: relative;
@@ -57,12 +54,8 @@ export const initialCenter = {
 
 export default function MapPage() {
     console.log(`MapPage`);
-    const navigate = useNavigate();
-    const { account, setAccount } = useApp()
-    console.log(`account ${JSON.stringify(account)}`)
     const [isSearchFieldOpen, setIsSearchFieldOpen] = useState<boolean>(false);
-    const [markerPosition, setMarkerPosition] = useState(initialCenter);
-    const [isLogoutDialogOpen, setIsLogoutDialogOpen] = useState<boolean>(false);
+
 
     const searchFieldComponent = () => {
         return (
@@ -80,39 +73,8 @@ export default function MapPage() {
         );
     };
 
-    const onLogoutClick = async () => {
-        console.log(`onLogoutClick`)
-        try {
-            await requestLogout(account.userKey);
-            navigate(ROUTES.LOGIN, { replace: true })
-        } catch (e) {
-            console.log(e);
-        } finally {
-            setIsLogoutDialogOpen(false);
-        }
-    };
 
-    const logoutDialog = () => {
-        return (
-            <ConfirmDialog
-                open={isLogoutDialogOpen}
-                title={<ConfirmDialog.Title>{TEXT.MSG_LOGOUT_CONFIRM}</ConfirmDialog.Title>}
-                cancelButton={
-                    <ConfirmDialog.CancelButton
-                        onClick={() => setIsLogoutDialogOpen(false)}
-                    >
-                        {TEXT.NO}
-                    </ConfirmDialog.CancelButton>
-                }
-                confirmButton={
-                    <ConfirmDialog.ConfirmButton onClick={onLogoutClick}>
-                        {TEXT.YES}
-                    </ConfirmDialog.ConfirmButton>
-                }
-                onClose={() => setIsLogoutDialogOpen(false)}
-            />
-        );
-    };
+
 
     return (
         <div>
@@ -122,9 +84,6 @@ export default function MapPage() {
                     <MenuButton size="medium" onClick={() => setIsSearchFieldOpen(true)}>
                         {TEXT.SEARCH}
                     </MenuButton>
-                    <MenuButton size="medium" onClick={() => setIsLogoutDialogOpen(true)}>
-                        {TEXT.LOGOUT}
-                    </MenuButton>
                 </ButtonArea>
 
                 <GoogleMap
@@ -132,12 +91,10 @@ export default function MapPage() {
                     center={initialCenter}
                     zoom={13}
                 >
-                    <Marker position={markerPosition} />
                 </GoogleMap>
             </MapWrapper>
 
             {searchFieldComponent()}
-            {logoutDialog()}
         </div>
     );
 }

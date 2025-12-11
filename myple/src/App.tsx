@@ -5,6 +5,7 @@ import PlaceEditPage from "./view/PlaceEditPage";
 import { ROUTES } from "./common/constants";
 import PlaceDetailPage from "./view/PlaceDetailPage";
 import PlaceListPage from "./view/PlaceListPage";
+import MyPage from "./view/MyPage";
 
 function App() {
   return (
@@ -15,6 +16,7 @@ function App() {
         <Route path={ROUTES.PLACE_LIST} element={<PlaceListPage />} />
         <Route path={ROUTES.PLACE_DETAIL} element={<PlaceDetailPage />} />
         <Route path={ROUTES.PLACE_EDIT} element={<PlaceEditPage />} />
+        <Route path={ROUTES.MY} element={<MyPage />} />
       </Routes>
     </div>
   );
