@@ -1,9 +1,9 @@
 import { Request, Response } from 'express';
 import * as tossService from '../service/toss.service';
 import * as accountService from '../service/account.service';
+import * as categoryService from '../service/category.service';
 import { decryptUserData } from '../common/decrypt';
 import { Account } from '../types/account';
-import { updateAccount } from './account.controller';
 
 export const getUserInfo = async (req: Request, res: Response) => {
     try {
@@ -30,6 +30,7 @@ export const getUserInfo = async (req: Request, res: Response) => {
             } : null
             if (accountData) {
                 await accountService.update(accountData.id, accountData)
+                await categoryService.init(accountData.id)
             }
 
             res.status(200).json(accountData);

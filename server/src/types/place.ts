@@ -11,5 +11,6 @@ export interface Place {
     created: string;
     updated: string;
     medias: [];
-    tags: []
+    tags: [];
+    creator: string
 }

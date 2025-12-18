@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import * as placeService from '../service/place.service';
 import { Place } from '../types/place';
+import { deleteAllFilesInPlaceFolder, deleteOrphanFiles } from '../service/file.service';
 
 export const getAllPlaces = async (req: Request, res: Response) => {
     try {
@@ -14,7 +15,7 @@ export const getAllPlaces = async (req: Request, res: Response) => {
 export const getPlaceById = async (req: Request, res: Response) => {
     try {
         const { id } = req.params;
-        const place = await placeService.findPlaceById(id);
+        const place = await placeService.findPlacesById(id);
         if (!place) {
             return res.status(404).json({ message: 'Place not found' });
         }
@@ -37,7 +38,6 @@ export const updatePlace = async (req: Request, res: Response) => {
     try {
         const { id } = req.params;
         const updateData: Partial<Omit<Place, 'id'>> = req.body; // Partial을 사용하여 부분 업데이트 허용
-
         if (Object.keys(updateData).length === 0) {
             return res.status(400).json({ message: 'No update data provided' });
         }
@@ -48,6 +48,7 @@ export const updatePlace = async (req: Request, res: Response) => {
             return res.status(404).json({ message: 'Place not found' });
         }
 
+        await deleteOrphanFiles(id)
         res.status(200).json(updatedPlace);
     } catch (error) {
         console.error('Error updating place:', error); // 에러 로깅
@@ -63,7 +64,7 @@ export const deletePlace = async (req: Request, res: Response) => {
         if (!deleted) {
             return res.status(404).json({ message: 'Place not found' });
         }
-
+        await deleteAllFilesInPlaceFolder(id)
         res.status(200).json({ message: 'Place deleted successfully' }); // 204 No Content를 반환할 수도 있습니다.
     } catch (error) {
         console.error('Error deleting place:', error); // 에러 로깅

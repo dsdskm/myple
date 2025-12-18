@@ -15,12 +15,13 @@ export const findAllPlaces = async (): Promise<Place[]> => {
     }));
 };
 
-export const findPlaceById = async (id: string): Promise<Place | null> => {
-    const doc = await placeCollection.doc(id).get();
-    if (!doc.exists) {
-        return null;
+export const findPlacesById = async (creatorId: string): Promise<Place[]> => {
+    const query = placeCollection.where('creator', '==', creatorId);
+    const snapshot = await query.get();
+    if (snapshot.empty) {
+        return [];
     }
-    return { id: doc.id, ...(doc.data() as Omit<Place, 'id'>) };
+    return snapshot.docs.map(doc => doc.data() as Place);
 };
 
 export const createNewPlace = async (placeData: Place): Promise<Place | null> => {
@@ -28,6 +29,7 @@ export const createNewPlace = async (placeData: Place): Promise<Place | null> =>
         const time = new Date()
         placeData.id = time.getTime().toString()
         placeData.created = getFormattedDateForAccount(time)
+        placeData.updated = placeData.created
         await placeCollection.doc(placeData.id).set(placeData);
         return placeData
     } catch (e) {
@@ -63,5 +65,16 @@ export const deletePlace = async (id: string): Promise<boolean> => {
         return false; // 장소를 찾을 수 없음
     }
     await docRef.delete();
+    return true;
+};
+
+export const deletePlaces = async (): Promise<boolean> => {
+    const batch = db.batch()
+    const snapshot = await placeCollection.get(); // 컬렉션의 모든 문서 가져오기
+
+    snapshot.forEach(doc => {
+        batch.delete(doc.ref); // 각 문서에 대해 삭제 작업 추가
+    });
+    await batch.commit(); // 배치 실행 (한 번에 모두 적용)
     return true;
 };

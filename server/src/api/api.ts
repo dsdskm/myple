@@ -2,10 +2,10 @@ import https from 'https';
 import fs from 'fs';
 import * as path from 'path';
 import { TossToken } from '../types/toss.token';
-import axios, { AxiosInstance, AxiosResponse } from 'axios';
 import { TossUser } from '../types/toss.user';
+import dotenv from 'dotenv';
+dotenv.config();
 
-// ----- 인증서/키 경로 (절대 경로 사용 권장) -----
 const certPath = path.resolve(__dirname, '../../key/myple-mtls_public.crt');
 const keyPath = path.resolve(__dirname, '../../key/myple-mtls_private.key');
 
@@ -129,3 +129,87 @@ export const requestTossUserInfo = async (
         req.end();
     })
 };
+
+export const requestAddress = async (latitude: number, longitude: number): Promise<string> => {
+    const apiKey = process.env.GCP_MAP_KEY;
+    if (!apiKey) {
+        throw new Error('Google Maps API Key is missing');
+    }
+
+    const options: https.RequestOptions = {
+        hostname: 'maps.googleapis.com',
+        path: `/maps/api/geocode/json?latlng=${encodeURIComponent(latitude)},${encodeURIComponent(longitude)}&key=${apiKey}&language=ko&region=kr`,
+        method: 'GET',
+        headers: {
+            'Content-Type': 'application/json; charset=utf-8',
+        },
+    };
+
+    return new Promise<any>((resolve, reject) => {
+        const req = https.request(options, (res) => {
+            let data = '';
+            res.on('data', (chunk) => {
+                data += chunk;
+            });
+            res.on('end', () => {
+                try {
+                    const result = JSON.parse(data);
+                    if (result.status !== 'OK' || !result.results || result.results.length === 0) {
+                        resolve(null); // 결과가 없거나 상태가 OK가 아닐 경우 null 반환
+                        return;
+                    }
+
+                    // 가장 신뢰도 높은 주소 선택
+                    const bestResult = result.results.reduce((best: any, current: any) => {
+                        const bestScore = calculateScore(best);
+                        const currentScore = calculateScore(current);
+                        return currentScore > bestScore ? current : best;
+                    }, result.results[0]);
+
+                    // 가장 신뢰성 있는 전체 주소만 반환
+                    resolve(bestResult.formatted_address || null);
+
+                } catch (err) {
+                    reject(new Error('Failed to parse response data'));
+                }
+            });
+        });
+
+        req.on('error', (err) => {
+            reject(new Error(`Request error: ${err.message}`));
+        });
+
+        req.write('');
+        req.end();
+    });
+};
+
+function calculateScore(result: any): number {
+    let score = 0;
+
+    // 주소 구성 요소 점수
+    if (result.address_components) {
+        const requiredComponents = [
+            'street_number', 'route', 'locality', 'administrative_area_level_1', 'country'
+        ];
+        requiredComponents.forEach(comp => {
+            if (result.address_components.some((c: any) => c.types.includes(comp))) {
+                score += 2;
+            }
+        });
+    }
+
+    // 위치 정확도 점수
+    if (result.geometry?.location_type === 'ROOFTOP' || result.geometry?.location_type === 'RANGE_INTERPOLATED') {
+        score += 3;
+    } else if (result.geometry?.location_type === 'APPROXIMATE') {
+        score += 1;
+    }
+
+    // 포맷된 주소 존재 여부
+    if (result.formatted_address) {
+        score += 2;
+    }
+
+    return score;
+}

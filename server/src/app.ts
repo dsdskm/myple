@@ -1,15 +1,18 @@
 import express, { Application, Request, Response } from 'express';
 import dotenv from 'dotenv';
 import placeRouter from './router/place.router';
+import categoryRouter from './router/category.router';
 import accountRouter from "./router/account.router"
 import tossRouter from "./router/toss.router"
 import fileRouter from "./router/file.router"
+import scriptRouter from "./router/script.router"
 // .env 파일의 환경 변수를 로드합니다.
 dotenv.config();
 
 // Firebase 초기화 코드를 import하여 실행되도록 합니다.
 import './config/firebase';
 import cors from 'cors';
+import { getLocal192IP } from './common/utils';
 
 const app: Application = express();
 const port = process.env.PORT || 3000;
@@ -26,10 +29,12 @@ app.get('/', (req: Request, res: Response) => {
 
 app.use('/account', accountRouter);
 app.use('/place', placeRouter);
+app.use('/category', categoryRouter);
 app.use('/toss', tossRouter);
 app.use('/file', fileRouter);
+app.use('/script', scriptRouter);
 
 // 서버 시작
 app.listen(port, () => {
-    console.log(`Server is running at http://localhost:${port}`);
+    console.log(`Server is running at ${getLocal192IP()}:${port}`);
 });

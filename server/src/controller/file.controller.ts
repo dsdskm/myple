@@ -1,17 +1,17 @@
 import { Request, Response, NextFunction } from 'express';
 import multer from 'multer';
-import { bucket } from '../config/firebase';
 import { uploadFiles } from '../service/file.service';
-import * as path from 'path';
 
-export type MediaItem = {
+export type MediaFile = {
+    fileName: string;
     file: Express.Multer.File;
     type: 'image' | 'video';
 };
 
-export type MediaItemResponse = {
+export type Media = {
     url: string
     type: string
+    fileName: string
 };
 
 const upload = multer({
@@ -45,10 +45,11 @@ export const uploadMediaFiles = async (
                 }
 
                 // Multer.File 배열을 MediaItem 배열로 변환
-                const mediaItems: MediaItem[] = files.map((file) => {
+                const mediaItems: MediaFile[] = files.map((file) => {
+                    const fileName = file.filename
                     const isImage = file.mimetype.startsWith('image/');
                     const type = isImage ? 'image' : 'video';
-                    return { file, type };
+                    return { fileName, file, type };
                 });
 
                 // 변환된 배열을 uploadFiles에 전달
