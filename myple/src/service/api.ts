@@ -1,8 +1,8 @@
 import axios from 'axios';
 import { Media, Place } from '../types/place';
 import { Account } from '../types/account';
-import { ImageResponse } from '@apps-in-toss/web-framework';
 import FormData from 'form-data';
+import { Category } from '../types/category';
 
 const serverApiClient = axios.create({
     baseURL: process.env.REACT_APP_BACKEND_URL,
@@ -59,13 +59,18 @@ export const post = async <TResponse, TBody = unknown>(
 
 export const uploadFiles = async (
     placeId: string,
-    pictures: ImageResponse[]
+    pictures: Media[]
 ): Promise<Media[]> => {
+
+    if (pictures.length === 0) {
+        return []
+    }
+
     const form = new FormData();
     form.append('placeId', placeId);
 
     for (const image of pictures) {
-        const base64 = image.dataUri
+        const base64 = image.url
 
         // Base64 문자열이 비어 있거나 유효하지 않은 경우 처리
         const binary = atob(base64);
@@ -78,7 +83,7 @@ export const uploadFiles = async (
         const blob = new Blob([uint8], { type: 'image/jpeg' });
 
         // 파일명은 image.id 로 지정 (필요하면 .jpg 등 확장자 추가)
-        const fileName = `${image.id}`;
+        const fileName = `${image.fileName}`;
         console.log(`Appending file: ${fileName}`);
         form.append('files', blob, fileName);
     }
@@ -105,13 +110,9 @@ export const updatePlace = async (id: string, placeData: Partial<Omit<Place, 'id
     return response.data;
 };
 
-export const getPlaces = async (): Promise<Place[]> => {
-    const response = await serverApiClient.get<Place[]>('/place');
-    return response.data;
-};
 
-export const getPlace = async (id: string): Promise<Place> => {
-    const response = await serverApiClient.get<Place>(`/place/${id}`);
+export const getPlaces = async (id: string): Promise<Place[] | []> => {
+    const response = await serverApiClient.get<Place[] | []>(`/place/${id}`);
     return response.data;
 };
 
@@ -133,3 +134,22 @@ export const requestLogout = async (userKey: number, referrer: string) => {
     return await serverApiClient.post("/toss/logout", { "userKey": userKey, "referrer": referrer })
 }
 
+export const createCategory = async (data: Omit<Category, 'id' | 'created'>): Promise<Place> => {
+    const response = await serverApiClient.post<Place>('/category', data);
+    return response.data;
+};
+
+export const updateCategory = async (id: string, data: Partial<Omit<Category, 'id' | 'created'>>): Promise<Category> => {
+    const response = await serverApiClient.put<Category>(`/category/${id}`, data);
+    return response.data;
+};
+
+
+export const getCategory = async (id: string): Promise<Category> => {
+    const response = await serverApiClient.get<Category>(`/category/${id}`);
+    return response.data;
+};
+
+export const deleteCategory = async (id: string): Promise<void> => {
+    await serverApiClient.delete(`/category/${id}`);
+};

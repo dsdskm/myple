@@ -1,0 +1,18 @@
+.collapse-content {
+  opacity: 0;
+  transform: translateY(10px);
+  transition: 
+    max-height 0.4s ease-out,
+    opacity 0.3s ease,
+    transform 0.35s ease;
+}
+
+.collapse-enter-active .collapse-content {
+  opacity: 1;
+  transform: translateY(0);
+  max-height: 1000px;
+  transition: 
+    max-height 0.4s ease-in,
+    opacity 0.3s ease-in,
+    transform 0.35s ease-in;
+}

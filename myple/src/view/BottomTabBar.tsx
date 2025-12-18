@@ -34,7 +34,6 @@ const TabButton = styled(Link)`
 
 const TabIcon = styled.div`
   font-size: 24px;
-  /* 이미지가 중앙에 오도록 */
   display: flex;
   justify-content: center;
   align-items: center;

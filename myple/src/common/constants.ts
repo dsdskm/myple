@@ -32,10 +32,16 @@ export const TEXT = {
     DELETE: "삭제",
     YES: "예",
     NO: "아니오",
-    TAKE_PHOTO:"사진 촬영하기",
+    TAKE_PHOTO: "사진 촬영하기",
     GET_POHOTO: "사진 가져오기",
     LOGIN: "로그인",
     LOGOUT: "로그아웃",
+    WITHDRAW: "탈퇴",
+    ORDERING: "정렬",
+    CURRENT_LOCATION: "현재위치",
+    CATEGORY_ADD:"카테고리 추가",
+    CATEGORY_LIMIT: "카테고리 최대 수",
+    CATEGORY_LIST: "카테고리 목록",
     MSG_LOGIN_SUCCESS: "로그인 성공",
     MSG_LOGIN_FAILED: "로그인 실패",
     MSG_LOGOUT_CONFIRM: "로그아웃하시겠습니까?",
@@ -43,15 +49,23 @@ export const TEXT = {
     MSG_PLACE_NAME: "장소 이름을 입력하세요.(10자이내)",
     MSG_CATEGORY: "카테고리를 선택하세요.",
     MSG_CREATE_PLACE_CONFIRM: "장소를 등록하시겠습니까?",
+    MSG_MODIFY_PLACE_CONFIRM: "장소를 수정하시겠습니까?",
+    MSG_DELETE_PLACE_CONFIRM: "장소를 삭제하시겠습니까?",
     MSG_LOCATION_GUIDE: "지도에서 위치를 선택하세요.",
     MSG_MEMO: "내용를 입력하세요.",
+    MSG_PICTURES: "사진은 최대 10장 업로드 가능합니다.",
+    MSG_ORDERING_MENU: "정렬 기준을 선택하세요.",
+    MSG_SEARCH_HINT: "장소를 입력하세요.",
     MENU_CHOICE_ITEMS: "항목을 선택하세요",
-    MENU_CATEGORY_CHOICE: "카테고리 선택"
-}
+    MENU_CATEGORY_CHOICE: "카테고리 선택",
+    MENU_ORDERING_NAME_DESC: "장소 이름 내림차순",
+    MENU_ORDERING_NAME_ASC: "장소 이름 오름차순",
+    MENU_ORDERING_RATING_DESC: "별점 높은순",
+    MENU_ORDERING_RATING_ASC: "별점 낮은순",
+    MENU_ORDERING_VISITAT_DESC: "방문일 최근순",
+    MENU_ORDERING_VISITAT_ASC: "방문일 오래된순",
 
-export const CATEGORY_LIST = [
-    "맛집", "카페", "숙소", "문화", "기타"
-]
+}
 
 export const LOGOUT_REFERRER = {
     UNLINK: "UNLINK", // 로그아웃

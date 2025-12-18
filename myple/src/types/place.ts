@@ -11,10 +11,12 @@ export interface Place {
     created: string;
     updated: string;
     medias: Media[];
-    tags: []
+    tags: [];
+    creator: string;
 }
 
 export interface Media {
     type: string;
     url: string
+    fileName: string
 }

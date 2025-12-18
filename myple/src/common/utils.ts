@@ -1,4 +1,4 @@
-import { Dayjs } from "dayjs";
+import dayjs, { Dayjs } from "dayjs";
 
 export const formatDate = (dateTimeString: string): string => {
     const date = new Date(dateTimeString);
@@ -26,5 +26,29 @@ export const formatDateWithDay = (dateObj: Dayjs | null) => {
     } else {
         return ""
     }
-
 }
+
+export const parseDateWithDay = (str: string): Dayjs | null => {
+    // 입력이 없으면 바로 null 반환
+    if (!str) return null;
+
+    // 정규식으로 날짜·시간·요일을 추출
+    //   2025-12-16   → datePart
+    //   화요일       → koreanWeekday
+    //   14:49        → timePart
+    const regex = /^(\d{4}-\d{2}-\d{2})\s+([가-힣]{3,4})\s+(\d{1,2}:\d{2})$/;
+    const match = str.match(regex);
+    if (!match) return null;               // 포맷이 맞지 않으면 null
+
+    const [, datePart, timePart] = match;
+
+    // 요일은 파싱에 필요 없으므로 무시하고, 날짜·시간만 사용
+    // dayjs는 기본적으로 ISO‑8601 형식(YYYY-MM-DDTHH:mm) 을 인식하므로
+    // 문자열을 그대로 전달하면 된다.
+    const parsed = dayjs(`${datePart} ${timePart}`, 'YYYY-MM-DD HH:mm');
+
+    // (선택) 파싱 결과가 유효한지 한 번 더 확인
+    if (!parsed.isValid()) return null;
+
+    return parsed;
+};

@@ -24,7 +24,6 @@ interface ToastInfo {
 }
 
 const LoginPage = () => {
-    console.log(`LoginPage`)
     const navigate = useNavigate()
     const { setAccount } = useApp()
     const [toastInfo, setToastInfo] = useState<ToastInfo>({
