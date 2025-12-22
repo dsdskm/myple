@@ -127,7 +127,7 @@ const PlaceEditPage = () => {
     const isEditMode = selectedPlace ? true : false
     const [name, setName] = useState<string>("")
     const [nameError, setNameError] = useState<boolean>(false)
-    const [category, setCategory] = useState<string>("")
+    const [category, setCategory] = useState<number>(0)
     const [address, setAddress] = useState<string>("")
     const [latitude, setLatitude] = useState<number>(0)
     const [longitude, setLongitude] = useState<number>(0)
@@ -142,7 +142,7 @@ const PlaceEditPage = () => {
         show: false,
         message: ""
     })
-    const [categoryList, setCategoryList] = useState<string[]>([])
+    const [categoryList, setCategoryList] = useState<{ "id": number, "title": string }[]>([])
     const [isCreateDialogOpen, setIsCreateDialogOpen] = useState<boolean>(false);
     const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState<boolean>(false)
     const [currentLocation, setCurrentLocation] = useState<number[]>([37.5665, 126.9780])
@@ -188,7 +188,7 @@ const PlaceEditPage = () => {
     }, [])
     const resetAll = () => {
         setName("")
-        setCategory("")
+        setCategory(0)
         setAddress("")
         setLatitude(0)
         setLongitude(0)
@@ -270,6 +270,7 @@ const PlaceEditPage = () => {
     }
 
     const categoryView = () => {
+        const currentCategory = categoryList.filter(c => c.id === category)
         return <>
             <Post.H3>{TEXT.CATEGORY}</Post.H3>
             <CommonentWrapper>
@@ -280,26 +281,28 @@ const PlaceEditPage = () => {
                     placement="bottom"
                     dropdown={
                         <Menu.Dropdown header={<Menu.Header>{TEXT.MENU_CHOICE_ITEMS}</Menu.Header>}>
-                            {categoryList.map((item) => (
-                                <Menu.DropdownCheckItem
-                                    key={item}
-                                    checked={category === item}
+                            {categoryList.map((item) => {
+                                const id = item.id
+                                const title = item.title
+                                return <Menu.DropdownCheckItem
+                                    key={id}
+                                    checked={category === id}
                                     onCheckedChange={(checked: boolean) => {
                                         if (checked) {
-                                            setCategory(item)
+                                            setCategory(id)
                                         } else {
                                             return null
                                         }
                                         setCategoryMenuOpen(false)
                                     }}
                                 >
-                                    {item}
+                                    {title}
                                 </Menu.DropdownCheckItem>
-                            ))}
+                            })}
                         </Menu.Dropdown>
                     }
                 >
-                    <Button color="light">{category ? category : TEXT.MENU_CATEGORY_CHOICE}</Button>
+                    <Button color="light">{currentCategory && currentCategory[0] ? currentCategory[0].title : TEXT.MENU_CATEGORY_CHOICE}</Button>
                 </Menu.Trigger >
             </CommonentWrapper >
         </>
@@ -469,7 +472,6 @@ const PlaceEditPage = () => {
                         selectedPlace.medias = selectedPlace.medias.concat(newMedias)
                     }
 
-                    console.log(`selectedPlace`, selectedPlace)
                     await updatePlace(selectedPlace.id, selectedPlace)
                 } else {
                     const data: Place = {

@@ -14,6 +14,8 @@ export const TEXT = {
     ADD: "ADD",
     PLACE_NAME: "장소 이름",
     CATEGORY: "카테고리",
+    CATEGORY_MODIFY: "카테고리 수정",
+    CATEGORY_MANAGEMENT: "카테고리 관리",
     ADDRESS: "주소",
     LATITUDE_LONGITUDE: "위도, 경도",
     LOCATION: "위치",
@@ -39,9 +41,22 @@ export const TEXT = {
     WITHDRAW: "탈퇴",
     ORDERING: "정렬",
     CURRENT_LOCATION: "현재위치",
-    CATEGORY_ADD:"카테고리 추가",
+    CATEGORY_ADD: "카테고리 추가",
     CATEGORY_LIMIT: "카테고리 최대 수",
     CATEGORY_LIST: "카테고리 목록",
+    ID: "ID",
+    NAME: "이름",
+    GENDER: "성별",
+    AGREED_TERMS: "약관 동의",
+    PHONE: "전화번호",
+    BIRTHDAY: "생년월일",
+    MALE: "남",
+    FEMALE: "여",
+    ACCOUNT_TYPE: "계정 유형",
+    UPGRADE: "업그레이드",
+    SUBSCRIPTION: "구독",
+    SUBSCRIPTION_BENEFITS: "구독 혜택",
+    SUBSCRIPTION_LIMITATIONS: "제약 사항",
     MSG_LOGIN_SUCCESS: "로그인 성공",
     MSG_LOGIN_FAILED: "로그인 실패",
     MSG_LOGOUT_CONFIRM: "로그아웃하시겠습니까?",
@@ -56,6 +71,8 @@ export const TEXT = {
     MSG_PICTURES: "사진은 최대 10장 업로드 가능합니다.",
     MSG_ORDERING_MENU: "정렬 기준을 선택하세요.",
     MSG_SEARCH_HINT: "장소를 입력하세요.",
+    MSG_SUBSCRIBE: "구독하시겠습니까?",
+    MSG_SUBSCRIBE_COMPLETED: "구독이 완료되었습니다. 감사합니다.",
     MENU_CHOICE_ITEMS: "항목을 선택하세요",
     MENU_CATEGORY_CHOICE: "카테고리 선택",
     MENU_ORDERING_NAME_DESC: "장소 이름 내림차순",
@@ -72,3 +89,6 @@ export const LOGOUT_REFERRER = {
     WITHDRAWAL_TERMS: "WITHDRAWAL_TERMS", // 약관 철회
     WITHDRAWAL_TOSS: "WITHDRAWAL_TOSS" // 탈퇴
 }
+
+export const ACCOUNT_TYPE_USER_BASIC = "BASIC"
+export const ACCOUNT_TYPE_USER_PRO = "PRO"

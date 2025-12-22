@@ -3,6 +3,7 @@ import { Media, Place } from '../types/place';
 import { Account } from '../types/account';
 import FormData from 'form-data';
 import { Category } from '../types/category';
+import { SubscriptionInfo } from '../types/subscriptionInfo';
 
 const serverApiClient = axios.create({
     baseURL: process.env.REACT_APP_BACKEND_URL,
@@ -99,6 +100,17 @@ export const uploadFiles = async (
     return []
 };
 
+export const updateUser = async (userData: Partial<Account>): Promise<Account> => {
+    console.log(`userData ${JSON.stringify(userData)}`)
+    const response = await serverApiClient.put<Account>(`/account/${userData.id}`, userData)
+    return response.data
+}
+
+export const getUser = async (id: string): Promise<Account> => {
+    const response = await serverApiClient.get<Account>(`/account/${id}`)
+    return response.data
+}
+
 
 export const createPlace = async (placeData: Omit<Place, 'id' | 'created'>): Promise<Place> => {
     const response = await serverApiClient.post<Place>('/place', placeData);
@@ -140,7 +152,7 @@ export const createCategory = async (data: Omit<Category, 'id' | 'created'>): Pr
 };
 
 export const updateCategory = async (id: string, data: Partial<Omit<Category, 'id' | 'created'>>): Promise<Category> => {
-    const response = await serverApiClient.put<Category>(`/category/${id}`, data);
+    const response = await serverApiClient.put<Category>(`/category`, data);
     return response.data;
 };
 
@@ -153,3 +165,8 @@ export const getCategory = async (id: string): Promise<Category> => {
 export const deleteCategory = async (id: string): Promise<void> => {
     await serverApiClient.delete(`/category/${id}`);
 };
+
+export const getSubscriptionInfo = async () => {
+    const response = await serverApiClient.get<SubscriptionInfo>('/info/subscription')
+    return response.data
+}

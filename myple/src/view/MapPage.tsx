@@ -100,9 +100,7 @@ export default function MapPage() {
                 if (paramPlace) {
                     setMapCenterLocation({ lat: paramPlace.latitude, lng: paramPlace.longitude })
                 } else {
-                    const response = await getCurrentLocation({ accuracy: Accuracy.Balanced });
-                    setCurrentLocation([response.coords.latitude, response.coords.longitude])
-                    setMapCenterLocation({ lat: currentLocation[0], lng: currentLocation[1] })
+                    onCurrentLocationClick()
                 }
             } catch (err) {
                 console.log(err)
@@ -164,11 +162,19 @@ export default function MapPage() {
 
         setSelectedPlace(null)
     }
+
+    const onCurrentLocationClick = async () => {
+        const response = await getCurrentLocation({ accuracy: Accuracy.Balanced });
+        setCurrentLocation([response.coords.latitude, response.coords.longitude])
+        setMapCenterLocation({ lat: response.coords.latitude, lng: response.coords.longitude })
+        setZoome(DEFAULT_ZOOM)
+    }
     return (
         <div>
             <BottomTabBar />
             <MapWrapper>
                 <ButtonArea>
+                    <Button size='small' onClick={onCurrentLocationClick}>{TEXT.CURRENT_LOCATION}</Button>
                 </ButtonArea>
 
                 <GoogleMap
