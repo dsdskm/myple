@@ -26,7 +26,7 @@ export const createCategory = async (req: Request, res: Response) => {
 
 export const updateCategory = async (req: Request, res: Response) => {
     try {
-        const { id } = req.params;
+        const { id } = req.body;
         const updateData: Partial<Omit<Category, 'id'>> = req.body; // Partial을 사용하여 부분 업데이트 허용
         if (Object.keys(updateData).length === 0) {
             return res.status(400).json({ message: 'No update data provided' });

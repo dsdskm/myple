@@ -93,7 +93,7 @@ export const generatePlaces = async (req: Request, res: Response) => {
             const data: Place = {
                 id: '',
                 name: name,
-                category: category,
+                category: 0,
                 latitude: latitude,
                 longitude: longitude,
                 address: address,

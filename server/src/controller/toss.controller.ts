@@ -13,7 +13,7 @@ export const getUserInfo = async (req: Request, res: Response) => {
             const user = await tossService.requestUserInfo(tossToken);
             const accountData: Account | null = user ? {
                 id: decryptUserData(user.email),
-                type: 'user',
+                type: 'BASIC',
                 status: 'active',
                 userKey: user.userKey,
                 scope: user.scope,
@@ -26,7 +26,8 @@ export const getUserInfo = async (req: Request, res: Response) => {
                 di: decryptUserData(user.di),
                 gender: decryptUserData(user.gender),
                 nationality: decryptUserData(user.nationality),
-                email: decryptUserData(user.email)
+                email: decryptUserData(user.email),
+                updated: ""
             } : null
             if (accountData) {
                 await accountService.update(accountData.id, accountData)
@@ -46,6 +47,7 @@ export const getUserInfo = async (req: Request, res: Response) => {
 
 
 export const logout = async (req: Request, res: Response) => {
+    console.log(`logout`)
     try {
         const { userKey, referrer } = req.body;
         await tossService.requestLogout(userKey, referrer)

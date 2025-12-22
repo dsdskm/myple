@@ -1,5 +1,6 @@
 import express, { Application, Request, Response } from 'express';
 import dotenv from 'dotenv';
+import infoRouter from './router/info.router';
 import placeRouter from './router/place.router';
 import categoryRouter from './router/category.router';
 import accountRouter from "./router/account.router"
@@ -27,6 +28,7 @@ app.get('/', (req: Request, res: Response) => {
     res.send('Welcome to the myple API Server!');
 });
 
+app.use('/info', infoRouter);
 app.use('/account', accountRouter);
 app.use('/place', placeRouter);
 app.use('/category', categoryRouter);
