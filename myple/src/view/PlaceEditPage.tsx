@@ -320,6 +320,7 @@ const PlaceEditPage = () => {
                     {latitude !== 0 && longitude !== 0 && < Marker position={{ lat: latitude, lng: longitude }} />}
                 </GoogleMap>
             </Post.Paragraph>
+            <div style={{ marginTop: 10 }}></div>
             <Post.H3>{TEXT.ADDRESS}</Post.H3>
             <TextField
                 variant="box"
@@ -358,7 +359,7 @@ const PlaceEditPage = () => {
     }
 
     const imageView = () => {
-        return <>
+        return <div style={{ marginTop: 10 }}>
             <Post.H3>{TEXT.PICTURE}</Post.H3>
             <CommonentWrapper>
                 <Button onClick={handleOpenCamera} color="light" style={{ marginBottom: 10 }}>{TEXT.TAKE_PHOTO}</Button>
@@ -394,11 +395,11 @@ const PlaceEditPage = () => {
                     })}
                 </ImagePreviewContainer>
             </CommonentWrapper>
-        </>
+        </div>
     }
 
     const visitTimeView = () => {
-        return <>
+        return <div style={{ marginTop: 10 }}>
             <Post.H3>{TEXT.VISIT_AT}</Post.H3>
             <CommonentWrapper>
                 <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale="ko" localeText={koKR.components.MuiLocalizationProvider.defaultProps.localeText}>
@@ -408,7 +409,7 @@ const PlaceEditPage = () => {
                     />
                 </LocalizationProvider>
             </CommonentWrapper>
-        </>
+        </div>
     }
 
     const buttonView = () => {

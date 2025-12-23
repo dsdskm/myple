@@ -78,6 +78,7 @@ const PlaceListPage = () => {
     const [openMap, setOpenMap] = useState<Map<string, boolean>>(new Map())
     const [menuOpen, setMenuOpen] = useState<boolean>(false)
     const [menu, setMenu] = useState<number>(MENU_ORDERING_NAME_DESC)
+    const [currentOrder, setCurrentOrder] = useState<string>(TEXT.MENU_ORDERING_NAME_DESC)
 
     useEffect(() => {
         const loadPlaces = async () => {
@@ -127,8 +128,9 @@ const PlaceListPage = () => {
     }
 
     const dropdownView = () => {
-        const onCheckedNumChange = (number: number, checked: boolean) => {
+        const onCheckedNumChange = (number: number, order: string) => {
             setMenu(number)
+            setCurrentOrder(order)
             setMenuOpen(false)
         }
         return (
@@ -143,44 +145,44 @@ const PlaceListPage = () => {
                         <Menu.Dropdown header={<Menu.Header>{TEXT.MSG_ORDERING_MENU}</Menu.Header>}>
                             <Menu.DropdownCheckItem
                                 checked={menu === MENU_ORDERING_NAME_DESC}
-                                onCheckedChange={(checked: boolean) => onCheckedNumChange(MENU_ORDERING_NAME_DESC, checked)}
+                                onCheckedChange={(checked: boolean) => onCheckedNumChange(MENU_ORDERING_NAME_DESC, TEXT.MENU_ORDERING_NAME_DESC)}
                             >
                                 {TEXT.MENU_ORDERING_NAME_DESC}
                             </Menu.DropdownCheckItem>
                             <Menu.DropdownCheckItem
                                 checked={menu === MENU_ORDERING_NAME_ASC}
-                                onCheckedChange={(checked: boolean) => onCheckedNumChange(MENU_ORDERING_NAME_ASC, checked)}
+                                onCheckedChange={(checked: boolean) => onCheckedNumChange(MENU_ORDERING_NAME_ASC, TEXT.MENU_ORDERING_NAME_ASC)}
                             >
                                 {TEXT.MENU_ORDERING_NAME_ASC}
                             </Menu.DropdownCheckItem>
                             <Menu.DropdownCheckItem
                                 checked={menu === MENU_ORDERING_RATING_DESC}
-                                onCheckedChange={(checked: boolean) => onCheckedNumChange(MENU_ORDERING_RATING_DESC, checked)}
+                                onCheckedChange={(checked: boolean) => onCheckedNumChange(MENU_ORDERING_RATING_DESC, TEXT.MENU_ORDERING_RATING_DESC)}
                             >
                                 {TEXT.MENU_ORDERING_RATING_DESC}
                             </Menu.DropdownCheckItem>
                             <Menu.DropdownCheckItem
                                 checked={menu === MENU_ORDERING_RATING_ASC}
-                                onCheckedChange={(checked: boolean) => onCheckedNumChange(MENU_ORDERING_RATING_ASC, checked)}
+                                onCheckedChange={(checked: boolean) => onCheckedNumChange(MENU_ORDERING_RATING_ASC, TEXT.MENU_ORDERING_RATING_ASC)}
                             >
                                 {TEXT.MENU_ORDERING_RATING_ASC}
                             </Menu.DropdownCheckItem>
                             <Menu.DropdownCheckItem
                                 checked={menu === MENU_ORDERING_VISITAT_DESC}
-                                onCheckedChange={(checked: boolean) => onCheckedNumChange(MENU_ORDERING_VISITAT_DESC, checked)}
+                                onCheckedChange={(checked: boolean) => onCheckedNumChange(MENU_ORDERING_VISITAT_DESC, TEXT.MENU_ORDERING_VISITAT_DESC)}
                             >
                                 {TEXT.MENU_ORDERING_VISITAT_DESC}
                             </Menu.DropdownCheckItem>
                             <Menu.DropdownCheckItem
                                 checked={menu === MENU_ORDERING_VISITAT_ASC}
-                                onCheckedChange={(checked: boolean) => onCheckedNumChange(MENU_ORDERING_VISITAT_ASC, checked)}
+                                onCheckedChange={(checked: boolean) => onCheckedNumChange(MENU_ORDERING_VISITAT_ASC, TEXT.MENU_ORDERING_VISITAT_ASC)}
                             >
                                 {TEXT.MENU_ORDERING_VISITAT_ASC}
                             </Menu.DropdownCheckItem>
                         </Menu.Dropdown>
                     }
                 >
-                    <Button size="small">{TEXT.ORDERING}</Button>
+                    <Button size="small">{currentOrder}</Button>
                 </Menu.Trigger>
             </MenuWrapper>
         );
