@@ -1,5 +1,5 @@
 import { Button, ConfirmDialog, FixedBottomCTA, Menu, Post, Rating, TextArea, TextField, Toast } from "@toss/tds-mobile"
-import { ROUTES, TEXT } from "../common/constants"
+import { ACCOUNT_TYPE_USER_BASIC, ACCOUNT_TYPE_USER_PRO, ROUTES, TEXT } from "../common/constants"
 import { GoogleMap, Marker } from "@react-google-maps/api"
 import { useCallback, useEffect, useState } from "react";
 import { formatDateWithDay, parseDateWithDay, roundToFour } from "../common/utils";
@@ -70,7 +70,7 @@ const ImagePreview = ({ src, id, onClick, onDelete }: ImagePreviewProps) => {
                 onClick={(e) => {
                     e.stopPropagation(); // 이미지 클릭 이벤트 방지
                     const confirmDelete = async () => {
-                        if (window.confirm('선택한 이미지를 삭제하시겠습니까?')) {
+                        if (window.confirm(TEXT.MSG_IMAGE_DELETE)) {
                             onDelete(id);
                         }
                     };
@@ -156,7 +156,6 @@ const PlaceEditPage = () => {
                 }
             }
         }
-
         loadCategories()
 
     }, [account])
@@ -373,7 +372,7 @@ const PlaceEditPage = () => {
                             onClick={() => { }}
                             onDelete={(id) => {
                                 if (isEditMode) {
-                                    setMedias(medias.filter((m: any) => m.url !== id));
+                                    setMedias(medias.filter((m: any) => m.fileName !== id));
                                 }
                             }}
                         />
@@ -448,9 +447,13 @@ const PlaceEditPage = () => {
             toastInfo.show = true
             toastInfo.message = TEXT.MSG_CATEGORY
             setToastInfo({ ...toastInfo })
-        } else if (pictureFiles.length > 10) {
+        } else if (account.type === ACCOUNT_TYPE_USER_BASIC && pictureFiles.length + medias.length > 10) {
             toastInfo.show = true
-            toastInfo.message = TEXT.MSG_PICTURES
+            toastInfo.message = TEXT.MSG_PICTURES_BASIC
+            setToastInfo({ ...toastInfo })
+        } else if (account.type === ACCOUNT_TYPE_USER_PRO && pictureFiles.length + medias.length > 30) {
+            toastInfo.show = true
+            toastInfo.message = TEXT.MSG_PICTURES_PRO
             setToastInfo({ ...toastInfo })
         } else {
 

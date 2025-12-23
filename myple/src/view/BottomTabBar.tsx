@@ -44,38 +44,41 @@ const TabLabel = styled.div`
   margin-top: 4px;
 `;
 
-/* ---------- 아이콘 정의 ---------- */
-/* public 폴더에 있는 search.png 를 아이콘으로 사용합니다.
-   여기서는 같은 이미지를 모든 탭에 사용했지만,
-   필요에 따라 각각 다른 이미지를 지정해도 됩니다. */
-const SearchIcon = () => (
-    <img
-        src="/search.png"          /* public/search.png 가 자동으로 /search.png 로 매핑됩니다 */
-        alt="search"
-        style={{ width: 24, height: 24, objectFit: 'contain' }}
-    />
-);
-
-/* ---------- 탭 데이터 ---------- */
 const tabs = [
     {
         label: 'Map',
-        icon: <SearchIcon />,   // 이미지 컴포넌트를 직접 넣어줍니다
+        icon: <img
+            src="/tab_map.png"          /* public/search.png 가 자동으로 /search.png 로 매핑됩니다 */
+            alt="search"
+            style={{ width: 24, height: 24, objectFit: 'contain' }}
+        />,   // 이미지 컴포넌트를 직접 넣어줍니다
         path: ROUTES.MAP,
     },
     {
         label: 'List',
-        icon: <SearchIcon />,
+        icon: <img
+            src="/tab_list.png"          /* public/search.png 가 자동으로 /search.png 로 매핑됩니다 */
+            alt="search"
+            style={{ width: 24, height: 24, objectFit: 'contain' }}
+        />,
         path: ROUTES.PLACE_LIST,
     },
     {
         label: 'Add',
-        icon: <SearchIcon />,
+        icon: <img
+            src="/tab_add.png"          /* public/search.png 가 자동으로 /search.png 로 매핑됩니다 */
+            alt="search"
+            style={{ width: 24, height: 24, objectFit: 'contain' }}
+        />,
         path: ROUTES.PLACE_EDIT,
     },
     {
         label: 'My',
-        icon: <SearchIcon />,
+        icon: <img
+            src="/tab_info.png"          /* public/search.png 가 자동으로 /search.png 로 매핑됩니다 */
+            alt="search"
+            style={{ width: 24, height: 24, objectFit: 'contain' }}
+        />,
         path: ROUTES.MY,
     },
 ];

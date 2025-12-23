@@ -4,11 +4,12 @@ import styled from 'styled-components';
 import { BottomSheet, Button, Post, Rating } from '@toss/tds-mobile';
 import { ROUTES, TEXT } from '../common/constants';
 import BottomTabBar from './BottomTabBar';
-import { getPlaces } from '../service/api';
+import { getCategory, getPlaces } from '../service/api';
 import { useApp } from '../context/AppContext';
 import { Place } from '../types/place';
 import { Accuracy, getCurrentLocation } from '@apps-in-toss/web-framework';
 import { useLocation, useNavigate } from 'react-router-dom';
+import { getDPlusTime, slicingVisitAtTime } from '../common/utils';
 
 const MapWrapper = styled.div`
   position: relative;
@@ -84,6 +85,7 @@ export default function MapPage() {
     const [currentLocation, setCurrentLocation] = useState<number[]>([37.5665, 126.9780])
     const [selectedPlace, setSelectedPlace] = useState<Place | null>()
     const [zoom, setZoome] = useState<number>(DEFAULT_ZOOM)
+    const [categoryMap, setCategoryMap] = useState<Map<number, string>>()
 
     useEffect(() => {
         const loadPlaces = async () => {
@@ -93,6 +95,22 @@ export default function MapPage() {
 
         loadPlaces()
     }, [account.id])
+
+    useEffect(() => {
+        const loadCategories = async () => {
+            if (account) {
+                const categoryData = await getCategory(account.id)
+                if (categoryData) {
+                    const map = new Map<number, string>()
+                    categoryData.list.forEach((c) => map.set(c.id, c.title))
+                    setCategoryMap(map)
+                }
+            }
+        }
+
+        loadCategories()
+
+    }, [account])
 
     useEffect(() => {
         const initMapCenter = async () => {
@@ -113,7 +131,7 @@ export default function MapPage() {
     }, [paramPlace])
 
     const placeInfoComponent = () => {
-        return selectedPlace && <BottomSheet
+        return selectedPlace && categoryMap && <BottomSheet
             UNSAFE_disableFocusLock
             open={isPlaceInfoOpen}
             onClose={() => setIsPlaceInfoOpen(false)}
@@ -121,14 +139,15 @@ export default function MapPage() {
                 <PlaceInfoHeader>
                     <div>
                         <BottomSheet.Header>{selectedPlace.name}</BottomSheet.Header>
-                        <Post.Paragraph>{selectedPlace.category}</Post.Paragraph>
+                        <Post.Paragraph>{categoryMap.get(selectedPlace.category)}</Post.Paragraph>
+                        {selectedPlace.visitAt && <Post.Paragraph>{slicingVisitAtTime(selectedPlace.visitAt)}, {getDPlusTime(selectedPlace.visitAt)}</Post.Paragraph>}
                     </div>
                     <Rating readOnly={false} value={selectedPlace.rating} max={selectedPlace.rating} size="medium" aria-label={TEXT.RATING} />
                 </PlaceInfoHeader>
             }>
 
             <Post.Paragraph>{selectedPlace.memo}</Post.Paragraph>
-            {selectedPlace.address && <Post.Paragraph>{selectedPlace.address}</Post.Paragraph>}
+            {selectedPlace.address && <Post.Paragraph style={{ marginTop: 10 }}>{selectedPlace.address}</Post.Paragraph>}
             {selectedPlace.medias.length > 0 && <ImagePreviewContainer>
                 {selectedPlace.medias.map((image) => {
                     return <ImagePreview src={image.url} key={image.url} alt="" />;
@@ -167,8 +186,9 @@ export default function MapPage() {
         const response = await getCurrentLocation({ accuracy: Accuracy.Balanced });
         setCurrentLocation([response.coords.latitude, response.coords.longitude])
         setMapCenterLocation({ lat: response.coords.latitude, lng: response.coords.longitude })
-        setZoome(DEFAULT_ZOOM)
     }
+    const allMakerList = [...myPlaceList, { id: "curloc", name: "current", latitude: currentLocation[0], longitude: currentLocation[1] }]
+
     return (
         <div>
             <BottomTabBar />
@@ -182,26 +202,22 @@ export default function MapPage() {
                     center={mapCenterLocation}
                     zoom={zoom}
                 >
-                    {currentLocation[0] > 0 && currentLocation[1] > 0 && <Marker
-                        key={"current"}
-                        label={TEXT.CURRENT_LOCATION}
-                        title={TEXT.CURRENT_LOCATION}
-                        position={{
-                            lat: currentLocation[0], lng: currentLocation[1]
-                        }}
-                    />}
-                    {myPlaceList.map((marker) => {
+                    {allMakerList.map((marker) => {
+                        const isCurrent = marker.id === "curloc"
                         return <Marker
                             key={marker.id}
                             label={marker.name}
                             title={marker.name}
+                            icon={isCurrent ? {
+                                url: "current_location.png", scaledSize: new google.maps.Size(40, 40)
+                            } : undefined}
                             position={{
                                 lat: marker.latitude, lng: marker.longitude
                             }}
-                            onClick={() => onMarkerClick(marker.id)}
+                            onClick={() => isCurrent ? undefined : onMarkerClick(marker.id)}
                         />
-
                     })}
+
                 </GoogleMap>
             </MapWrapper>
 

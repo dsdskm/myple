@@ -1,14 +1,15 @@
 import { useNavigate } from "react-router-dom"
 import BottomTabBar from "./BottomTabBar"
 import { useApp } from "../context/AppContext"
-import { ChangeEvent, useEffect, useState } from "react"
+import { ChangeEvent, useEffect, useMemo, useState } from "react"
 import { Place } from "../types/place"
-import { getPlaces } from "../service/api"
+import { getCategory, getPlaces } from "../service/api"
 import { Button, ListHeader, Menu, Post, Rating, SearchField } from "@toss/tds-mobile"
 import styled from 'styled-components';
 import { ROUTES, TEXT } from "../common/constants"
 import { Collapse } from 'react-collapse'; // react-collapse 사용
 import './Collapse.css';
+import { getDPlusTime, parseKoreanDateTime, slicingVisitAtTime } from "../common/utils"
 
 const ImagePreviewContainer = styled.div`
     height: 270px;
@@ -61,14 +62,6 @@ const SubmitButton = styled(Button)`
 `;
 
 
-const ListIcon = () => (
-    <img
-        src="/search.png"
-        alt="search"
-        style={{ width: 24, height: 24, objectFit: 'contain' }}
-    />
-);
-
 const MENU_ORDERING_NAME_DESC = 1;
 const MENU_ORDERING_NAME_ASC = 2;
 const MENU_ORDERING_RATING_DESC = 3;
@@ -81,6 +74,7 @@ const PlaceListPage = () => {
     const { account } = useApp()
     const [myPlaceList, setMyPlaceList] = useState<Place[] | []>([])
     const [filteredList, setFilteredList] = useState<Place[] | []>([])
+    const [categoryMap, setCategoryMap] = useState<Map<number, string>>()
     const [openMap, setOpenMap] = useState<Map<string, boolean>>(new Map())
     const [menuOpen, setMenuOpen] = useState<boolean>(false)
     const [menu, setMenu] = useState<number>(MENU_ORDERING_NAME_DESC)
@@ -99,26 +93,32 @@ const PlaceListPage = () => {
     }, [account.id])
 
     useEffect(() => {
-        let list = [...filteredList];
-        list = list.sort((a: Place, b: Place) => {
-            if (menu === MENU_ORDERING_NAME_DESC) {
-                return a.name > b.name ? 1 : -1
-            } else if (menu === MENU_ORDERING_NAME_ASC) {
-                return a.name < b.name ? 1 : -1
-            } else if (menu === MENU_ORDERING_RATING_DESC) {
-                return b.rating - a.rating
-            } else if (menu === MENU_ORDERING_RATING_ASC) {
-                return a.rating - b.rating
-            } else if (menu === MENU_ORDERING_VISITAT_DESC) {
-                return a.visitAt < b.visitAt ? 1 : -1
-            } else if (menu === MENU_ORDERING_VISITAT_ASC) {
-                return a.visitAt > b.visitAt ? 1 : -1
-            } else {
-                return a.name > b.name ? 1 : -1
+        const loadCategories = async () => {
+            if (account) {
+                const categoryData = await getCategory(account.id)
+                if (categoryData) {
+                    const map = new Map<number, string>()
+                    categoryData.list.forEach((c) => map.set(c.id, c.title))
+                    setCategoryMap(map)
+                }
             }
-        })
-        setFilteredList(list)
-    }, [menu])
+        }
+
+        loadCategories()
+
+    }, [account])
+    const sortedFilteredList = useMemo(() => {
+        const list = [...filteredList];
+        return list.sort((a, b) => {
+            if (menu === MENU_ORDERING_NAME_DESC) return a.name > b.name ? 1 : -1;
+            if (menu === MENU_ORDERING_NAME_ASC) return a.name < b.name ? 1 : -1;
+            if (menu === MENU_ORDERING_RATING_DESC) return b.rating - a.rating;
+            if (menu === MENU_ORDERING_RATING_ASC) return a.rating - b.rating;
+            if (menu === MENU_ORDERING_VISITAT_DESC) return parseKoreanDateTime(a.visitAt) < parseKoreanDateTime(b.visitAt) ? 1 : -1
+            if (menu === MENU_ORDERING_VISITAT_ASC) return parseKoreanDateTime(a.visitAt) > parseKoreanDateTime(b.visitAt) ? 1 : -1
+            return a.name > b.name ? 1 : -1;
+        });
+    }, [menu, filteredList]);   // menu 혹은 filteredList 가 바뀔 때만 재계산
 
     const onSearchTextChange = (e: ChangeEvent<HTMLInputElement>) => {
         const text = e.target.value
@@ -190,60 +190,67 @@ const PlaceListPage = () => {
         <SearchField placeholder={TEXT.MSG_SEARCH_HINT} fixed onChange={onSearchTextChange} />
         {dropdownView()}
         <BottomTabBar />
-        {filteredList.map((place: Place) => {
-            const isOpen: boolean = openMap.get(place.id) || false
-            return <>
-                <ListHeader onClick={() => {
-                    setOpenMap(prev => {
-                        const next = new Map(prev);
-                        next.set(place.id, !prev.get(place.id) || false);
-                        return next;
-                    });
+        <div style={{ paddingBottom: 50 }}>
+            {categoryMap && sortedFilteredList.map((place: Place) => {
+                const isOpen: boolean = openMap.get(place.id) || false
+                return <>
+                    <ListHeader onClick={() => {
+                        setOpenMap(prev => {
+                            const next = new Map(prev);
+                            next.set(place.id, !prev.get(place.id) || false);
+                            return next;
+                        });
 
-                }} title={
-                    <>
-                        <ListIcon />
-                        <ListHeader.TitleParagraph typography="t5" fontWeight="bold">
-                            {place.name}
-                        </ListHeader.TitleParagraph>
-                    </>
-                }
-                    right={
-                        <Rating readOnly={false} value={place.rating} max={place.rating} size="medium" aria-label={TEXT.RATING} />
+                    }} title={
+                        <>
+                            <ListHeader.TitleParagraph typography="t5" fontWeight="bold">
+                                {place.name}
+                            </ListHeader.TitleParagraph>
+                        </>
                     }
-                    description={<ListHeader.DescriptionParagraph>{place.category}</ListHeader.DescriptionParagraph>}
-                    rightAlignment="center"
-                    descriptionPosition="bottom"
+                        right={
+                            <Rating readOnly={false} value={place.rating} max={place.rating} size="medium" aria-label={TEXT.RATING} />
+                        }
+                        description={
 
-                />
-                <Collapse isOpened={isOpen}>
-                    <CollapseWrapper>
-                        <Post.Paragraph style={{ marginBottom: 10 }}>{place.memo}</Post.Paragraph>
-                        {place.address && <Post.Paragraph >{place.address}</Post.Paragraph>}
-                        {place.latitude > 0 && place.longitude > 0 && <Button size="small" style={{ marginLeft: 20, marginBottom: 10 }} onClick={() => navigate(ROUTES.MAP, {
-                            state: {
-                                selectedPlace: place
-                            }
-                        })}>{TEXT.LOCATION}</Button>}
-                        {place.medias.length > 0 && <ImagePreviewContainer>
-                            {place.medias.map((image) => {
-                                return <ImagePreview src={image.url} key={image.url} alt="" />;
-                            })}
-                        </ImagePreviewContainer>}
-                        <Post.H3>{TEXT.VISIT_AT}</Post.H3>
-                        <Post.H3>{place.visitAt}</Post.H3>
-                        <SubmitWrapper>
-                            <SubmitButton size="medium" onClick={() => navigate(ROUTES.PLACE_EDIT, {
+                            <div style={{ display: "flex", flexDirection: "column" }}>
+                                <ListHeader.DescriptionParagraph>{categoryMap.get(place.category)}</ListHeader.DescriptionParagraph>
+                                {place.visitAt && <ListHeader.DescriptionParagraph>{slicingVisitAtTime(place.visitAt)}, {getDPlusTime(place.visitAt)}</ListHeader.DescriptionParagraph>}
+                            </div>
+                        }
+                        rightAlignment="center"
+                        descriptionPosition="bottom"
+
+                    />
+                    <Collapse isOpened={isOpen}>
+                        <CollapseWrapper>
+                            <Post.Paragraph style={{ marginBottom: 10 }}>{place.memo}</Post.Paragraph>
+                            {place.address && <Post.Paragraph >{place.address}</Post.Paragraph>}
+                            {place.latitude > 0 && place.longitude > 0 && <Button size="small" style={{ marginLeft: 20, marginBottom: 10 }} onClick={() => navigate(ROUTES.MAP, {
                                 state: {
                                     selectedPlace: place
                                 }
-                            })}> {TEXT.MODIFY}</SubmitButton>
-                        </SubmitWrapper>
-                    </CollapseWrapper >
-                </Collapse >
+                            })}>{TEXT.LOCATION}</Button>}
+                            {place.medias.length > 0 && <ImagePreviewContainer>
+                                {place.medias.map((image) => {
+                                    return <ImagePreview src={image.url} key={image.url} alt="" />;
+                                })}
+                            </ImagePreviewContainer>}
+                            <Post.H3>{TEXT.VISIT_AT}</Post.H3>
+                            <Post.H3>{place.visitAt}</Post.H3>
+                            <SubmitWrapper>
+                                <SubmitButton size="medium" onClick={() => navigate(ROUTES.PLACE_EDIT, {
+                                    state: {
+                                        selectedPlace: place
+                                    }
+                                })}> {TEXT.MODIFY}</SubmitButton>
+                            </SubmitWrapper>
+                        </CollapseWrapper >
+                    </Collapse >
 
-            </>
-        })}
+                </>
+            })}
+        </div>
     </div >
 }
 

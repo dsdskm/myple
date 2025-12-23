@@ -4,6 +4,7 @@
   "private": true,
   "dependencies": {
     "@apps-in-toss/web-framework": "^1.4.0",
+    "@dnd-kit/sortable": "^10.0.0",
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.1",
     "@mui/x-date-pickers": "^8.16.0",
