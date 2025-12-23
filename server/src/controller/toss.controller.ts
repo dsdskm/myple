@@ -30,6 +30,12 @@ export const getUserInfo = async (req: Request, res: Response) => {
                 updated: ""
             } : null
             if (accountData) {
+                const a = await accountService.findById(accountData.id)
+                if (a) {
+                    accountData.type = a.type
+                    accountData.status = a.status
+                    accountData.updated = a.updated
+                }
                 await accountService.update(accountData.id, accountData)
                 await categoryService.init(accountData.id)
             }

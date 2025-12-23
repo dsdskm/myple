@@ -7,28 +7,28 @@ import * as placeService from '../service/place.service';
 
 const generateNameCategoryMemo = (i: number) => {
     const arr = [
-        ["광장시장", "맛집", "전통 음식이 맛있는 시장"],
-        ["서래마을", "맛집", "프랑스식 레스토랑이 많은 곳"],
-        ["광장동 맛집 거리", "맛집", "다양한 지역 음식을 즐길 수 있는 곳"],
-        ["잠실 맛집 거리", "맛집", "다양한 지역 음식을 즐길 수 있는 곳"],
-        ["스타벅스 리저브", "카페", "프리미엄 커피를 즐길 수 있는 곳"],
-        ["홍대입구 카페거리", "카페", "젊은 문화와 예술이 넘치는 곳"],
-        ["북촌 한옥마을 카페", "카페", "전통과 현대가 어우러진 카페"],
-        ["강남역 카페거리", "카페", "도심 속 휴식을 제공하는 곳"],
-        ["달빛정원", "숙소", "깔끔하고 편안했던 숙소"],
-        ["서울숲 숙소", "숙소", "자연 속에서 휴식을 취할 수 있는 곳"],
-        ["남산타워", "숙소", "서울의 야경이 아름다운 곳"],
-        ["경복궁", "숙소", "한국의 대표적인 궁궐"],
-        ["경복궁 근정전", "관광", "한국 전통 건축의 정수를 볼 수 있는 곳"],
-        ["부산역", "관광", "부산의 중심 교통 허브"],
-        ["해운대", "관광", "부산의 대표적인 해변"],
-        ["서울숲", "관광", "서울의 대표적인 공원"],
-        ["코엑스", "기타", "전시와 컨벤션이 열리는 복합 공간"],
-        ["잠실운동장", "기타", "운동 경기와 콘서트가 열리는 장소"],
-        ["잠실 롯데월드몰", "기타", "쇼핑과 엔터테인먼트가 결합된 복합 공간"],
-        ["강남역", "기타", "서울의 중심 상업지구"],
-        ["인사동", "관광", "전통 공예품과 갤러리가 많은 거리"],
-        ["잠실", "기타", "서울의 대표적인 상업지구"]
+        ["광장시장", 1766372877839, "전통 음식이 맛있는 시장"],
+        ["서래마을", 1766372877839, "프랑스식 레스토랑이 많은 곳"],
+        ["광장동 맛집 거리", 1766372877839, "다양한 지역 음식을 즐길 수 있는 곳"],
+        ["잠실 맛집 거리", 1766372877839, "다양한 지역 음식을 즐길 수 있는 곳"],
+        ["스타벅스 리저브", 1766372877839, "프리미엄 커피를 즐길 수 있는 곳"],
+        ["홍대입구 카페거리", 1766372877840, "젊은 문화와 예술이 넘치는 곳"],
+        ["북촌 한옥마을 카페", 1766372877840, "전통과 현대가 어우러진 카페"],
+        ["강남역 카페거리", 1766372877840, "도심 속 휴식을 제공하는 곳"],
+        ["달빛정원", 1766372877840, "깔끔하고 편안했던 숙소"],
+        ["서울숲 숙소", 1766372877840, "자연 속에서 휴식을 취할 수 있는 곳"],
+        ["남산타워", 1766372877841, "서울의 야경이 아름다운 곳"],
+        ["경복궁", 1766372877841, "한국의 대표적인 궁궐"],
+        ["경복궁 근정전", 1766372877841, "한국 전통 건축의 정수를 볼 수 있는 곳"],
+        ["부산역", 1766372877841, "부산의 중심 교통 허브"],
+        ["해운대", 1766372877843, "부산의 대표적인 해변"],
+        ["서울숲", 1766372877843, "서울의 대표적인 공원"],
+        ["코엑스", 1766372877843, "전시와 컨벤션이 열리는 복합 공간"],
+        ["잠실운동장", 1766372877843, "운동 경기와 콘서트가 열리는 장소"],
+        ["잠실 롯데월드몰", 1766382476297, "쇼핑과 엔터테인먼트가 결합된 복합 공간"],
+        ["강남역", 1766382476297, "서울의 중심 상업지구"],
+        ["인사동", 1766382476297, "전통 공예품과 갤러리가 많은 거리"],
+        ["잠실", 1766382476297, "서울의 대표적인 상업지구"]
     ]
     const index = i % arr.length
     return { name: arr[index][0], category: arr[index][1], memo: arr[index][2] }
@@ -89,15 +89,17 @@ export const generatePlaces = async (req: Request, res: Response) => {
         const count = 20
         for (let i = 0; i < count; i++) {
             const { name, category, memo } = generateNameCategoryMemo(i)
+            console.log(`name=${name} category=${category} memo=${memo}`)
             const { latitude, longitude, address } = await generateLatitudeLongitudeAddress()
+            console.log(`latitude=${latitude} longitude=${longitude} address=${address}`)
             const data: Place = {
                 id: '',
-                name: name,
-                category: 0,
+                name: name.toString(),
+                category: Number(category),
                 latitude: latitude,
                 longitude: longitude,
                 address: address,
-                memo: memo,
+                memo: memo.toString(),
                 rating: Math.floor(Math.random() * 5) + 1,
                 visitAt: generatetRandomDateString(),
                 created: '',
@@ -106,6 +108,7 @@ export const generatePlaces = async (req: Request, res: Response) => {
                 tags: [],
                 creator: 'tothetg@naver.com'
             }
+            console.log(`data ${JSON.stringify(data)}`)
             await placeService.createNewPlace(data)
         }
 

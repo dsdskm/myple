@@ -39,7 +39,6 @@ export const update = async (
     accountData: Partial<Account>
 ): Promise<void> => {
     try {
-        console.log(`accountData ${JSON.stringify(accountData)}`)
         accountData.updated = getFormattedDateForAccount(new Date())
         // set() 에 merge:true 를 주면 "업데이트 + 생성"을 한 번에 처리합니다.
         await accountCollection

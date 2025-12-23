@@ -31,7 +31,7 @@ export const uploadMediaFiles = async (
 ) => {
     try {
         await new Promise<void>((resolve, reject) => {
-            upload.array('files', 10)(req, res, async (err) => {
+            upload.array('files', 30)(req, res, async (err) => {
                 if (err) return reject(err);
                 const files = req.files as Express.Multer.File[];
                 const placeId = req.body.placeId as string;
