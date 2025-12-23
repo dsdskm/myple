@@ -1,21 +1,11 @@
 import dayjs, { Dayjs } from "dayjs";
 
-export const formatDate = (dateTimeString: string): string => {
-    const date = new Date(dateTimeString);
-
-    if (isNaN(date.getTime())) {
-        return dateTimeString; // 유효하지 않은 경우 원본 반환
-    }
-
-    const days = ['일요일', '월요일', '화요일', '수요일', '목요일', '금요일', '토요일'];
-    return `${dateTimeString.split(' ')[0]} ${days[date.getDay()]} ${dateTimeString.split(' ')[1]}`;
-}
-
 export const roundToFour = (num: number) => {
     return Math.round(num * 10000) / 10000;
 };
 
-export const formatDateWithDay = (dateObj: Dayjs | null) => {
+export const dayjsToText = (dateObj: Dayjs | null) => {
+    // date -> 2025-12-23 화요일 16:12
     if (dateObj) {
         const dayOfWeek = dateObj.day(); // 0 - 6 반환
         const koreanDays = ['일요일', '월요일', '화요일', '수요일', '목요일', '금요일', '토요일'];
@@ -28,15 +18,15 @@ export const formatDateWithDay = (dateObj: Dayjs | null) => {
     }
 }
 
-export const parseDateWithDay = (str: string): Dayjs | null => {
-    if (!str) return null;
+export const textToDayjs = (str: string): Dayjs => {
+    // 2025-12-23 화요일 16:12 -> dayjs
+    if (!str) return dayjs(new Date());
     const regex = /^(\d{4}-\d{2}-\d{2})\s+([가-힣]{3,4})\s+(\d{1,2}:\d{2})$/;
     const match = str.match(regex);
-    if (!match) return null;               // 포맷이 맞지 않으면 null
-
+    if (!match) return dayjs(new Date());
     const [, datePart, timePart] = match;
-    const parsed = dayjs(`${datePart} ${timePart}`, 'YYYY-MM-DD HH:mm');
-    if (!parsed.isValid()) return null;
+    const parsed = dayjs(`${datePart} ${timePart}`, "YYYY-MM-DD HH:mm");
+    if (!parsed.isValid()) return dayjs(new Date());
     return parsed;
 };
 

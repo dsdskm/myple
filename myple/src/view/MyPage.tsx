@@ -59,8 +59,13 @@ const MyPage = () => {
 
     useEffect(() => {
         const loadSubscriptionInfo = async () => {
-            const response = await getSubscriptionInfo()
-            setSubscriptionInfo(response)
+            const result = await getSubscriptionInfo()
+            if (result) {
+                setSubscriptionInfo(result)
+            } else {
+                console.log(`result is null`)
+            }
+
         }
         loadSubscriptionInfo()
     }, [])

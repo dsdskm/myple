@@ -90,6 +90,7 @@ export default function MapPage() {
     useEffect(() => {
         const loadPlaces = async () => {
             const list = await getPlaces(account.id)
+            console.log(`list`,list)
             setMyPlaceList(list)
         }
 
@@ -188,7 +189,6 @@ export default function MapPage() {
         setMapCenterLocation({ lat: response.coords.latitude, lng: response.coords.longitude })
     }
     const allMakerList = [...myPlaceList, { id: "curloc", name: "current", latitude: currentLocation[0], longitude: currentLocation[1] }]
-
     return (
         <div>
             <BottomTabBar />

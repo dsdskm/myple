@@ -2,12 +2,13 @@ import { Button, ConfirmDialog, FixedBottomCTA, Menu, Post, Rating, TextArea, Te
 import { ACCOUNT_TYPE_USER_BASIC, ACCOUNT_TYPE_USER_PRO, ROUTES, TEXT } from "../common/constants"
 import { GoogleMap, Marker } from "@react-google-maps/api"
 import { useCallback, useEffect, useState } from "react";
-import { formatDateWithDay, parseDateWithDay, roundToFour } from "../common/utils";
+import { dayjsToText, textToDayjs, roundToFour } from "../common/utils";
 import { Accuracy, fetchAlbumPhotos, getCurrentLocation } from "@apps-in-toss/web-bridge";
 import styled from "styled-components";
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
+import { koKR } from '@mui/x-date-pickers/locales'; // MUI X 한국어 텍스트
 import dayjs, { Dayjs } from "dayjs";
 import 'dayjs/locale/ko';
 import { Media, Place } from "../types/place";
@@ -170,7 +171,7 @@ const PlaceEditPage = () => {
             setMemo(selectedPlace.memo)
             setRating(selectedPlace.rating)
             setMedias(selectedPlace.medias)
-            setVisitDate(parseDateWithDay(selectedPlace.visitAt))
+            setVisitDate(textToDayjs(selectedPlace.visitAt))
         }
     }, [isEditMode, selectedPlace])
 
@@ -199,7 +200,6 @@ const PlaceEditPage = () => {
 
 
     const handleMapClick = useCallback((event: google.maps.MapMouseEvent) => {
-        console.log(`handleMapClick event`, event)
         if (event.latLng) {
             const lat = event.latLng.lat();
             const lng = event.latLng.lng();
@@ -401,7 +401,7 @@ const PlaceEditPage = () => {
         return <>
             <Post.H3>{TEXT.VISIT_AT}</Post.H3>
             <CommonentWrapper>
-                <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale="ko">
+                <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale="ko" localeText={koKR.components.MuiLocalizationProvider.defaultProps.localeText}>
                     <DateTimePicker
                         value={visitDate}
                         onChange={(newValue) => setVisitDate(newValue)}
@@ -467,8 +467,8 @@ const PlaceEditPage = () => {
                     selectedPlace.address = address
                     selectedPlace.memo = memo
                     selectedPlace.rating = rating
-                    selectedPlace.visitAt = formatDateWithDay(visitDate)
-                    selectedPlace.updated = formatDateWithDay(dayjs(new Date()))
+                    selectedPlace.visitAt = dayjsToText(visitDate)
+                    selectedPlace.updated = dayjsToText(dayjs(new Date()))
                     selectedPlace.medias = medias
                     if (pictureFiles.length > 0) {
                         const newMedias: Media[] = await uploadFiles(selectedPlace.id, pictureFiles)
@@ -486,18 +486,23 @@ const PlaceEditPage = () => {
                         address: address,
                         memo: memo,
                         rating: rating,
-                        visitAt: formatDateWithDay(visitDate),
-                        created: formatDateWithDay(dayjs(new Date())),
-                        updated: formatDateWithDay(dayjs(new Date())),
+                        visitAt: dayjsToText(visitDate),
+                        created: dayjsToText(dayjs(new Date())),
+                        updated: dayjsToText(dayjs(new Date())),
                         medias: [],
                         tags: [],
                         creator: account.id,
                     }
-                    const res = await createPlace(data)
-                    const newId = res.id
-                    const medias: Media[] = await uploadFiles(newId, pictureFiles)
-                    res.medias = medias
-                    await updatePlace(newId, res)
+                    const result = await createPlace(data)
+                    if (result) {
+                        const newId = result.id
+                        const medias: Media[] = await uploadFiles(newId, pictureFiles)
+                        result.medias = medias
+                        await updatePlace(newId, result)
+                    } else {
+                        console.log(`result is null`)
+                    }
+
                 }
 
 

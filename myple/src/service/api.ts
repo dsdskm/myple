@@ -100,36 +100,76 @@ export const uploadFiles = async (
     return []
 };
 
-export const updateUser = async (userData: Partial<Account>): Promise<Account> => {
-    console.log(`userData ${JSON.stringify(userData)}`)
-    const response = await serverApiClient.put<Account>(`/account/${userData.id}`, userData)
-    return response.data
+export const updateUser = async (userData: Partial<Account>): Promise<Account | null> => {
+    try {
+        console.log(`userData ${JSON.stringify(userData)}`)
+        const response = await serverApiClient.put<Account>(`/account/${userData.id}`, userData)
+        return response.data
+    } catch (error) {
+        console.log(error)
+    } finally {
+        return null
+    }
+
 }
 
-export const getUser = async (id: string): Promise<Account> => {
-    const response = await serverApiClient.get<Account>(`/account/${id}`)
-    return response.data
+export const getUser = async (id: string): Promise<Account | null> => {
+    try {
+        const response = await serverApiClient.get<Account>(`/account/${id}`)
+        return response.data
+    } catch (error) {
+        console.log(error)
+    } finally {
+        return null
+    }
+
 }
 
 
-export const createPlace = async (placeData: Omit<Place, 'id' | 'created'>): Promise<Place> => {
-    const response = await serverApiClient.post<Place>('/place', placeData);
-    return response.data;
+export const createPlace = async (placeData: Omit<Place, 'id' | 'created'>): Promise<Place | null> => {
+    try {
+        const response = await serverApiClient.post<Place>('/place', placeData);
+        return response.data;
+    } catch (error) {
+        console.log(error)
+    } finally {
+        return null
+    }
+
 };
 
-export const updatePlace = async (id: string, placeData: Partial<Omit<Place, 'id' | 'created'>>): Promise<Place> => {
-    const response = await serverApiClient.put<Place>(`/place/${id}`, placeData);
-    return response.data;
+export const updatePlace = async (id: string, placeData: Partial<Omit<Place, 'id' | 'created'>>): Promise<Place | null> => {
+    try {
+        const response = await serverApiClient.put<Place>(`/place/${id}`, placeData);
+        return response.data;
+    } catch (error) {
+        console.log(error)
+    } finally {
+        return null
+    }
+
 };
 
 
-export const getPlaces = async (id: string): Promise<Place[] | []> => {
-    const response = await serverApiClient.get<Place[] | []>(`/place/${id}`);
-    return response.data;
+export const getPlaces = async (id: string): Promise<Place[]> => {
+    try {
+        const response = await serverApiClient.get<Place[]>(`/place/${id}`);
+        return response.data;
+    } catch (error) {
+        console.log(error)
+        return []
+    }
+
 };
 
 export const deletePlace = async (id: string): Promise<void> => {
-    await serverApiClient.delete(`/place/${id}`);
+    try {
+        await serverApiClient.delete(`/place/${id}`);
+    } catch (error) {
+        console.log(error)
+        return
+    }
+
 };
 
 export const requestUserInfo = async (authorizationCode: string, referrer: string): Promise<Account | null> => {
@@ -142,31 +182,64 @@ export const requestUserInfo = async (authorizationCode: string, referrer: strin
 
 }
 
-export const requestLogout = async (userKey: number, referrer: string) => {
-    return await serverApiClient.post("/toss/logout", { "userKey": userKey, "referrer": referrer })
+export const requestLogout = async (userKey: number, referrer: string): Promise<void> => {
+    try {
+        await serverApiClient.post("/toss/logout", { "userKey": userKey, "referrer": referrer })
+    } catch (error) {
+        console.log(error)
+    }
 }
 
-export const createCategory = async (data: Omit<Category, 'id' | 'created'>): Promise<Place> => {
-    const response = await serverApiClient.post<Place>('/category', data);
-    return response.data;
+export const createCategory = async (data: Omit<Category, 'id' | 'created'>): Promise<Place | null> => {
+    try {
+        const response = await serverApiClient.post<Place>('/category', data);
+        return response.data;
+    } catch (error) {
+        console.log(error)
+        return null
+    }
+
 };
 
-export const updateCategory = async (id: string, data: Partial<Omit<Category, 'id' | 'created'>>): Promise<Category> => {
-    const response = await serverApiClient.put<Category>(`/category`, data);
-    return response.data;
+export const updateCategory = async (id: string, data: Partial<Omit<Category, 'id' | 'created'>>): Promise<Category | null> => {
+    try {
+        const response = await serverApiClient.put<Category>(`/category`, data);
+        return response.data;
+    } catch (error) {
+        console.log(error)
+        return null
+    }
+
 };
 
 
-export const getCategory = async (id: string): Promise<Category> => {
-    const response = await serverApiClient.get<Category>(`/category/${id}`);
-    return response.data;
+export const getCategory = async (id: string): Promise<Category | null> => {
+    try {
+        const response = await serverApiClient.get<Category>(`/category/${id}`);
+        return response.data;
+    } catch (error) {
+        console.log(error)
+        return null
+    }
+
 };
 
 export const deleteCategory = async (id: string): Promise<void> => {
-    await serverApiClient.delete(`/category/${id}`);
+    try {
+        await serverApiClient.delete(`/category/${id}`);
+    } catch (error) {
+        console.log(error)
+        return
+    }
+
 };
 
 export const getSubscriptionInfo = async () => {
-    const response = await serverApiClient.get<SubscriptionInfo>('/info/subscription')
-    return response.data
+    try {
+        const response = await serverApiClient.get<SubscriptionInfo>('/info/subscription')
+        return response.data
+    } catch (error) {
+        console.log(error)
+        return null
+    }
 }
