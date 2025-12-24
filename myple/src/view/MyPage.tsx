@@ -383,7 +383,7 @@ const MyPage = () => {
                 <TableRow align="space-between" left={TEXT.PHONE} right={account.phone} />
                 <TableRow align="space-between" left={TEXT.BIRTHDAY} right={account.birthday} />
                 <TableRow align="space-between" left={TEXT.AGREED_TERMS} right={account.agreedTerms && account.agreedTerms[0] === "serviceAgreed" ? TEXT.YES : TEXT.NO} />
-                <TableRow align="space-between" left={TEXT.ACCOUNT_TYPE} right={<>{account.type}
+                {/* <TableRow align="space-between" left={TEXT.ACCOUNT_TYPE} right={<>{account.type}
                     <Button
                         style={{ marginLeft: 5 }}
                         size="small"
@@ -391,7 +391,7 @@ const MyPage = () => {
                         onClick={() => account.type === ACCOUNT_TYPE_USER_BASIC ? setSubscriptionDialogOpen(true) : setUnSubscriptionConfirmDialogOpen(true)}>
                         {account.type === ACCOUNT_TYPE_USER_BASIC ? `${TEXT.UPGRADE}(${TEXT.SUBSCRIPTION})` : TEXT.UNSUBSCRIPTION}
                     </Button>
-                </>} />
+                </>} /> */}
                 <TableRow align="space-between" left={TEXT.CATEGORY} right={<Button style={{ marginLeft: 5 }} size="small" onClick={() => setCategoryDialogOpen(true)}>{TEXT.CATEGORY_MANAGEMENT}</Button>} />
             </div>
             {categoryData && categoryView()}

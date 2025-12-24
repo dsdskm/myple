@@ -141,43 +141,7 @@ export const getDPlusTime = (time: string): string => {
     return `${days}일 전 방문`;
 };
 
-export const parseKoreanDateTime = (raw: string): Date => {
-    const now = new Date()
-    // 1️⃣ 공백을 기준으로 토큰을 나눈다.
-    //    ["2025-12-23", "화요일", "16:12"]
-    const tokens = raw.split(' ');
-    if (tokens.length < 3) return now
-
-    const [datePart, timePart] = tokens;
-
-    // 2️⃣ 날짜 부분을 "YYYY-MM-DD" → [year, month, day] 로 변환
-    const dateTokens = datePart.split('-');
-    if (dateTokens.length !== 3) return now
-
-    const year = Number(dateTokens[0]);
-    const month = Number(dateTokens[1]) - 1; // JS Date는 0‑base
-    const day = Number(dateTokens[2]);
-
-    // 3️⃣ 시간 부분을 "HH:mm" → hour, minute 로 변환
-    const timeTokens = timePart.split(':');
-    if (timeTokens.length !== 2) return now
-
-    const hour = Number(timeTokens[0]);
-    const minute = Number(timeTokens[1]);
-
-    // 4️⃣ 유효성 검사 (숫자가 아닌 경우 NaN이 되므로)
-    if (
-        Number.isNaN(year) ||
-        Number.isNaN(month) ||
-        Number.isNaN(day) ||
-        Number.isNaN(hour) ||
-        Number.isNaN(minute)
-    ) {
-        return now;
-    }
-
-    // 5️⃣ Date 객체 생성
-    const date = new Date(year, month, day, hour, minute);
-    // 생성된 객체가 유효한지 한 번 더 확인
-    return isNaN(date.getTime()) ? now : date;
+export const parseKoreanDateTime = (raw: string): Dayjs => {
+    const iso = raw.replace(/(\d{4}-\d{2}-\d{2})\s+.+\s+(\d{2}:\d{2})$/, "$1T$2");
+    return dayjs(iso);   //
 };

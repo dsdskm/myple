@@ -1,7 +1,7 @@
 import { Button, ConfirmDialog, FixedBottomCTA, Menu, Post, Rating, TextArea, TextField, Toast } from "@toss/tds-mobile"
 import { ACCOUNT_TYPE_USER_BASIC, ACCOUNT_TYPE_USER_PRO, ROUTES, TEXT } from "../common/constants"
 import { GoogleMap, Marker } from "@react-google-maps/api"
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { dayjsToText, textToDayjs, roundToFour } from "../common/utils";
 import { Accuracy, fetchAlbumPhotos, getCurrentLocation } from "@apps-in-toss/web-bridge";
 import styled from "styled-components";
@@ -30,7 +30,26 @@ const ImagePreviewContainer = styled.div`
     display: flex;
     flex-wrap: wrap;
     gap: 10px;
+    margin-left:20px;
 `;
+const TagItemWrapper = styled.div`
+    margin-left:20px;
+    display:flex;
+    flex-direction:row;
+    gap:5px;
+`
+
+const TagItem = styled.div`
+    background: #e3f2fd;
+    color: #1976d2;
+    padding: 0.3rem 0.7rem;
+    border-radius: 12px;
+    font-size: 0.9rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    user-select: none;
+`
 
 const ImagePreview = ({ src, id, onClick, onDelete }: ImagePreviewProps) => {
     const [size, setSize] = useState<number>(SIZE_SMALL); // 기본 250px
@@ -99,9 +118,6 @@ const ImagePreview = ({ src, id, onClick, onDelete }: ImagePreviewProps) => {
     );
 };
 
-const CommonentWrapper = styled.div`
-    margin-left:20px`
-
 const ImageDeleteButton = styled.div`
     display:flex;
     padding:20px
@@ -135,6 +151,10 @@ const PlaceEditPage = () => {
     const [memo, setMemo] = useState<string>("")
     const [rating, setRating] = useState<number>(0)
     const [medias, setMedias] = useState<Media[]>([])
+    const [tag, setTag] = useState<string[]>([])
+    const [tagSet, setTagSet] = useState<Set<string>>(new Set())
+    const [inputTag, setInputTag] = useState<string>("#")
+    const inputRef = useRef<HTMLInputElement>(null);
     const [pictureFiles, setPictureFiles] = useState<Media[]>([]);
     const [categoryMenuOpen, setCategoryMenuOpen] = useState<boolean>(false)
     const [visitDate, setVisitDate] = useState<Dayjs | null>(dayjs(new Date()))
@@ -172,6 +192,7 @@ const PlaceEditPage = () => {
             setRating(selectedPlace.rating)
             setMedias(selectedPlace.medias)
             setVisitDate(textToDayjs(selectedPlace.visitAt))
+            setTagSet(new Set(selectedPlace.tags))
         }
     }, [isEditMode, selectedPlace])
 
@@ -251,7 +272,7 @@ const PlaceEditPage = () => {
     };
 
     const nameView = () => {
-        return <>
+        return <div>
             <Post.H3>{TEXT.PLACE_NAME}</Post.H3>
             <TextField
                 variant="box"
@@ -265,50 +286,48 @@ const PlaceEditPage = () => {
                     setNameError(v.length > 10 || v.length === 0)
                 }}
             />
-        </>
+        </div>
     }
 
     const categoryView = () => {
         const currentCategory = categoryList.filter(c => c.id === category)
-        return <>
+        return <div>
             <Post.H3>{TEXT.CATEGORY}</Post.H3>
-            <CommonentWrapper>
-                <Menu.Trigger
-                    open={categoryMenuOpen}
-                    onOpen={() => setCategoryMenuOpen(true)}
-                    onClose={() => setCategoryMenuOpen(false)}
-                    placement="bottom"
-                    dropdown={
-                        <Menu.Dropdown header={<Menu.Header>{TEXT.MENU_CHOICE_ITEMS}</Menu.Header>}>
-                            {categoryList.map((item) => {
-                                const id = item.id
-                                const title = item.title
-                                return <Menu.DropdownCheckItem
-                                    key={id}
-                                    checked={category === id}
-                                    onCheckedChange={(checked: boolean) => {
-                                        if (checked) {
-                                            setCategory(id)
-                                        } else {
-                                            return null
-                                        }
-                                        setCategoryMenuOpen(false)
-                                    }}
-                                >
-                                    {title}
-                                </Menu.DropdownCheckItem>
-                            })}
-                        </Menu.Dropdown>
-                    }
-                >
-                    <Button color="light">{currentCategory && currentCategory[0] ? currentCategory[0].title : TEXT.MENU_CATEGORY_CHOICE}</Button>
-                </Menu.Trigger >
-            </CommonentWrapper >
-        </>
+            <Menu.Trigger
+                open={categoryMenuOpen}
+                onOpen={() => setCategoryMenuOpen(true)}
+                onClose={() => setCategoryMenuOpen(false)}
+                placement="bottom"
+                dropdown={
+                    <Menu.Dropdown header={<Menu.Header>{TEXT.MENU_CHOICE_ITEMS}</Menu.Header>}>
+                        {categoryList.map((item) => {
+                            const id = item.id
+                            const title = item.title
+                            return <Menu.DropdownCheckItem
+                                key={id}
+                                checked={category === id}
+                                onCheckedChange={(checked: boolean) => {
+                                    if (checked) {
+                                        setCategory(id)
+                                    } else {
+                                        return null
+                                    }
+                                    setCategoryMenuOpen(false)
+                                }}
+                            >
+                                {title}
+                            </Menu.DropdownCheckItem>
+                        })}
+                    </Menu.Dropdown>
+                }
+            >
+                <Button color="light">{currentCategory && currentCategory[0] ? currentCategory[0].title : TEXT.MENU_CATEGORY_CHOICE}</Button>
+            </Menu.Trigger >
+        </div>
     }
 
-    const mapView = () => {
-        return <>
+    const mapAddressView = () => {
+        return <div>
             <Post.H3>{TEXT.LOCATION}</Post.H3>
             <Post.Paragraph>{TEXT.MSG_LOCATION_GUIDE}</Post.Paragraph>
             <Post.Paragraph>
@@ -333,11 +352,11 @@ const PlaceEditPage = () => {
                 placeholder={TEXT.MSG_LOCATION_GUIDE}
                 value={latitude + ", " + longitude}
             />
-        </>
+        </div>
     }
 
     const memoView = () => {
-        return <>
+        return <div>
             <Post.H3>{TEXT.MEMO}</Post.H3>
             <TextArea
                 variant="box"
@@ -346,7 +365,7 @@ const PlaceEditPage = () => {
                 value={memo}
                 onChange={(e) => setMemo(e.target.value)}
             />
-        </>
+        </div>
     }
 
     const ratingView = () => {
@@ -359,56 +378,107 @@ const PlaceEditPage = () => {
     }
 
     const imageView = () => {
-        return <div style={{ marginTop: 10 }}>
+        return <div>
             <Post.H3>{TEXT.PICTURE}</Post.H3>
-            <CommonentWrapper>
-                <Button onClick={handleOpenCamera} color="light" style={{ marginBottom: 10 }}>{TEXT.TAKE_PHOTO}</Button>
-                <Button onClick={handlePictureUpload} color="light" style={{ marginBottom: 10 }}>{TEXT.GET_POHOTO}</Button>
-                <ImagePreviewContainer>
-                    {medias.map((image: any) => {
-                        return <ImagePreview
-                            key={image.fileName}
-                            src={image.url}
-                            id={image.fileName}
-                            onClick={() => { }}
-                            onDelete={(id) => {
-                                if (isEditMode) {
-                                    setMedias(medias.filter((m: any) => m.fileName !== id));
-                                }
-                            }}
-                        />
-                    })}
-                </ImagePreviewContainer>
-                <ImagePreviewContainer style={{ marginTop: 10 }}>
-                    {pictureFiles.map((image) => {
-                        return <ImagePreview
-                            key={image.fileName}
-                            src={'data:image/jpeg;base64,' + image.url}
-                            id={image.fileName}
-                            onClick={() => { }}
-                            onDelete={(id) => {
-                                if (isEditMode) {
-                                    setPictureFiles(pictureFiles.filter(p => p.fileName !== id));
-                                }
-                            }}
-                        />
-                    })}
-                </ImagePreviewContainer>
-            </CommonentWrapper>
-        </div>
+            <Button onClick={handleOpenCamera} color="light" style={{ marginBottom: 10 }}>{TEXT.TAKE_PHOTO}</Button>
+            <Button onClick={handlePictureUpload} color="light" style={{ marginBottom: 10 }}>{TEXT.GET_POHOTO}</Button>
+            <ImagePreviewContainer>
+                {medias.map((image: any) => {
+                    return <ImagePreview
+                        key={image.fileName}
+                        src={image.url}
+                        id={image.fileName}
+                        onClick={() => { }}
+                        onDelete={(id) => {
+                            if (isEditMode) {
+                                setMedias(medias.filter((m: any) => m.fileName !== id));
+                            }
+                        }}
+                    />
+                })}
+            </ImagePreviewContainer>
+            <ImagePreviewContainer style={{ marginTop: 10 }}>
+                {pictureFiles.map((image) => {
+                    return <ImagePreview
+                        key={image.fileName}
+                        src={'data:image/jpeg;base64,' + image.url}
+                        id={image.fileName}
+                        onClick={() => { }}
+                        onDelete={(id) => {
+                            if (isEditMode) {
+                                setPictureFiles(pictureFiles.filter(p => p.fileName !== id));
+                            }
+                        }}
+                    />
+                })}
+            </ImagePreviewContainer>
+        </ div >
     }
 
     const visitTimeView = () => {
-        return <div style={{ marginTop: 10 }}>
+        return <div>
             <Post.H3>{TEXT.VISIT_AT}</Post.H3>
-            <CommonentWrapper>
+            <div style={{ marginLeft: 20 }} >
                 <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale="ko" localeText={koKR.components.MuiLocalizationProvider.defaultProps.localeText}>
                     <DateTimePicker
                         value={visitDate}
                         onChange={(newValue) => setVisitDate(newValue)}
                     />
                 </LocalizationProvider>
-            </CommonentWrapper>
+            </div>
+        </div>
+    }
+
+    const tagView = () => {
+        const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+            const raw = e.target.value;
+            setInputTag(raw);
+            if (raw.length > 0 && raw[raw.length - 1] === " " && raw.includes("#")) {
+                const candidate = raw.trim().substring(0)
+                if (candidate) {
+                    setTagSet((prev) => {
+                        const next = new Set(prev);
+                        next.add(candidate);
+                        return next;
+                    });
+
+                    setInputTag("#");
+                    setTimeout(() => {
+                        if (inputRef.current) inputRef.current.focus();
+                    }, 0);
+                }
+            }
+        };
+
+
+        const handleDelete = (tagToDelete: string) => {
+            setTagSet((prev) => {
+                const next = new Set(prev);
+                next.delete(tagToDelete);
+                return next;
+            });
+        };
+
+        return <div>
+            <Post.H3>{TEXT.TAG}</Post.H3>
+            <TextField
+                variant="box"
+                ref={inputRef}
+                placeholder={TEXT.MSG_TAG_GUIDE}
+                value={inputTag}
+                onChange={handleInputChange}
+                onInput={handleInputChange}
+            />
+
+            <TagItemWrapper>
+                {Array.from(tagSet).map((tag) => (
+                    <TagItem
+                        key={tag}
+                        onClick={() => handleDelete(tag)}>
+                        {tag}
+                    </TagItem>
+                ))}
+            </TagItemWrapper>
         </div>
     }
 
@@ -471,6 +541,7 @@ const PlaceEditPage = () => {
                     selectedPlace.visitAt = dayjsToText(visitDate)
                     selectedPlace.updated = dayjsToText(dayjs(new Date()))
                     selectedPlace.medias = medias
+                    selectedPlace.tags = Array.from(tagSet)
                     if (pictureFiles.length > 0) {
                         const newMedias: Media[] = await uploadFiles(selectedPlace.id, pictureFiles)
                         selectedPlace.medias = selectedPlace.medias.concat(newMedias)
@@ -563,14 +634,15 @@ const PlaceEditPage = () => {
         return <Loading />
     }
 
-    return <div style={{ padding: 10 }}>
+    return <div style={{ padding: 10, display: "flex", flexDirection: "column", gap: "10px" }}>
         {nameView()}
         {categoryView()}
-        {mapView()}
+        {mapAddressView()}
         {memoView()}
         {ratingView()}
         {imageView()}
         {visitTimeView()}
+        {tagView()}
         {buttonView()}
         {createDialog()}
         {deleteDialog()}

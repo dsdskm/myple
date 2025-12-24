@@ -41,9 +41,10 @@ const CollapseWrapper = styled.div`
 
 const MenuWrapper = styled.div`
     display:flex;
-    flex:1;
+    gap:10px;
     align-items:center;
-    justify-content:space-between
+    justify-content:flex-start;
+    margin-left:10px;
 `
 
 const SubmitWrapper = styled.div`
@@ -62,12 +63,14 @@ const SubmitButton = styled(Button)`
 `;
 
 
-const MENU_ORDERING_NAME_DESC = 1;
-const MENU_ORDERING_NAME_ASC = 2;
-const MENU_ORDERING_RATING_DESC = 3;
-const MENU_ORDERING_RATING_ASC = 4;
-const MENU_ORDERING_VISITAT_DESC = 5;
-const MENU_ORDERING_VISITAT_ASC = 6
+const MENU_SORT_NAME_DESC = 1;
+const MENU_SORT_NAME_ASC = 2;
+const MENU_SORT_RATING_DESC = 3;
+const MENU_SORT_RATING_ASC = 4;
+const MENU_SORT_VISITAT_DESC = 5;
+const MENU_SORT_VISITAT_ASC = 6
+
+const MENU_CATEGORY_ALL = 1;
 
 const PlaceListPage = () => {
     const navigate = useNavigate()
@@ -75,10 +78,14 @@ const PlaceListPage = () => {
     const [myPlaceList, setMyPlaceList] = useState<Place[] | []>([])
     const [filteredList, setFilteredList] = useState<Place[] | []>([])
     const [categoryMap, setCategoryMap] = useState<Map<number, string>>()
-    const [openMap, setOpenMap] = useState<Map<string, boolean>>(new Map())
-    const [menuOpen, setMenuOpen] = useState<boolean>(false)
-    const [menu, setMenu] = useState<number>(MENU_ORDERING_NAME_DESC)
-    const [currentOrder, setCurrentOrder] = useState<string>(TEXT.MENU_ORDERING_NAME_DESC)
+    const [openSortMap, setOpenSortMap] = useState<Map<string, boolean>>(new Map())
+    const [sortMenuOpen, setSortMenuOpen] = useState<boolean>(false)
+    const [sortMenu, setSortMenu] = useState<number>(MENU_SORT_NAME_DESC)
+    const [currentSort, setCurrentSort] = useState<string>(TEXT.MENU_SORT_NAME_DESC)
+    const [categoryMenuOpen, setCategoryMenuOpen] = useState<boolean>(false)
+    const [currentCategoryId, setCurrentCategoryId] = useState<number>(MENU_CATEGORY_ALL)
+    const [categoryMenuStatusMap, setCategoryMenuStatusMap] = useState<Map<number, any>>()
+    const [currentCategoryText, setCurrentCategory] = useState<string>(TEXT.CATEGORY_ALL)
 
     useEffect(() => {
         const loadPlaces = async () => {
@@ -86,7 +93,7 @@ const PlaceListPage = () => {
             setFilteredList(list)
             const initMap = new Map<string, boolean>();
             list.forEach(p => initMap.set(p.id, false));
-            setOpenMap(initMap);
+            setOpenSortMap(initMap);
             setMyPlaceList(list)
         }
 
@@ -99,7 +106,9 @@ const PlaceListPage = () => {
                 const categoryData = await getCategory(account.id)
                 if (categoryData) {
                     const map = new Map<number, string>()
-                    categoryData.list.forEach((c) => map.set(c.id, c.title))
+                    categoryData.list.forEach((c, index) => {
+                        map.set(c.id, c.title)
+                    })
                     setCategoryMap(map)
                 }
             }
@@ -110,94 +119,149 @@ const PlaceListPage = () => {
     }, [account])
     const sortedFilteredList = useMemo(() => {
         const list = [...filteredList];
-        return list.sort((a, b) => {
-            if (menu === MENU_ORDERING_NAME_DESC) return a.name > b.name ? 1 : -1;
-            if (menu === MENU_ORDERING_NAME_ASC) return a.name < b.name ? 1 : -1;
-            if (menu === MENU_ORDERING_RATING_DESC) return b.rating - a.rating;
-            if (menu === MENU_ORDERING_RATING_ASC) return a.rating - b.rating;
-            if (menu === MENU_ORDERING_VISITAT_DESC) return parseKoreanDateTime(a.visitAt) < parseKoreanDateTime(b.visitAt) ? 1 : -1
-            if (menu === MENU_ORDERING_VISITAT_ASC) return parseKoreanDateTime(a.visitAt) > parseKoreanDateTime(b.visitAt) ? 1 : -1
+        return list.filter(a => {
+            if (currentCategoryId === MENU_CATEGORY_ALL || currentCategoryId === a.category) {
+                return true
+            } else {
+                return false
+            }
+        }).sort((a, b) => {
+            if (sortMenu === MENU_SORT_NAME_DESC) return a.name > b.name ? 1 : -1;
+            if (sortMenu === MENU_SORT_NAME_ASC) return a.name < b.name ? 1 : -1;
+            if (sortMenu === MENU_SORT_RATING_DESC) return b.rating - a.rating;
+            if (sortMenu === MENU_SORT_RATING_ASC) return a.rating - b.rating;
+            if (sortMenu === MENU_SORT_VISITAT_DESC) return parseKoreanDateTime(a.visitAt).isBefore(parseKoreanDateTime(b.visitAt)) ? 1 : -1
+            if (sortMenu === MENU_SORT_VISITAT_ASC) return parseKoreanDateTime(a.visitAt).isBefore(parseKoreanDateTime(b.visitAt)) ? -1 : 1
             return a.name > b.name ? 1 : -1;
         });
-    }, [menu, filteredList]);   // menu 혹은 filteredList 가 바뀔 때만 재계산
+    }, [sortMenu, currentCategoryText, filteredList]);   // menu 혹은 filteredList 가 바뀔 때만 재계산
 
     const onSearchTextChange = (e: ChangeEvent<HTMLInputElement>) => {
         const text = e.target.value
-        const list = myPlaceList.filter((place) => place.name.includes(text) || text.includes(place.name))
+        let list;
+        if (text) {
+            list = myPlaceList.filter((place) =>
+                place.name.includes(text) || text.includes(place.name) || place.tags.includes(text)
+            )
+        } else {
+            list = [...myPlaceList]
+        }
+
         setFilteredList(list)
     }
 
-    const dropdownView = () => {
-        const onCheckedNumChange = (number: number, order: string) => {
-            setMenu(number)
-            setCurrentOrder(order)
-            setMenuOpen(false)
+    const filteringView = () => {
+        const onSortMenuChange = (number: number, order: string) => {
+            setSortMenu(number)
+            setCurrentSort(order)
+            setSortMenuOpen(false)
+        }
+
+        const onFilteringMenuChange = (number: number, category: string = "") => {
+            setCurrentCategoryId(number)
+            setCurrentCategory(category)
+            setCategoryMenuOpen(false)
         }
         return (
-            <MenuWrapper>
-                <Post.H4>총 {filteredList.length}개 장소</Post.H4>
-                <Menu.Trigger
-                    open={menuOpen}
-                    onOpen={() => setMenuOpen(true)}
-                    onClose={() => setMenuOpen(false)}
-                    placement="bottom-end"
-                    dropdown={
-                        <Menu.Dropdown header={<Menu.Header>{TEXT.MSG_ORDERING_MENU}</Menu.Header>}>
-                            <Menu.DropdownCheckItem
-                                checked={menu === MENU_ORDERING_NAME_DESC}
-                                onCheckedChange={(checked: boolean) => onCheckedNumChange(MENU_ORDERING_NAME_DESC, TEXT.MENU_ORDERING_NAME_DESC)}
-                            >
-                                {TEXT.MENU_ORDERING_NAME_DESC}
-                            </Menu.DropdownCheckItem>
-                            <Menu.DropdownCheckItem
-                                checked={menu === MENU_ORDERING_NAME_ASC}
-                                onCheckedChange={(checked: boolean) => onCheckedNumChange(MENU_ORDERING_NAME_ASC, TEXT.MENU_ORDERING_NAME_ASC)}
-                            >
-                                {TEXT.MENU_ORDERING_NAME_ASC}
-                            </Menu.DropdownCheckItem>
-                            <Menu.DropdownCheckItem
-                                checked={menu === MENU_ORDERING_RATING_DESC}
-                                onCheckedChange={(checked: boolean) => onCheckedNumChange(MENU_ORDERING_RATING_DESC, TEXT.MENU_ORDERING_RATING_DESC)}
-                            >
-                                {TEXT.MENU_ORDERING_RATING_DESC}
-                            </Menu.DropdownCheckItem>
-                            <Menu.DropdownCheckItem
-                                checked={menu === MENU_ORDERING_RATING_ASC}
-                                onCheckedChange={(checked: boolean) => onCheckedNumChange(MENU_ORDERING_RATING_ASC, TEXT.MENU_ORDERING_RATING_ASC)}
-                            >
-                                {TEXT.MENU_ORDERING_RATING_ASC}
-                            </Menu.DropdownCheckItem>
-                            <Menu.DropdownCheckItem
-                                checked={menu === MENU_ORDERING_VISITAT_DESC}
-                                onCheckedChange={(checked: boolean) => onCheckedNumChange(MENU_ORDERING_VISITAT_DESC, TEXT.MENU_ORDERING_VISITAT_DESC)}
-                            >
-                                {TEXT.MENU_ORDERING_VISITAT_DESC}
-                            </Menu.DropdownCheckItem>
-                            <Menu.DropdownCheckItem
-                                checked={menu === MENU_ORDERING_VISITAT_ASC}
-                                onCheckedChange={(checked: boolean) => onCheckedNumChange(MENU_ORDERING_VISITAT_ASC, TEXT.MENU_ORDERING_VISITAT_ASC)}
-                            >
-                                {TEXT.MENU_ORDERING_VISITAT_ASC}
-                            </Menu.DropdownCheckItem>
-                        </Menu.Dropdown>
-                    }
-                >
-                    <Button size="small">{currentOrder}</Button>
-                </Menu.Trigger>
-            </MenuWrapper>
+            <div>
+                <MenuWrapper>
+                    {categoryMap && <Menu.Trigger
+                        open={categoryMenuOpen}
+                        onOpen={() => setCategoryMenuOpen(true)}
+                        onClose={() => setCategoryMenuOpen(false)}
+                        placement="bottom-end"
+                        dropdown={
+                            <Menu.Dropdown header={<Menu.Header>{TEXT.MSG_CATEGORY_FILTERING_MENU}</Menu.Header>}>
+                                <Menu.DropdownCheckItem
+                                    checked={MENU_CATEGORY_ALL === currentCategoryId}
+                                    onCheckedChange={(checked: boolean) => {
+                                        onFilteringMenuChange(MENU_CATEGORY_ALL, TEXT.CATEGORY_ALL)
+                                    }}
+                                >
+                                    {TEXT.CATEGORY_ALL}
+                                </Menu.DropdownCheckItem>
+                                {Array.from(categoryMap).map((obj) => {
+                                    const id = obj[0]
+                                    const text = obj[1]
+                                    return <Menu.DropdownCheckItem
+                                        checked={id === currentCategoryId}
+                                        onCheckedChange={(checked: boolean) => {
+                                            onFilteringMenuChange(id, text)
+                                        }}
+                                    >
+                                        {text}
+                                    </Menu.DropdownCheckItem>
+                                })}
+                            </Menu.Dropdown>
+                        }
+                    >
+                        <Button size="small">{currentCategoryText}</Button>
+                    </Menu.Trigger>}
+
+
+                    <Menu.Trigger
+                        open={sortMenuOpen}
+                        onOpen={() => setSortMenuOpen(true)}
+                        onClose={() => setSortMenuOpen(false)}
+                        placement="bottom-end"
+                        dropdown={
+                            <Menu.Dropdown header={<Menu.Header>{TEXT.MSG_SORTING_MENU}</Menu.Header>}>
+                                <Menu.DropdownCheckItem
+                                    checked={sortMenu === MENU_SORT_NAME_DESC}
+                                    onCheckedChange={(checked: boolean) => onSortMenuChange(MENU_SORT_NAME_DESC, TEXT.MENU_SORT_NAME_DESC)}
+                                >
+                                    {TEXT.MENU_SORT_NAME_DESC}
+                                </Menu.DropdownCheckItem>
+                                <Menu.DropdownCheckItem
+                                    checked={sortMenu === MENU_SORT_NAME_ASC}
+                                    onCheckedChange={(checked: boolean) => onSortMenuChange(MENU_SORT_NAME_ASC, TEXT.MENU_SORT_NAME_ASC)}
+                                >
+                                    {TEXT.MENU_SORT_NAME_ASC}
+                                </Menu.DropdownCheckItem>
+                                <Menu.DropdownCheckItem
+                                    checked={sortMenu === MENU_SORT_RATING_DESC}
+                                    onCheckedChange={(checked: boolean) => onSortMenuChange(MENU_SORT_RATING_DESC, TEXT.MENU_SORT_RATING_DESC)}
+                                >
+                                    {TEXT.MENU_SORT_RATING_DESC}
+                                </Menu.DropdownCheckItem>
+                                <Menu.DropdownCheckItem
+                                    checked={sortMenu === MENU_SORT_RATING_ASC}
+                                    onCheckedChange={(checked: boolean) => onSortMenuChange(MENU_SORT_RATING_ASC, TEXT.MENU_SORT_RATING_ASC)}
+                                >
+                                    {TEXT.MENU_SORT_RATING_ASC}
+                                </Menu.DropdownCheckItem>
+                                <Menu.DropdownCheckItem
+                                    checked={sortMenu === MENU_SORT_VISITAT_DESC}
+                                    onCheckedChange={(checked: boolean) => onSortMenuChange(MENU_SORT_VISITAT_DESC, TEXT.MENU_SORT_VISITAT_DESC)}
+                                >
+                                    {TEXT.MENU_SORT_VISITAT_DESC}
+                                </Menu.DropdownCheckItem>
+                                <Menu.DropdownCheckItem
+                                    checked={sortMenu === MENU_SORT_VISITAT_ASC}
+                                    onCheckedChange={(checked: boolean) => onSortMenuChange(MENU_SORT_VISITAT_ASC, TEXT.MENU_SORT_VISITAT_ASC)}
+                                >
+                                    {TEXT.MENU_SORT_VISITAT_ASC}
+                                </Menu.DropdownCheckItem>
+                            </Menu.Dropdown>
+                        }
+                    >
+                        <Button size="small">{currentSort}</Button>
+                    </Menu.Trigger>
+                </MenuWrapper>
+                <div style={{ display: "flex", justifyContent: "flex-end" }}>
+                    <Post.H4>총 {sortedFilteredList.length}개 장소</Post.H4>
+                </div>
+            </div>
         );
     }
 
-    return <div style={{ paddingLeft: 10, paddingRight: 10 }}>
-        <SearchField placeholder={TEXT.MSG_SEARCH_HINT} fixed onChange={onSearchTextChange} />
-        {dropdownView()}
-        <BottomTabBar />
-        <div style={{ paddingBottom: 50 }}>
+    const listView = () => {
+        return <div style={{ paddingBottom: 100 }}>
             {categoryMap && sortedFilteredList.map((place: Place) => {
-                const isOpen: boolean = openMap.get(place.id) || false
+                const isOpen: boolean = openSortMap.get(place.id) || false
                 return <>
                     <ListHeader onClick={() => {
-                        setOpenMap(prev => {
+                        setOpenSortMap(prev => {
                             const next = new Map(prev);
                             next.set(place.id, !prev.get(place.id) || false);
                             return next;
@@ -217,6 +281,7 @@ const PlaceListPage = () => {
 
                             <div style={{ display: "flex", flexDirection: "column" }}>
                                 <ListHeader.DescriptionParagraph>{categoryMap.get(place.category)}</ListHeader.DescriptionParagraph>
+                                <ListHeader.DescriptionParagraph>{place.tags}</ListHeader.DescriptionParagraph>
                                 {place.visitAt && <ListHeader.DescriptionParagraph>{slicingVisitAtTime(place.visitAt)}, {getDPlusTime(place.visitAt)}</ListHeader.DescriptionParagraph>}
                             </div>
                         }
@@ -238,8 +303,6 @@ const PlaceListPage = () => {
                                     return <ImagePreview src={image.url} key={image.url} alt="" />;
                                 })}
                             </ImagePreviewContainer>}
-                            <Post.H3>{TEXT.VISIT_AT}</Post.H3>
-                            <Post.H3>{place.visitAt}</Post.H3>
                             <SubmitWrapper>
                                 <SubmitButton size="medium" onClick={() => navigate(ROUTES.PLACE_EDIT, {
                                     state: {
@@ -253,6 +316,13 @@ const PlaceListPage = () => {
                 </>
             })}
         </div>
+    }
+
+    return <div style={{ paddingLeft: 10, paddingRight: 10 }}>
+        <SearchField placeholder={TEXT.MSG_SEARCH_HINT} fixed onChange={onSearchTextChange} />
+        {filteringView()}
+        <BottomTabBar />
+        {listView()}
     </div >
 }
 
