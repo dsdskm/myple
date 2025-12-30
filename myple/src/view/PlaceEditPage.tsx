@@ -11,15 +11,19 @@ import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { koKR } from '@mui/x-date-pickers/locales'; // MUI X 한국어 텍스트
 import dayjs, { Dayjs } from "dayjs";
 import 'dayjs/locale/ko';
-import { Media, Place } from "../types/place";
+import { Media, Place, PlaceHistory } from "../types/place";
 import Loading from "./common/Loading";
 import { useLocation, useNavigate } from 'react-router-dom';
 import { openCamera } from '@apps-in-toss/web-framework';
-import { createPlace, deletePlace, getCategory, updatePlace, uploadFiles } from "../service/api";
+import { createPlace, deletePlace, getCategory, getPlaceHistories, updatePlace, uploadFiles } from "../service/api";
 import { useApp } from "../context/AppContext";
 
-const SIZE_LARGE = 250;
-const SIZE_SMALL = 100;
+const PageWrapper = styled.div`
+    padding: 10px;
+    display: flex;
+    flex-direction:column;
+    gap: 10px;
+`
 
 const mapContainerStyle = {
     width: '100%',
@@ -51,76 +55,12 @@ const TagItem = styled.div`
     user-select: none;
 `
 
-const ImagePreview = ({ src, id, onClick, onDelete }: ImagePreviewProps) => {
-    const [size, setSize] = useState<number>(SIZE_SMALL); // 기본 250px
-    const toggleSize = () => {
-        setSize((prev) => (prev === SIZE_LARGE ? SIZE_SMALL : SIZE_LARGE));
-    };
-
-    return (
-        <div
-            style={{
-                position: 'relative',
-                width: size,
-                height: size,
-                cursor: 'pointer',
-                borderRadius: '8px',
-                overflow: 'hidden',
-                backgroundColor: '#f0f0f0',
-            }}
-            onClick={() => {
-                toggleSize();
-                onClick();
-            }}
-        >
-            {/* 실제 이미지 */}
-            <img
-                src={src}
-                alt=""
-                style={{
-                    width: '100%',
-                    height: '100%',
-                    objectFit: 'cover',
-                }}
-            />
-
-            {/* 삭제 버튼 (오른쪽 상단) */}
-            <button
-                type="button"
-                onClick={(e) => {
-                    e.stopPropagation(); // 이미지 클릭 이벤트 방지
-                    const confirmDelete = async () => {
-                        if (window.confirm(TEXT.MSG_IMAGE_DELETE)) {
-                            onDelete(id);
-                        }
-                    };
-                    confirmDelete();
-                }}
-                style={{
-                    position: 'absolute',
-                    top: '4px',
-                    right: '4px',
-                    width: '24px',
-                    height: '24px',
-                    background: 'rgba(0,0,0,0.5)',
-                    border: 'none',
-                    borderRadius: '50%',
-                    fontSize: '14px',
-                    lineHeight: '1',
-                    cursor: 'pointer',
-                    color: '#fff',
-                }}
-                title="삭제"
-            >
-                ×
-            </button>
-        </div>
-    );
-};
-
-const ImageDeleteButton = styled.div`
+const BottomButtonWrapper = styled.div`
     display:flex;
-    padding:20px
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    gap:20px
 `
 
 interface ImagePreviewProps {
@@ -158,6 +98,7 @@ const PlaceEditPage = () => {
     const [pictureFiles, setPictureFiles] = useState<Media[]>([]);
     const [categoryMenuOpen, setCategoryMenuOpen] = useState<boolean>(false)
     const [visitDate, setVisitDate] = useState<Dayjs | null>(dayjs(new Date()))
+    const [placeHistoryList, setPlaceHistoryList] = useState<PlaceHistory[]>([])
     const [isLoading, setIsLoading] = useState<boolean>(false)
     const [toastInfo, setToastInfo] = useState<ToastInfo>({
         show: false,
@@ -182,17 +123,17 @@ const PlaceEditPage = () => {
     }, [account])
 
     useEffect(() => {
+        const loadHistories = async (placeId: string) => {
+            const result = await getPlaceHistories(placeId)
+            setPlaceHistoryList(result)
+        }
         if (isEditMode && selectedPlace) {
             setName(selectedPlace.name)
             setCategory(selectedPlace.category)
             setAddress(selectedPlace.address)
             setLatitude(selectedPlace.latitude)
             setLongitude(selectedPlace.longitude)
-            setMemo(selectedPlace.memo)
-            setRating(selectedPlace.rating)
-            setMedias(selectedPlace.medias)
-            setVisitDate(textToDayjs(selectedPlace.visitAt))
-            setTagSet(new Set(selectedPlace.tags))
+            loadHistories(selectedPlace.id)
         }
     }, [isEditMode, selectedPlace])
 
@@ -207,6 +148,7 @@ const PlaceEditPage = () => {
         }
         handleGetCurrentLocation()
     }, [])
+
     const resetAll = () => {
         setName("")
         setCategory(0)
@@ -242,34 +184,6 @@ const PlaceEditPage = () => {
         }
     }, []);
 
-    async function handleOpenCamera() {
-        try {
-            const base64 = true;
-            const response = await openCamera({ base64 });
-            const newPictures = [...pictureFiles, { fileName: response.id, url: response.dataUri, type: "image" }]
-            setPictureFiles(newPictures)
-        } catch (error) {
-            console.log(error);
-        }
-    }
-
-    const handlePictureUpload = async () => {
-        try {
-            const response = await fetchAlbumPhotos({
-                maxCount: 10,
-                base64: true,
-            });
-            const mediaFiles: Media[] = response.map(item => ({
-                type: "image",
-                url: item.dataUri,   // dataUri를 url로 사용
-                fileName: item.id,   // id를 fileName으로 사용
-            }));
-
-            setPictureFiles(prev => [...prev, ...mediaFiles]);
-        } catch (error) {
-            console.log(error)
-        }
-    };
 
     const nameView = () => {
         return <div>
@@ -333,8 +247,8 @@ const PlaceEditPage = () => {
             <Post.Paragraph>
                 <GoogleMap
                     mapContainerStyle={mapContainerStyle}
-                    center={{ lat: currentLocation[0], lng: currentLocation[1] }}
-                    zoom={15}
+                    center={{ lat: isEditMode ? latitude : currentLocation[0], lng: isEditMode ? longitude : currentLocation[1] }}
+                    zoom={20}
                     onClick={handleMapClick}>
                     {latitude !== 0 && longitude !== 0 && < Marker position={{ lat: latitude, lng: longitude }} />}
                 </GoogleMap>
@@ -355,19 +269,6 @@ const PlaceEditPage = () => {
         </div>
     }
 
-    const memoView = () => {
-        return <div>
-            <Post.H3>{TEXT.MEMO}</Post.H3>
-            <TextArea
-                variant="box"
-                placeholder={TEXT.MSG_MEMO}
-                minHeight={100}
-                value={memo}
-                onChange={(e) => setMemo(e.target.value)}
-            />
-        </div>
-    }
-
     const ratingView = () => {
         return <>
             <Post.H3>{TEXT.RATING}</Post.H3>
@@ -375,44 +276,6 @@ const PlaceEditPage = () => {
                 <Rating readOnly={false} value={rating} max={5} size="medium" aria-label={TEXT.RATING} onValueChange={setRating} />
             </Post.Paragraph>
         </>
-    }
-
-    const imageView = () => {
-        return <div>
-            <Post.H3>{TEXT.PICTURE}</Post.H3>
-            <Button onClick={handleOpenCamera} color="light" style={{ marginBottom: 10 }}>{TEXT.TAKE_PHOTO}</Button>
-            <Button onClick={handlePictureUpload} color="light" style={{ marginBottom: 10 }}>{TEXT.GET_POHOTO}</Button>
-            <ImagePreviewContainer>
-                {medias.map((image: any) => {
-                    return <ImagePreview
-                        key={image.fileName}
-                        src={image.url}
-                        id={image.fileName}
-                        onClick={() => { }}
-                        onDelete={(id) => {
-                            if (isEditMode) {
-                                setMedias(medias.filter((m: any) => m.fileName !== id));
-                            }
-                        }}
-                    />
-                })}
-            </ImagePreviewContainer>
-            <ImagePreviewContainer style={{ marginTop: 10 }}>
-                {pictureFiles.map((image) => {
-                    return <ImagePreview
-                        key={image.fileName}
-                        src={'data:image/jpeg;base64,' + image.url}
-                        id={image.fileName}
-                        onClick={() => { }}
-                        onDelete={(id) => {
-                            if (isEditMode) {
-                                setPictureFiles(pictureFiles.filter(p => p.fileName !== id));
-                            }
-                        }}
-                    />
-                })}
-            </ImagePreviewContainer>
-        </ div >
     }
 
     const visitTimeView = () => {
@@ -482,13 +345,30 @@ const PlaceEditPage = () => {
         </div>
     }
 
-    const buttonView = () => {
+    const historyList = () => {
         return <>
-            {isEditMode && <ImageDeleteButton>
-                <Button color="danger" style={{ width: "100%" }} onClick={() => {
+
+        </>
+    }
+
+    const buttonView = () => {
+        const onHistoryAddClick = () => {
+            const currentCategory = categoryList.filter(c => c.id === category)
+            navigate(ROUTES.PLACE_HISTORY_EDIT, {
+                state: {
+                    selectedPlace: selectedPlace,
+                    categoryText: currentCategory[0].title
+
+                }
+            })
+        }
+        return <>
+            {isEditMode && <BottomButtonWrapper>
+                <Button variant="weak" onClick={onHistoryAddClick}>{TEXT.HISTORY_ADD}</Button>
+                <Button size="medium" color="danger" style={{ width: "85%" }} onClick={() => {
                     setIsDeleteDialogOpen(true)
                 }}>{TEXT.DELETE}</Button>
-            </ImageDeleteButton>}
+            </BottomButtonWrapper>}
             <FixedBottomCTA.Double
                 leftButton={<Button style={{ flex: 1 }} onClick={() => {
                     resetAll()
@@ -536,16 +416,16 @@ const PlaceEditPage = () => {
                     selectedPlace.latitude = latitude
                     selectedPlace.latitude = latitude
                     selectedPlace.address = address
-                    selectedPlace.memo = memo
-                    selectedPlace.rating = rating
-                    selectedPlace.visitAt = dayjsToText(visitDate)
-                    selectedPlace.updated = dayjsToText(dayjs(new Date()))
-                    selectedPlace.medias = medias
-                    selectedPlace.tags = Array.from(tagSet)
-                    if (pictureFiles.length > 0) {
-                        const newMedias: Media[] = await uploadFiles(selectedPlace.id, pictureFiles)
-                        selectedPlace.medias = selectedPlace.medias.concat(newMedias)
-                    }
+                    // selectedPlace.memo = memo
+                    // selectedPlace.rating = rating
+                    // selectedPlace.visitAt = dayjsToText(visitDate)
+                    // selectedPlace.updated = dayjsToText(dayjs(new Date()))
+                    // selectedPlace.medias = medias
+                    // selectedPlace.tags = Array.from(tagSet)
+                    // if (pictureFiles.length > 0) {
+                    //     const newMedias: Media[] = await uploadFiles(selectedPlace.id, pictureFiles)
+                    //     selectedPlace.medias = selectedPlace.medias.concat(newMedias)
+                    // }
 
                     await updatePlace(selectedPlace.id, selectedPlace)
                 } else {
@@ -556,20 +436,22 @@ const PlaceEditPage = () => {
                         latitude: latitude,
                         longitude: longitude,
                         address: address,
-                        memo: memo,
-                        rating: rating,
-                        visitAt: dayjsToText(visitDate),
-                        created: dayjsToText(dayjs(new Date())),
-                        updated: dayjsToText(dayjs(new Date())),
-                        medias: [],
-                        tags: [],
+                        // memo: memo,
+                        // rating: rating,
+                        // visitAt: dayjsToText(visitDate),
+                        // created: dayjsToText(dayjs(new Date())),
+                        // updated: dayjsToText(dayjs(new Date())),
+                        // medias: [],
+                        // tags: [],
                         creator: account.id,
+                        created: "",
+                        updated: ""
                     }
                     const result = await createPlace(data)
                     if (result) {
                         const newId = result.id
-                        const medias: Media[] = await uploadFiles(newId, pictureFiles)
-                        result.medias = medias
+                        // const medias: Media[] = await uploadFiles(newId, pictureFiles)
+                        // result.medias = medias
                         await updatePlace(newId, result)
                     } else {
                         console.log(`result is null`)
@@ -634,15 +516,10 @@ const PlaceEditPage = () => {
         return <Loading />
     }
 
-    return <div style={{ padding: 10, display: "flex", flexDirection: "column", gap: "10px" }}>
+    return <PageWrapper>
         {nameView()}
         {categoryView()}
         {mapAddressView()}
-        {memoView()}
-        {ratingView()}
-        {imageView()}
-        {visitTimeView()}
-        {tagView()}
         {buttonView()}
         {createDialog()}
         {deleteDialog()}
@@ -656,7 +533,7 @@ const PlaceEditPage = () => {
                 setToastInfo({ ...toastInfo })
             }}
         />
-    </div >
+    </PageWrapper >
 }
 
 export default PlaceEditPage

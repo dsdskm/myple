@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { Media, Place } from '../types/place';
+import { Media, Place, PlaceHistory } from '../types/place';
 import { Account } from '../types/account';
 import FormData from 'form-data';
 import { Category } from '../types/category';
@@ -9,6 +9,7 @@ const serverApiClient = axios.create({
     baseURL: process.env.REACT_APP_BACKEND_URL,
     headers: {
         'Content-Type': 'application/json',
+        'x-api-key': process.env.REACT_APP_SERVER_KEY
     },
 });
 
@@ -60,6 +61,7 @@ export const post = async <TResponse, TBody = unknown>(
 
 export const uploadFiles = async (
     placeId: string,
+    id: string,
     pictures: Media[]
 ): Promise<Media[]> => {
 
@@ -69,6 +71,7 @@ export const uploadFiles = async (
 
     const form = new FormData();
     form.append('placeId', placeId);
+    form.append('id', id)
 
     for (const image of pictures) {
         const base64 = image.url
@@ -91,7 +94,12 @@ export const uploadFiles = async (
 
     try {
         // axios로 POST 요청 (헤더 지정 X)
-        const response = await axios.post(`${process.env.REACT_APP_BACKEND_URL}file/upload`, form);
+        const response = await axios.post(`${process.env.REACT_APP_BACKEND_URL}file/upload`, form, {
+            headers: {
+                'Content-Type': 'multipart/form-data',
+                'x-api-key': process.env.REACT_APP_SERVER_KEY
+            }
+        });
         return response.data
     } catch (error) {
         console.log(error)
@@ -102,7 +110,6 @@ export const uploadFiles = async (
 
 export const updateUser = async (userData: Partial<Account>): Promise<Account | null> => {
     try {
-        console.log(`userData ${JSON.stringify(userData)}`)
         const response = await serverApiClient.put<Account>(`/account/${userData.id}`, userData)
         return response.data
     } catch (error) {
@@ -119,23 +126,36 @@ export const getUser = async (id: string): Promise<Account | null> => {
         return response.data
     } catch (error) {
         console.log(error)
-    } finally {
         return null
+    } finally {
+
     }
 
 }
 
 
-export const createPlace = async (placeData: Omit<Place, 'id' | 'created'>): Promise<Place | null> => {
+export const createPlace = async (data: Omit<Place, 'id' | 'created'>): Promise<Place | null> => {
     try {
-        const response = await serverApiClient.post<Place>('/place', placeData);
+        const response = await serverApiClient.post<Place>('/place', data);
         return response.data;
     } catch (error) {
         console.log(error)
-    } finally {
         return null
-    }
+    } finally {
 
+    }
+};
+
+export const createPlaceHistory = async (data: Omit<PlaceHistory, 'id' | 'created'>): Promise<PlaceHistory | null> => {
+    try {
+        const response = await serverApiClient.post<PlaceHistory>('/place/history', data);
+        return response.data;
+    } catch (error) {
+        console.log(error)
+        return null
+    } finally {
+
+    }
 };
 
 export const updatePlace = async (id: string, placeData: Partial<Omit<Place, 'id' | 'created'>>): Promise<Place | null> => {
@@ -144,22 +164,44 @@ export const updatePlace = async (id: string, placeData: Partial<Omit<Place, 'id
         return response.data;
     } catch (error) {
         console.log(error)
-    } finally {
         return null
+    } finally {
+
+    }
+};
+
+export const updatePlaceHistory = async (id: string, data: Partial<Omit<PlaceHistory, 'id' | 'created'>>): Promise<PlaceHistory | null> => {
+    try {
+        const response = await serverApiClient.put<PlaceHistory>(`/place/history/${id}`, data);
+        return response.data;
+    } catch (error) {
+        console.log(error)
+        return null
+    } finally {
+
     }
 
 };
 
 
-export const getPlaces = async (id: string): Promise<Place[]> => {
+export const getPlaces = async (creator: string): Promise<Place[]> => {
     try {
-        const response = await serverApiClient.get<Place[]>(`/place/${id}`);
+        const response = await serverApiClient.get<Place[]>(`/place/${creator}`);
         return response.data;
     } catch (error) {
         console.log(error)
         return []
     }
+};
 
+export const getPlaceHistories = async (placeId: string): Promise<PlaceHistory[]> => {
+    try {
+        const response = await serverApiClient.get<PlaceHistory[]>(`/place/history/${placeId}`);
+        return response.data;
+    } catch (error) {
+        console.log(error)
+        return []
+    }
 };
 
 export const deletePlace = async (id: string): Promise<void> => {
@@ -169,7 +211,15 @@ export const deletePlace = async (id: string): Promise<void> => {
         console.log(error)
         return
     }
+};
 
+export const deletePlaceHistory = async (placeId: string, id: string): Promise<void> => {
+    try {
+        await serverApiClient.delete(`/place/${placeId}/${id}`);
+    } catch (error) {
+        console.log(error)
+        return
+    }
 };
 
 export const requestUserInfo = async (authorizationCode: string, referrer: string): Promise<Account | null> => {

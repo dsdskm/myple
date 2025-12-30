@@ -4,7 +4,7 @@ import { useApp } from "../context/AppContext"
 import { ChangeEvent, useEffect, useMemo, useState } from "react"
 import { Place } from "../types/place"
 import { getCategory, getPlaces } from "../service/api"
-import { Button, ListHeader, Menu, Post, Rating, SearchField } from "@toss/tds-mobile"
+import { Button, IconButton, ListHeader, Menu, Post, Rating, SearchField } from "@toss/tds-mobile"
 import styled from 'styled-components';
 import { ROUTES, TEXT } from "../common/constants"
 import { Collapse } from 'react-collapse'; // react-collapse 사용
@@ -128,10 +128,10 @@ const PlaceListPage = () => {
         }).sort((a, b) => {
             if (sortMenu === MENU_SORT_NAME_DESC) return a.name > b.name ? 1 : -1;
             if (sortMenu === MENU_SORT_NAME_ASC) return a.name < b.name ? 1 : -1;
-            if (sortMenu === MENU_SORT_RATING_DESC) return b.rating - a.rating;
-            if (sortMenu === MENU_SORT_RATING_ASC) return a.rating - b.rating;
-            if (sortMenu === MENU_SORT_VISITAT_DESC) return parseKoreanDateTime(a.visitAt).isBefore(parseKoreanDateTime(b.visitAt)) ? 1 : -1
-            if (sortMenu === MENU_SORT_VISITAT_ASC) return parseKoreanDateTime(a.visitAt).isBefore(parseKoreanDateTime(b.visitAt)) ? -1 : 1
+            // if (sortMenu === MENU_SORT_RATING_DESC) return b.rating - a.rating;
+            // if (sortMenu === MENU_SORT_RATING_ASC) return a.rating - b.rating;
+            // if (sortMenu === MENU_SORT_VISITAT_DESC) return parseKoreanDateTime(a.visitAt).isBefore(parseKoreanDateTime(b.visitAt)) ? 1 : -1
+            // if (sortMenu === MENU_SORT_VISITAT_ASC) return parseKoreanDateTime(a.visitAt).isBefore(parseKoreanDateTime(b.visitAt)) ? -1 : 1
             return a.name > b.name ? 1 : -1;
         });
     }, [sortMenu, currentCategoryText, filteredList]);   // menu 혹은 filteredList 가 바뀔 때만 재계산
@@ -141,7 +141,7 @@ const PlaceListPage = () => {
         let list;
         if (text) {
             list = myPlaceList.filter((place) =>
-                place.name.includes(text) || text.includes(place.name) || place.tags.includes(text)
+                place.name.includes(text) || text.includes(place.name) /*|| place.tags.includes(text)*/
             )
         } else {
             list = [...myPlaceList]
@@ -275,14 +275,14 @@ const PlaceListPage = () => {
                         </>
                     }
                         right={
-                            <Rating readOnly={false} value={place.rating} max={place.rating} size="medium" aria-label={TEXT.RATING} />
+                            <></>
+                            // <Rating readOnly={false} value={place.rating} max={place.rating} size="medium" aria-label={TEXT.RATING} />
                         }
                         description={
-
                             <div style={{ display: "flex", flexDirection: "column" }}>
                                 <ListHeader.DescriptionParagraph>{categoryMap.get(place.category)}</ListHeader.DescriptionParagraph>
-                                <ListHeader.DescriptionParagraph>{place.tags}</ListHeader.DescriptionParagraph>
-                                {place.visitAt && <ListHeader.DescriptionParagraph>{slicingVisitAtTime(place.visitAt)}, {getDPlusTime(place.visitAt)}</ListHeader.DescriptionParagraph>}
+                                {/* <ListHeader.DescriptionParagraph>{place.tags}</ListHeader.DescriptionParagraph>
+                                {place.visitAt && <ListHeader.DescriptionParagraph>{slicingVisitAtTime(place.visitAt)}, {getDPlusTime(place.visitAt)}</ListHeader.DescriptionParagraph>} */}
                             </div>
                         }
                         rightAlignment="center"
@@ -291,18 +291,18 @@ const PlaceListPage = () => {
                     />
                     <Collapse isOpened={isOpen}>
                         <CollapseWrapper>
-                            <Post.Paragraph style={{ marginBottom: 10 }}>{place.memo}</Post.Paragraph>
+                            {/* <Post.Paragraph style={{ marginBottom: 10 }}>{place.memo}</Post.Paragraph> */}
                             {place.address && <Post.Paragraph >{place.address}</Post.Paragraph>}
                             {place.latitude > 0 && place.longitude > 0 && <Button size="small" style={{ marginLeft: 20, marginBottom: 10 }} onClick={() => navigate(ROUTES.MAP, {
                                 state: {
                                     selectedPlace: place
                                 }
                             })}>{TEXT.LOCATION}</Button>}
-                            {place.medias.length > 0 && <ImagePreviewContainer>
+                            {/* {place.medias.length > 0 && <ImagePreviewContainer>
                                 {place.medias.map((image) => {
                                     return <ImagePreview src={image.url} key={image.url} alt="" />;
                                 })}
-                            </ImagePreviewContainer>}
+                            </ImagePreviewContainer>} */}
                             <SubmitWrapper>
                                 <SubmitButton size="medium" onClick={() => navigate(ROUTES.PLACE_EDIT, {
                                     state: {

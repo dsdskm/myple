@@ -7,6 +7,7 @@ import PlaceListPage from "./view/PlaceListPage";
 import MyPage from "./view/MyPage";
 import { useApp } from "./context/AppContext";
 import { useEffect } from "react";
+import PlaceHistoryEditPage from "./view/PlaceHistoryEditPage";
 
 function App() {
   const { account } = useApp()
@@ -23,6 +24,7 @@ function App() {
         <Route path={ROUTES.MAP} element={<MapPage />} />
         <Route path={ROUTES.PLACE_LIST} element={<PlaceListPage />} />
         <Route path={ROUTES.PLACE_EDIT} element={<PlaceEditPage />} />
+        <Route path={ROUTES.PLACE_HISTORY_EDIT} element={<PlaceHistoryEditPage />} />
         <Route path={ROUTES.MY} element={<MyPage />} />
       </Routes>
     </div>

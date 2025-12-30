@@ -7,7 +7,7 @@ import BottomTabBar from './BottomTabBar';
 import { getCategory, getPlaces } from '../service/api';
 import { useApp } from '../context/AppContext';
 import { Place } from '../types/place';
-import { Accuracy, getCurrentLocation } from '@apps-in-toss/web-framework';
+import { Accuracy, getCurrentLocation, startUpdateLocation, } from '@apps-in-toss/web-framework';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { getDPlusTime, slicingVisitAtTime } from '../common/utils';
 
@@ -96,10 +96,24 @@ export default function MapPage() {
     const [zoom, setZoome] = useState<number>(DEFAULT_ZOOM)
     const [categoryMap, setCategoryMap] = useState<Map<number, string>>()
     const allMakerList = [...myPlaceList, { id: "curloc", name: "current", latitude: currentLocation[0], longitude: currentLocation[1] }]
+
+    useEffect(() => {
+        startUpdateLocation({
+            options: {
+                accuracy: Accuracy.Balanced,
+                timeInterval: 30 * 1000,
+                distanceInterval: 10,
+            }, onEvent: (location) => {
+                setCurrentLocation([location.coords.latitude, location.coords.longitude])
+            }, onError: (error) => {
+                console.log(error)
+            }
+        })
+    }, [])
+
     useEffect(() => {
         const loadPlaces = async () => {
             const list = await getPlaces(account.id)
-            console.log(`list`, list)
             setMyPlaceList(list)
         }
 
@@ -121,6 +135,7 @@ export default function MapPage() {
         loadCategories()
 
     }, [account])
+
 
     useEffect(() => {
         const initMapCenter = async () => {
@@ -147,21 +162,21 @@ export default function MapPage() {
             onClose={() => setIsPlaceInfoOpen(false)}
             header={
                 <PlaceInfoHeader>
-                    <BottomSheet.Header>{selectedPlace.name}</BottomSheet.Header>
-                    <Rating readOnly={false} value={selectedPlace.rating} max={selectedPlace.rating} size="medium" aria-label={TEXT.RATING} />
+                     <BottomSheet.Header>{selectedPlace.name}</BottomSheet.Header>
+                     {/* <Rating readOnly={false} value={selectedPlace.rating} max={selectedPlace.rating} size="medium" aria-label={TEXT.RATING} /> */}
                 </PlaceInfoHeader>
             }>
             <PlaceInfoContents>
                 <Paragraph.Text>{categoryMap.get(selectedPlace.category)}</Paragraph.Text>
-                {selectedPlace.tags && <Paragraph.Text>{selectedPlace.tags}</Paragraph.Text>}
-                {selectedPlace.visitAt && <Paragraph.Text>{slicingVisitAtTime(selectedPlace.visitAt)}, {getDPlusTime(selectedPlace.visitAt)}</Paragraph.Text>}
-                {selectedPlace.memo && <Paragraph.Text >{selectedPlace.memo}</Paragraph.Text>}
+                {/* {selectedPlace.tags && <Paragraph.Text>{selectedPlace.tags}</Paragraph.Text>} */}
+                {/* {selectedPlace.visitAt && <Paragraph.Text>{slicingVisitAtTime(selectedPlace.visitAt)}, {getDPlusTime(selectedPlace.visitAt)}</Paragraph.Text>} */}
+                {/* {selectedPlace.memo && <Paragraph.Text >{selectedPlace.memo}</Paragraph.Text>} */}
                 {selectedPlace.address && <Paragraph.Text >{selectedPlace.address}</Paragraph.Text>}
-                {selectedPlace.medias.length > 0 && <ImagePreviewContainer>
+                {/* {selectedPlace.medias.length > 0 && <ImagePreviewContainer>
                     {selectedPlace.medias.map((image) => {
                         return <ImagePreview src={image.url} key={image.url} alt="" />;
                     })}
-                </ImagePreviewContainer>}
+                </ImagePreviewContainer>} */}
             </PlaceInfoContents>
             <SubmitWrapper>
                 <SubmitButton size="medium" onClick={() => navigate(ROUTES.PLACE_EDIT, {

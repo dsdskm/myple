@@ -1,10 +1,10 @@
 import { Button, Toast } from '@toss/tds-mobile';
 import styled from 'styled-components';
 import { ROUTES, TEXT } from '../common/constants';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Loading from './common/Loading';
 import { useNavigate } from 'react-router-dom';
-import { appLogin } from '@apps-in-toss/web-framework';
+import { appLogin, getCurrentLocation } from '@apps-in-toss/web-framework';
 import { requestUserInfo } from '../service/api';
 import { Account, ACTION_TYPE_SET_ACCOUNT, initialAccountState } from '../types/account';
 import { useApp } from '../context/AppContext';
@@ -30,13 +30,17 @@ const LoginPage = () => {
         show: false,
         message: ""
     })
+
     const [isLoading, setIsLoading] = useState<boolean>()
+
     const onLoginClick = async () => {
         setIsLoading(true)
         try {
             const { authorizationCode, referrer } = await appLogin();
             const userInfo: Account | null = await requestUserInfo(authorizationCode, referrer)
             if (userInfo) {
+                const permission = await getCurrentLocation.openPermissionDialog();
+                console.log(`handleGetPermissionForGetCurrentLocation permission`, permission)
                 setAccount({ type: ACTION_TYPE_SET_ACCOUNT, payload: userInfo })
                 navigate(ROUTES.MAP, { replace: true })
                 toastInfo.message = TEXT.MSG_LOGIN_SUCCESS
