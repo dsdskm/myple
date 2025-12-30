@@ -1,4 +1,4 @@
-import express, { Application, Request, Response } from 'express';
+import express, { Application, NextFunction, Request, Response } from 'express';
 import dotenv from 'dotenv';
 import infoRouter from './router/info.router';
 import placeRouter from './router/place.router';
@@ -17,12 +17,34 @@ import { getLocal192IP } from './common/utils';
 
 const app: Application = express();
 const port = process.env.PORT || 3000;
+const API_KEY = process.env.API_KEY ?? '';
+
+const apiKeyMiddleware = (req: Request, res: Response, next: NextFunction) => {
+    // ① 헤더에서 가져오기
+    const headerKey = req.header('x-api-key');
+
+    // ② 쿼리스트링에서 가져오기 (예: /api?key=abcde)
+    const queryKey = req.query.key as string | undefined;
+
+    const providedKey = headerKey ?? queryKey;
+
+    if (providedKey && providedKey === API_KEY) {
+        // 키가 유효하면 다음 미들웨어/라우터로 진행
+        return next();
+    }
+
+    // 키가 없거나 일치하지 않을 때
+    res.status(401).json({
+        success: false,
+        message: 'Invalid or missing API key',
+    });
+};
 
 // Middleware
 app.use(cors())
 app.use(express.json()); // JSON 요청 본문을 파싱하기 위해 필요
 app.use(express.urlencoded({ extended: true }));
-
+app.use(apiKeyMiddleware);
 // Routes
 app.get('/', (req: Request, res: Response) => {
     res.send('Welcome to the myple API Server!');

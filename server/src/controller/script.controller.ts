@@ -1,37 +1,36 @@
 import { Request, Response } from 'express';
 import dotenv from 'dotenv';
-import { Place } from '../types/place';
+import { Media, Place, PlaceHistory } from '../types/place';
 import { requestAddress } from '../api/api';
 dotenv.config();
 import * as placeService from '../service/place.service';
 
-const generateNameCategoryMemo = (i: number) => {
+const generateNameCategoryMemoTags = (i: number) => {
     const arr = [
-        ["광장시장", 1766372877839, "전통 음식이 맛있는 시장"],
-        ["서래마을", 1766372877839, "프랑스식 레스토랑이 많은 곳"],
-        ["광장동 맛집 거리", 1766372877839, "다양한 지역 음식을 즐길 수 있는 곳"],
-        ["잠실 맛집 거리", 1766372877839, "다양한 지역 음식을 즐길 수 있는 곳"],
-        ["스타벅스 리저브", 1766372877839, "프리미엄 커피를 즐길 수 있는 곳"],
-        ["홍대입구 카페거리", 1766372877840, "젊은 문화와 예술이 넘치는 곳"],
-        ["북촌 한옥마을 카페", 1766372877840, "전통과 현대가 어우러진 카페"],
-        ["강남역 카페거리", 1766372877840, "도심 속 휴식을 제공하는 곳"],
-        ["달빛정원", 1766372877840, "깔끔하고 편안했던 숙소"],
-        ["서울숲 숙소", 1766372877840, "자연 속에서 휴식을 취할 수 있는 곳"],
-        ["남산타워", 1766372877841, "서울의 야경이 아름다운 곳"],
-        ["경복궁", 1766372877841, "한국의 대표적인 궁궐"],
+        ["광장시장", 1766372877839, "전통 음식이 맛있는 시장", ["#시장", "#맛집", "#국밥"]],
+        ["서래마을", 1766372877839, "프랑스식 레스토랑이 많은 곳", ["#프랑스", "#맛집", "#껍데기"]],
+        ["광장동 맛집 거리", 1766372877839, "다양한 지역 음식을 즐길 수 있는 곳", ["#중식", "#데이트"]],
+        ["잠실 맛집 거리", 1766372877839, "다양한 지역 음식을 즐길 수 있는 곳", ["#잠실", "#연예인", "#인플루언서"]],
+        ["스타벅스 리저브", 1766372877839, "프리미엄 커피를 즐길 수 있는 곳", ["#카페", "#분위기", "#사진"]],
+        ["홍대입구 카페거리", 1766372877840, "젊은 문화와 예술이 넘치는 곳", ["#커피", "#카페", "#분위기"]],
+        ["북촌 한옥마을 카페", 1766372877840, "전통과 현대가 어우러진 카페", ["#한옥", "#외국인", "#한복"]],
+        ["강남역 카페거리", 1766372877840, "도심 속 휴식을 제공하는 곳", ["#커피"]],
+        ["달빛정원", 1766372877840, "깔끔하고 편안했던 숙소", ["#호텔", "#5성급", "#청결", "#룸서비스"]],
+        ["서울숲 숙소", 1766372877840, "자연 속에서 휴식을 취할 수 있는 곳", ["#호텔", "#5성급", "#청결", "#룸서비스", "#서울숲", "#산책로", "#조식"]],
+        ["남산타워", 1766372877841, "서울의 야경이 아름다운 곳", ["#야경", "#전망", "#뷰"]],
+        ["경복궁", 1766372877841, "한국의 대표적인 궁궐", ["#궁궐"]],
         ["경복궁 근정전", 1766372877841, "한국 전통 건축의 정수를 볼 수 있는 곳"],
-        ["부산역", 1766372877841, "부산의 중심 교통 허브"],
-        ["해운대", 1766372877843, "부산의 대표적인 해변"],
-        ["서울숲", 1766372877843, "서울의 대표적인 공원"],
-        ["코엑스", 1766372877843, "전시와 컨벤션이 열리는 복합 공간"],
-        ["잠실운동장", 1766372877843, "운동 경기와 콘서트가 열리는 장소"],
-        ["잠실 롯데월드몰", 1766382476297, "쇼핑과 엔터테인먼트가 결합된 복합 공간"],
-        ["강남역", 1766382476297, "서울의 중심 상업지구"],
-        ["인사동", 1766382476297, "전통 공예품과 갤러리가 많은 거리"],
-        ["잠실", 1766382476297, "서울의 대표적인 상업지구"]
+        ["부산역", 1766372877841, "부산의 중심 교통 허브", ["#기차역", "#뷰"]],
+        ["해운대", 1766372877843, "부산의 대표적인 해변", ["#바닷가", "#해변", "#포토존"]],
+        ["서울숲", 1766372877843, "서울의 대표적인 공원", ["#공원"]],
+        ["코엑스", 1766372877843, "전시와 컨벤션이 열리는 복합 공간", ["#코엑스", "#쇼핑"]],
+        ["잠실운동장", 1766372877843, "운동 경기와 콘서트가 열리는 장소", ["#콘서트", "#HOT"]],
+        ["잠실 롯데월드몰", 1766382476297, "쇼핑과 엔터테인먼트가 결합된 복합 공간", ["#잠실", "#롯데"]],
+        ["강남역", 1766382476297, "서울의 중심 상업지구", ["#강남", "#롯데"]],
+        ["인사동", 1766382476297, "전통 공예품과 갤러리가 많은 거리", ["#인사동", "#전통", "#찻집", "#도자기"]],
     ]
     const index = i % arr.length
-    return { name: arr[index][0], category: arr[index][1], memo: arr[index][2] }
+    return { name: arr[index][0], category: arr[index][1], memo: arr[index][2], tags: arr[index][3] as string[] }
 }
 
 const generateLatitudeLongitudeAddress = async (): Promise<{
@@ -81,17 +80,64 @@ function generatetRandomDateString(): string {
     return formatted;
 }
 
+const getMedias = (): Media[] => {
+    const images: Media[] = [
+        {
+            "url": "https://firebasestorage.googleapis.com/v0/b/myple-15ea9.firebasestorage.app/o/places%2F_sample%2Ffood001.jpg?alt=media&token=4f15862d-4194-41a4-88ea-e51e3a9f2cb5",
+            "type": "image",
+            "fileName": "sample_image1.jpg"
+        },
+        {
+            "url": "https://firebasestorage.googleapis.com/v0/b/myple-15ea9.firebasestorage.app/o/places%2F_sample%2Ffood001.jpg?alt=media&token=4f15862d-4194-41a4-88ea-e51e3a9f2cb5",
+            "type": "image",
+            "fileName": "sample_image2.jpg"
+        },
+        {
+            "url": "https://firebasestorage.googleapis.com/v0/b/myple-15ea9.firebasestorage.app/o/places%2F_sample%2Fhotel001.jpg?alt=media&token=4ad1f2e3-477e-4201-a03c-2cb577ea625b",
+            "type": "image",
+            "fileName": "sample_image3.jpg"
+        },
+        {
+            "url": "https://firebasestorage.googleapis.com/v0/b/myple-15ea9.firebasestorage.app/o/places%2F_sample%2Fhotel002.jpg?alt=media&token=a7fec2f0-ba5d-4410-bafe-fabc10671f48",
+            "type": "image",
+            "fileName": "sample_image4.jpg"
+        },
+        {
+            "url": "https://firebasestorage.googleapis.com/v0/b/myple-15ea9.firebasestorage.app/o/places%2F_sample%2Fsight001.jpg?alt=media&token=75250046-2332-419f-9280-cd458ee66496",
+            "type": "image",
+            "fileName": "sample_image5.jpg"
+        },
+        {
+            "url": "https://firebasestorage.googleapis.com/v0/b/myple-15ea9.firebasestorage.app/o/places%2F_sample%2Fsight002.jpg?alt=media&token=e44bb184-77b2-4dcf-8a43-d5311bdd2d1e",
+            "type": "image",
+            "fileName": "sample_image6.jpg"
+        }
+    ];
+    // 2️⃣ 길이가 1-6 사이인지 검증 (범위를 벗어나면 자동 보정)
+    const maxLen = Math.min(6, images.length);
+    const minLen = 1;
+    const randomLen = Math.floor(Math.random() * (maxLen - minLen + 1)) + minLen;
+
+    // 3️⃣ Fisher‑Yates 알고리즘으로 배열을 섞음
+    const shuffled = [...images];
+    for (let i = shuffled.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+
+    // 4️⃣ 앞에서 randomLen 개만 슬라이스해서 반환
+    return shuffled.slice(0, randomLen);
+}
+
 
 export const generatePlaces = async (req: Request, res: Response) => {
     try {
-        console.log(`generatePlaces`)
         const list: Place[] = []
-        const count = 20
+        const count = Number(req.query.count)
+        console.log(`generatePlaces count=${req.params.count}`)
         for (let i = 0; i < count; i++) {
-            const { name, category, memo } = generateNameCategoryMemo(i)
-            console.log(`name=${name} category=${category} memo=${memo}`)
+            const { name, category } = generateNameCategoryMemoTags(i)
             const { latitude, longitude, address } = await generateLatitudeLongitudeAddress()
-            console.log(`latitude=${latitude} longitude=${longitude} address=${address}`)
             const data: Place = {
                 id: '',
                 name: name.toString(),
@@ -99,17 +145,37 @@ export const generatePlaces = async (req: Request, res: Response) => {
                 latitude: latitude,
                 longitude: longitude,
                 address: address,
-                memo: memo.toString(),
-                rating: Math.floor(Math.random() * 5) + 1,
-                visitAt: generatetRandomDateString(),
+                // memo: memo.toString(),
+                // rating: Math.floor(Math.random() * 5) + 1,
+                // visitAt: generatetRandomDateString(),
                 created: '',
                 updated: '',
-                medias: [],
-                tags: [],
-                creator: 'tothetg@naver.com'
+                // medias: getMedias(),
+                // tags: tags,
+                creator: 'tothetg@naver.com',
+                // sample: true
             }
             console.log(`data ${JSON.stringify(data)}`)
-            await placeService.createNewPlace(data)
+            const createdData = await placeService.createNewPlace(data)
+            if (createdData) {
+                for (let j = 0; j < Math.floor(Math.random() * 5) + 5; j++) {
+                    const { memo, tags } = generateNameCategoryMemoTags(Math.floor(Math.random() * 21) + 1)
+                    const history: PlaceHistory = {
+                        id: '',
+                        placeId: createdData.id,
+                        memo: memo.toString(),
+                        rating: Math.floor(Math.random() * 5) + 1,
+                        visitAt: generatetRandomDateString(),
+                        tags: tags,
+                        medias: getMedias(),
+                        created: '',
+                        updated: ''
+                    }
+                    await placeService.createNewPlaceHistory(history)
+                }
+            }
+
+
         }
 
 
@@ -122,7 +188,7 @@ export const generatePlaces = async (req: Request, res: Response) => {
 export const deletePlaces = async (req: Request, res: Response) => {
     try {
         console.log(`deletePlaces`)
-        await placeService.deletePlaces()
+        await placeService.deleteSamplePlaces()
 
         res.status(200).json(true)
     } catch (error) {

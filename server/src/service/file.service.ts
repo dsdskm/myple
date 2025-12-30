@@ -2,19 +2,18 @@
 import { bucket, db } from '../config/firebase';
 import { getFormattedDateForFile } from '../common/utils';
 import * as path from 'path';
-import { Place } from '../types/place';
-import { MediaFile, Media } from '../controller/file.controller';
+import { Media, MediaFile, Place, PlaceHistory } from '../types/place';
 
-async function uploadToBucket(placeId: string, mediaItems: MediaFile[]): Promise<Media[]> {
+async function uploadToBucket(placeId: string, id: string, mediaItems: MediaFile[]): Promise<Media[]> {
     const uploaded: Media[] = [];
-
+    console.log(`uploadToBucket placeId ${placeId} id ${id}`)
     try {
         for (const { file, type } of mediaItems) {
             // 파일 이름에 날짜를 붙여 고유하게 만든다.
             const originalName = file.originalname; // 예: "myphoto.jpg"
             const ext = path.extname(originalName);
-            const fileName = `${placeId}_${getFormattedDateForFile()}${ext}`;
-            const destination = bucket.file(`places/${placeId}/${fileName}`);
+            const fileName = `${placeId}_${id}_${getFormattedDateForFile()}${ext}`;
+            const destination = bucket.file(`places/${placeId}/${id}/${fileName}`);
 
             // 버퍼를 이용해 업로드
             await destination.save(file.buffer, {
@@ -38,30 +37,29 @@ async function uploadToBucket(placeId: string, mediaItems: MediaFile[]): Promise
    ------------------------------------------------- */
 export const uploadFiles = async (
     placeId: string,
+    id: string,
     mediaItems: MediaFile[]
 ): Promise<Media[]> => {
-    // 1️⃣ 파일 업로드
-    return await uploadToBucket(placeId, mediaItems);
+    console.log(`uploadFiles placeId ${placeId} id ${id}`)
+    return await uploadToBucket(placeId, id, mediaItems);
 };
 
 export async function deleteOrphanFiles(
     placeId: string,
+    id: string
 ): Promise<void> {
-    // 1️⃣ Firestore에서 해당 장소 도큐먼트를 가져옵니다.
-    const placeRef = db.collection('places').doc(placeId);
-    const placeSnap = await placeRef.get();
-    const placeData: Place = placeSnap.data() as Place
-    const recordedMedias: string[] = (placeData.medias as Media[]).map(
+    const placeHistoryRef = db.collection('places').doc(placeId).collection("history").doc(id);
+    const placeHistoryDoc = await placeHistoryRef.get();
+    const placeHistoryData: PlaceHistory = placeHistoryDoc.data() as PlaceHistory
+    const recordedMedias: string[] = (placeHistoryData.medias as Media[]).map(
         (m) => m.fileName ?? ''
     );
 
-    // 2️⃣ GCP Storage에서 해당 폴더(places/${placeId})에 존재하는 모든 파일명을 조회합니다.
-    const storageFolder = `places/${placeId}`;
+    const storageFolder = `places/${placeId}/${id}`;
     const [storageFiles] = await bucket.getFiles({
         prefix: storageFolder,
     });
 
-    // 3️⃣ 각 파일을 순회하면서, Firestore에 기록되지 않은 파일이면 삭제합니다.
     for (const file of storageFiles) {
         const fullPath = file.name; // 예: "places/<placeId>/abc_20231101.jpg"
         const relativePath = path.basename(fullPath); // "abc_20231101.jpg"
@@ -82,14 +80,9 @@ export async function deleteOrphanFiles(
 
 export async function deleteAllFilesInPlaceFolder(placeId: string): Promise<void> {
     const prefix = `places/${placeId}/`;
-
-    console.log(`[deleteAllFilesInPlaceFolder] Deleting all objects under prefix: ${prefix}`);
-
-    // 1️⃣ 해당 프리픽스를 가진 모든 객체(파일/폴더) 목록 조회
     const [files] = await bucket.getFiles({ prefix });
 
     if (files.length === 0) {
-        console.log(`[deleteAllFilesInPlaceFolder] No files found under ${prefix}`);
         return;
     }
 
@@ -99,10 +92,22 @@ export async function deleteAllFilesInPlaceFolder(placeId: string): Promise<void
             await file.delete();
             console.log(`[deleteAllFilesInPlaceFolder] Deleted: ${file.name}`);
         } catch (err) {
-            console.error(`[deleteAllFilesInPlaceFolder] Failed to delete ${file.name}:`, err);
-            // 개별 파일 삭제 실패 시에도 다른 파일은 계속 삭제
         }
     }
+}
 
-    console.log(`[deleteAllFilesInPlaceFolder] Finished deleting all objects under ${prefix}`);
+export async function deleteAllFilesInPlaceHistoryFolder(placeId: string, id: string): Promise<void> {
+    const prefix = `places/${placeId}/${id}`;
+    const [files] = await bucket.getFiles({ prefix });
+
+    if (files.length === 0) {
+        return;
+    }
+    for (const file of files) {
+        try {
+            await file.delete();
+            console.log(`[deleteAllFilesInPlaceHistoryFolder] Deleted: ${file.name}`);
+        } catch (err) {
+        }
+    }
 }

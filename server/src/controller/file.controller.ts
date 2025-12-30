@@ -1,18 +1,8 @@
 import { Request, Response, NextFunction } from 'express';
 import multer from 'multer';
 import { uploadFiles } from '../service/file.service';
+import { MediaFile } from '../types/place';
 
-export type MediaFile = {
-    fileName: string;
-    file: Express.Multer.File;
-    type: 'image' | 'video';
-};
-
-export type Media = {
-    url: string
-    type: string
-    fileName: string
-};
 
 const upload = multer({
     storage: multer.memoryStorage(), // 메모리에 저장
@@ -35,10 +25,13 @@ export const uploadMediaFiles = async (
                 if (err) return reject(err);
                 const files = req.files as Express.Multer.File[];
                 const placeId = req.body.placeId as string;
+                const id = req.body.id as string
                 if (!placeId) return reject(new Error('placeId query param is required'));
+                if (!id) return reject(new Error('id query param is required'));
 
                 // 파일이 없을 경우 바로 응답
                 if (!files?.length) {
+                    console.log(`files are undefined`)
                     return res
                         .status(200)
                         .json({});
@@ -53,7 +46,7 @@ export const uploadMediaFiles = async (
                 });
 
                 // 변환된 배열을 uploadFiles에 전달
-                const result = await uploadFiles(placeId, mediaItems);
+                const result = await uploadFiles(placeId, id, mediaItems);
                 res.status(200).json(result);
                 resolve();
             });
