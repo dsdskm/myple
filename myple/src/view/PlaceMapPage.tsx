@@ -98,22 +98,19 @@ export default function MapPage() {
             setMyPlaceList(list)
         }
 
-        loadPlaces()
-    }, [account.id])
-
-    useEffect(() => {
         const loadCategories = async () => {
-            if (account) {
-                const categoryData = await getCategory(account.id)
-                if (categoryData) {
-                    const map = new Map<number, string>()
-                    categoryData.list.forEach((c) => map.set(c.id, c.title))
-                    setCategoryMap(map)
-                }
+
+            const categoryData = await getCategory(account.id)
+            if (categoryData) {
+                const map = new Map<number, string>()
+                categoryData.list.forEach((c) => map.set(c.id, c.title))
+                setCategoryMap(map)
             }
         }
-
-        loadCategories()
+        if (account) {
+            loadCategories()
+            loadPlaces()
+        }
 
     }, [account])
 

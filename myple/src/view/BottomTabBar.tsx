@@ -46,7 +46,7 @@ const TabLabel = styled.div`
 
 const tabs = [
     {
-        label: 'Map',
+        label: '지도',
         icon: <img
             src="/tab_map.png"          /* public/search.png 가 자동으로 /search.png 로 매핑됩니다 */
             alt="search"
@@ -55,7 +55,7 @@ const tabs = [
         path: ROUTES.MAP,
     },
     {
-        label: 'List',
+        label: '리스트',
         icon: <img
             src="/tab_list.png"          /* public/search.png 가 자동으로 /search.png 로 매핑됩니다 */
             alt="search"
@@ -64,7 +64,7 @@ const tabs = [
         path: ROUTES.PLACE_LIST,
     },
     {
-        label: 'Add',
+        label: '추가',
         icon: <img
             src="/tab_add.png"          /* public/search.png 가 자동으로 /search.png 로 매핑됩니다 */
             alt="search"
@@ -73,7 +73,7 @@ const tabs = [
         path: ROUTES.PLACE_EDIT,
     },
     {
-        label: 'My',
+        label: '내 정보',
         icon: <img
             src="/tab_info.png"          /* public/search.png 가 자동으로 /search.png 로 매핑됩니다 */
             alt="search"

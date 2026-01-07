@@ -9,7 +9,7 @@ export const ROUTES = {
 
 export const TEXT = {
     SEARCH: "검색",
-    ADD: "ADD",
+    ADD: "추가",
     PLACE_NAME: "장소 이름",
     CATEGORY: "카테고리",
     CATEGORY_MODIFY: "카테고리 수정",

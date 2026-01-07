@@ -65,37 +65,39 @@ const PlaceEditPage = () => {
 
     useEffect(() => {
         const loadPlaces = async () => {
-            console.log(`loadPlaces`)
             const list = await getPlaces(account.id)
-            const target = list.filter((p) => p.id === selectedPlace.id)[0]
-            setName(target.name)
-            setCategory(target.category)
-            setAddress(target.address)
-            setLatitude(target.latitude)
-            setLongitude(target.longitude)
-            setHistoryList(target.historyList)
-            setPlaceList(list)
-        }
-        const loadCategories = async () => {
-            if (account) {
-                const categoryData = await getCategory(account.id)
-                if (categoryData) {
-                    setCategoryList(categoryData.list)
+            if (selectedPlace) {
+                const target = list.filter((p) => p.id === selectedPlace.id)[0]
+                if (target) {
+                    setName(target.name)
+                    setCategory(target.category)
+                    setAddress(target.address)
+                    setLatitude(target.latitude)
+                    setLongitude(target.longitude)
+                    setHistoryList(target.historyList)
+                    setPlaceList(list)
                 }
             }
         }
-        const loadProductInfo = async () => {
-            if (account) {
-                const result = await getProductInfo(account.id)
-                setProduct(result)
+        const loadCategories = async () => {
+            const categoryData = await getCategory(account.id)
+            if (categoryData) {
+                setCategoryList(categoryData.list)
             }
+        }
+        const loadProductInfo = async () => {
+            const result = await getProductInfo(account.id)
+            setProduct(result)
 
         }
-        loadPlaces()
-        loadCategories()
-        loadProductInfo()
+        if (account) {
+            loadPlaces()
+            loadCategories()
+            loadProductInfo()
+        }
 
-    }, [account])
+
+    }, [account, selectedPlace])
 
     useEffect(() => {
         const handleGetCurrentLocation = async () => {

@@ -20,7 +20,7 @@ const MenuWrapper = styled.div`
 `
 
 const ListWrapper = styled.div`
-    padding-bottom:100px;
+    padding-bottom:90px;
 `
 
 const ListTitleWrapper = styled.div`
@@ -73,36 +73,35 @@ const PlaceListPage = () => {
 
     useEffect(() => {
         const loadPlaces = async () => {
-            if (account) {
-                const list = await getPlaces(account.id)
-                setOriginList(list)
-                setFilteredList(list)
-                let historyList: PlaceHistory[] = []
-                let map: Map<string, Place> = new Map()
-                list.forEach((p) => {
-                    map.set(p.id, p)
-                    historyList = historyList.concat(p.historyList)
-                })
-                setOriginHistoryList(historyList)
-                setOriginMap(map)
-                setFilteredHistoryList([])
-            }
+            const list = await getPlaces(account.id)
+            setOriginList(list)
+            setFilteredList(list)
+            let historyList: PlaceHistory[] = []
+            let map: Map<string, Place> = new Map()
+            list.forEach((p) => {
+                map.set(p.id, p)
+                historyList = historyList.concat(p.historyList)
+            })
+            setOriginHistoryList(historyList)
+            setOriginMap(map)
+            setFilteredHistoryList([])
         }
         const loadCategories = async () => {
-            if (account) {
-                const categoryData = await getCategory(account.id)
-                if (categoryData) {
-                    const map = new Map<number, string>()
-                    categoryData.list.forEach((c, index) => {
-                        map.set(c.id, c.title)
-                    })
-                    setCategoryMap(map)
-                }
+
+            const categoryData = await getCategory(account.id)
+            if (categoryData) {
+                const map = new Map<number, string>()
+                categoryData.list.forEach((c, index) => {
+                    map.set(c.id, c.title)
+                })
+                setCategoryMap(map)
             }
         }
 
-        loadPlaces()
-        loadCategories()
+        if (account) {
+            loadPlaces()
+            loadCategories()
+        }
 
     }, [account])
 

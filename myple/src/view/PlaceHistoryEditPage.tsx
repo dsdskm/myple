@@ -18,6 +18,11 @@ import { useApp } from "../context/AppContext"
 import { Product } from "../types/product"
 import { BottomButtonWrapper, PageWrapper } from "./PlaceEditPage"
 
+const TagWrapper = styled.div`
+    display:flex;
+    flex-direction:row;
+    gap:5px;
+`
 
 const TagItemWrapper = styled.div`
     margin-left:20px;
@@ -69,7 +74,7 @@ const PlaceHistoryEditPage = () => {
     const [pictureFiles, setPictureFiles] = useState<Media[]>([]);
     const [medias, setMedias] = useState<Media[]>(selectedPlaceHistory.medias)
     const [visitDate, setVisitDate] = useState<Dayjs | null>(textToDayjs(selectedPlaceHistory.visitAt) || dayjs(new Date()))
-    const [inputTag, setInputTag] = useState<string>("#")
+    const [inputTag, setInputTag] = useState<string>("")
     const [tagSet, setTagSet] = useState<Set<string>>(new Set(selectedPlaceHistory.tags) || new Set())
     const inputRef = useRef<HTMLInputElement>(null);
     const [product, setProduct] = useState<Product | null>()
@@ -85,13 +90,13 @@ const PlaceHistoryEditPage = () => {
 
     useEffect(() => {
         const loadProductInfo = async () => {
-            if (account) {
-                const result = await getProductInfo(account.id)
-                setProduct(result)
-            }
+            const result = await getProductInfo(account.id)
+            setProduct(result)
+        }
+        if (account) {
+            loadProductInfo()
         }
 
-        loadProductInfo()
     }, [account])
 
     const memoView = () => {
@@ -182,8 +187,7 @@ const PlaceHistoryEditPage = () => {
     }
 
     const tagView = () => {
-        const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-            const raw = e.target.value;
+        const handleInputChange = (raw: string) => {
             setInputTag(raw);
             if (raw.length > 0 && raw[raw.length - 1] === " " && raw.includes("#")) {
                 const candidate = raw.trim().substring(0)
@@ -194,7 +198,7 @@ const PlaceHistoryEditPage = () => {
                         return next;
                     });
 
-                    setInputTag("#");
+                    setInputTag("");
                     setTimeout(() => {
                         if (inputRef.current) inputRef.current.focus();
                     }, 0);
@@ -213,14 +217,16 @@ const PlaceHistoryEditPage = () => {
 
         return <>
             <Post.H3>{TEXT.TAG}</Post.H3>
-            <TextField
-                variant="box"
-                ref={inputRef}
-                placeholder={TEXT.MSG_TAG_GUIDE}
-                value={inputTag}
-                onChange={handleInputChange}
-                onInput={handleInputChange}
-            />
+            <TagWrapper>
+                <TextField
+                    variant="box"
+                    ref={inputRef}
+                    placeholder={TEXT.MSG_TAG_GUIDE}
+                    value={inputTag}
+                    onChange={(e) => handleInputChange(e.target.value)}
+                />
+                <Button size="small" color="light" onClick={() => { handleInputChange(inputTag + " ") }}>{TEXT.ADD}</Button>
+            </TagWrapper>
 
             <TagItemWrapper>
                 {Array.from(tagSet).map((tag) => (

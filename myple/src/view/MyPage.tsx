@@ -50,22 +50,20 @@ const MyPage = () => {
     const [isLoading, setIsLoading] = useState<boolean>(false)
     useEffect(() => {
         const loadCategories = async () => {
-            if (account) {
-                const categoryData = await getCategory(account.id)
-                if (categoryData) {
-                    setCategoryData(categoryData)
-                    setTargetCategoryList(categoryData.list)
-                }
+            const categoryData = await getCategory(account.id)
+            if (categoryData) {
+                setCategoryData(categoryData)
+                setTargetCategoryList(categoryData.list)
             }
         }
         const loadProductInfo = async () => {
-            if (account) {
-                const result = await getProductInfo(account.id)
-                setProduct(result)
-            }
+            const result = await getProductInfo(account.id)
+            setProduct(result)
         }
-        loadCategories()
-        loadProductInfo()
+        if (account) {
+            loadCategories()
+            loadProductInfo()
+        }
     }, [account])
 
     useEffect(() => {
@@ -389,19 +387,18 @@ const MyPage = () => {
     const infoView = () => {
 
         return <>
-            <TableRow align="space-between" left={TEXT.ID} right={account.id} />
-            <TableRow align="space-between" left={TEXT.NAME} right={account.name} />
-            <TableRow align="space-between" left={TEXT.GENDER} right={account.gender === "MALE" ? TEXT.MALE : TEXT.FEMALE} />
-            <TableRow align="space-between" left={TEXT.PHONE} right={account.phone} />
-            <TableRow align="space-between" left={TEXT.BIRTHDAY} right={account.birthday} />
-            <TableRow align="space-between" left={TEXT.AGREED_TERMS} right={account.agreedTerms && account.agreedTerms[0] === "serviceAgreed" ? TEXT.YES : TEXT.NO} />
-            <TableRow align="space-between" left={TEXT.CATEGORY} right={<Button style={{ marginLeft: 5 }} size="small" onClick={() => setCategoryDialogOpen(true)}>{TEXT.CATEGORY_MANAGEMENT}</Button>} />
-            {product &&
-                <>
-                    <TableRow align="space-between" left={TEXT.PRODUCT_CATEGORY_LIMIT} right={product.category_limit} />
-                    <TableRow align="space-between" left={TEXT.PRODUCT_PLACE_LIMIT} right={product.place_limit} />
-                    <TableRow align="space-between" left={TEXT.PRODUCT_PLACE_HISTORY_PHOTO_LIMIT} right={product.place_history_photo_limit} />
-                </>}
+            {account && product && <>
+                <TableRow align="space-between" left={TEXT.ID} right={account.id} />
+                <TableRow align="space-between" left={TEXT.NAME} right={account.name} />
+                <TableRow align="space-between" left={TEXT.GENDER} right={account.gender === "MALE" ? TEXT.MALE : TEXT.FEMALE} />
+                <TableRow align="space-between" left={TEXT.PHONE} right={account.phone} />
+                <TableRow align="space-between" left={TEXT.BIRTHDAY} right={account.birthday} />
+                <TableRow align="space-between" left={TEXT.AGREED_TERMS} right={account.agreedTerms && account.agreedTerms[0] === "serviceAgreed" ? TEXT.YES : TEXT.NO} />
+                <TableRow align="space-between" left={TEXT.CATEGORY} right={<Button style={{ marginLeft: 5 }} size="small" onClick={() => setCategoryDialogOpen(true)}>{TEXT.CATEGORY_MANAGEMENT}</Button>} />
+                <TableRow align="space-between" left={TEXT.PRODUCT_CATEGORY_LIMIT} right={product.category_limit} />
+                <TableRow align="space-between" left={TEXT.PRODUCT_PLACE_LIMIT} right={product.place_limit} />
+                <TableRow align="space-between" left={TEXT.PRODUCT_PLACE_HISTORY_PHOTO_LIMIT} right={product.place_history_photo_limit} />
+            </>}
         </>
     }
 
