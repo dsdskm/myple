@@ -1,24 +1,20 @@
-import { Button, ConfirmDialog, FixedBottomCTA, Menu, Post, Rating, TextArea, TextField, Toast } from "@toss/tds-mobile"
-import { ACCOUNT_TYPE_USER_BASIC, ACCOUNT_TYPE_USER_PRO, ROUTES, TEXT } from "../common/constants"
+import { AlertDialog, Button, ConfirmDialog, FixedBottomCTA, List, ListRow, Menu, Post, Rating, Text, TextField, Toast } from "@toss/tds-mobile"
+import { ROUTES, TEXT } from "../common/constants"
 import { GoogleMap, Marker } from "@react-google-maps/api"
-import { useCallback, useEffect, useRef, useState } from "react";
-import { dayjsToText, textToDayjs, roundToFour } from "../common/utils";
-import { Accuracy, fetchAlbumPhotos, getCurrentLocation } from "@apps-in-toss/web-bridge";
+import { useCallback, useEffect, useState } from "react";
+import { roundToFour } from "../common/utils";
+import { Accuracy, getCurrentLocation } from "@apps-in-toss/web-bridge";
 import styled from "styled-components";
-import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
-import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker';
-import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
-import { koKR } from '@mui/x-date-pickers/locales'; // MUI X 한국어 텍스트
-import dayjs, { Dayjs } from "dayjs";
 import 'dayjs/locale/ko';
-import { Media, Place, PlaceHistory } from "../types/place";
+import { Place, PlaceHistory } from "../types/place";
 import Loading from "./common/Loading";
 import { useLocation, useNavigate } from 'react-router-dom';
-import { openCamera } from '@apps-in-toss/web-framework';
-import { createPlace, deletePlace, getCategory, getPlaceHistories, updatePlace, uploadFiles } from "../service/api";
+import { createPlace, deletePlace, getCategory, getPlaces, getProductInfo, updatePlace } from "../service/api";
 import { useApp } from "../context/AppContext";
+import { ToastInfo } from "../types/toast";
+import { Product } from "../types/product";
 
-const PageWrapper = styled.div`
+export const PageWrapper = styled.div`
     padding: 10px;
     display: flex;
     flex-direction:column;
@@ -30,51 +26,13 @@ const mapContainerStyle = {
     height: '300px',
 };
 
-const ImagePreviewContainer = styled.div`
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-    margin-left:20px;
-`;
-const TagItemWrapper = styled.div`
-    margin-left:20px;
-    display:flex;
-    flex-direction:row;
-    gap:5px;
-`
-
-const TagItem = styled.div`
-    background: #e3f2fd;
-    color: #1976d2;
-    padding: 0.3rem 0.7rem;
-    border-radius: 12px;
-    font-size: 0.9rem;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    user-select: none;
-`
-
-const BottomButtonWrapper = styled.div`
+export const BottomButtonWrapper = styled.div`
     display:flex;
     flex-direction:column;
     align-items:center;
     justify-content:center;
     gap:20px
 `
-
-interface ImagePreviewProps {
-    src: string;
-    id: string;
-    onClick: () => void;
-    onDelete: (id: string) => void;
-}
-
-interface ToastInfo {
-    show: boolean;
-    message: string;
-}
-
 const PlaceEditPage = () => {
     const { account } = useApp()
     const navigate = useNavigate()
@@ -82,34 +40,42 @@ const PlaceEditPage = () => {
 
     const selectedPlace: Place = location.state && location.state.selectedPlace ? location.state.selectedPlace : null
     const isEditMode = selectedPlace ? true : false
+
     const [name, setName] = useState<string>("")
     const [nameError, setNameError] = useState<boolean>(false)
     const [category, setCategory] = useState<number>(0)
     const [address, setAddress] = useState<string>("")
     const [latitude, setLatitude] = useState<number>(0)
     const [longitude, setLongitude] = useState<number>(0)
-    const [memo, setMemo] = useState<string>("")
-    const [rating, setRating] = useState<number>(0)
-    const [medias, setMedias] = useState<Media[]>([])
-    const [tag, setTag] = useState<string[]>([])
-    const [tagSet, setTagSet] = useState<Set<string>>(new Set())
-    const [inputTag, setInputTag] = useState<string>("#")
-    const inputRef = useRef<HTMLInputElement>(null);
-    const [pictureFiles, setPictureFiles] = useState<Media[]>([]);
     const [categoryMenuOpen, setCategoryMenuOpen] = useState<boolean>(false)
-    const [visitDate, setVisitDate] = useState<Dayjs | null>(dayjs(new Date()))
-    const [placeHistoryList, setPlaceHistoryList] = useState<PlaceHistory[]>([])
-    const [isLoading, setIsLoading] = useState<boolean>(false)
+    const [categoryList, setCategoryList] = useState<{ "id": number, "title": string }[]>([])
+    const [currentLocation, setCurrentLocation] = useState<number[]>([37.5665, 126.9780])
+    const [product, setProduct] = useState<Product | null>()
+    const [placeList, setPlaceList] = useState<Place[]>([])
+    const [historyList, setHistoryList] = useState<PlaceHistory[]>([])
+
+    const [createDialogOpen, setCreateDialogOpen] = useState<boolean>(false);
+    const [deleteDialogOpen, setDeleteDialogOpen] = useState<boolean>(false)
+    const [alertDialogOpen, setAlertDialogOpen] = useState<boolean>(false)
     const [toastInfo, setToastInfo] = useState<ToastInfo>({
         show: false,
         message: ""
     })
-    const [categoryList, setCategoryList] = useState<{ "id": number, "title": string }[]>([])
-    const [isCreateDialogOpen, setIsCreateDialogOpen] = useState<boolean>(false);
-    const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState<boolean>(false)
-    const [currentLocation, setCurrentLocation] = useState<number[]>([37.5665, 126.9780])
+    const [isLoading, setIsLoading] = useState<boolean>(false)
 
     useEffect(() => {
+        const loadPlaces = async () => {
+            console.log(`loadPlaces`)
+            const list = await getPlaces(account.id)
+            const target = list.filter((p) => p.id === selectedPlace.id)[0]
+            setName(target.name)
+            setCategory(target.category)
+            setAddress(target.address)
+            setLatitude(target.latitude)
+            setLongitude(target.longitude)
+            setHistoryList(target.historyList)
+            setPlaceList(list)
+        }
         const loadCategories = async () => {
             if (account) {
                 const categoryData = await getCategory(account.id)
@@ -118,24 +84,18 @@ const PlaceEditPage = () => {
                 }
             }
         }
+        const loadProductInfo = async () => {
+            if (account) {
+                const result = await getProductInfo(account.id)
+                setProduct(result)
+            }
+
+        }
+        loadPlaces()
         loadCategories()
+        loadProductInfo()
 
     }, [account])
-
-    useEffect(() => {
-        const loadHistories = async (placeId: string) => {
-            const result = await getPlaceHistories(placeId)
-            setPlaceHistoryList(result)
-        }
-        if (isEditMode && selectedPlace) {
-            setName(selectedPlace.name)
-            setCategory(selectedPlace.category)
-            setAddress(selectedPlace.address)
-            setLatitude(selectedPlace.latitude)
-            setLongitude(selectedPlace.longitude)
-            loadHistories(selectedPlace.id)
-        }
-    }, [isEditMode, selectedPlace])
 
     useEffect(() => {
         const handleGetCurrentLocation = async () => {
@@ -149,18 +109,11 @@ const PlaceEditPage = () => {
         handleGetCurrentLocation()
     }, [])
 
-    const resetAll = () => {
-        setName("")
-        setCategory(0)
-        setAddress("")
-        setLatitude(0)
-        setLongitude(0)
-        setMemo("")
-        setRating(0)
-        setPictureFiles([])
-    }
-
-
+    useEffect(() => {
+        if (!selectedPlace) {
+            onCurrentLocationUseClick()
+        }
+    }, [selectedPlace])
 
     const handleMapClick = useCallback((event: google.maps.MapMouseEvent) => {
         if (event.latLng) {
@@ -186,7 +139,7 @@ const PlaceEditPage = () => {
 
 
     const nameView = () => {
-        return <div>
+        return <>
             <Post.H3>{TEXT.PLACE_NAME}</Post.H3>
             <TextField
                 variant="box"
@@ -200,12 +153,12 @@ const PlaceEditPage = () => {
                     setNameError(v.length > 10 || v.length === 0)
                 }}
             />
-        </div>
+        </>
     }
 
     const categoryView = () => {
         const currentCategory = categoryList.filter(c => c.id === category)
-        return <div>
+        return <>
             <Post.H3>{TEXT.CATEGORY}</Post.H3>
             <Menu.Trigger
                 open={categoryMenuOpen}
@@ -237,13 +190,36 @@ const PlaceEditPage = () => {
             >
                 <Button color="light">{currentCategory && currentCategory[0] ? currentCategory[0].title : TEXT.MENU_CATEGORY_CHOICE}</Button>
             </Menu.Trigger >
-        </div>
+        </>
+    }
+
+    const onCurrentLocationUseClick = async () => {
+        const response = await getCurrentLocation({ accuracy: Accuracy.Balanced });
+        const lat = response.coords.latitude
+        const lng = response.coords.longitude
+        const geocoder = new window.google.maps.Geocoder();
+        geocoder.geocode({ location: { lat, lng }, language: 'ko' }, (results, status) => {
+            if (status === 'OK') {
+                if (results && results[0]) {
+                    setAddress(results[0].formatted_address)
+                    setLatitude(roundToFour(lat))
+                    setLongitude(roundToFour(lng))
+                } else {
+                    console.log('No results found');
+                }
+            } else {
+                console.log('Geocoder failed due to: ' + status);
+            }
+        });
     }
 
     const mapAddressView = () => {
         return <div>
             <Post.H3>{TEXT.LOCATION}</Post.H3>
             <Post.Paragraph>{TEXT.MSG_LOCATION_GUIDE}</Post.Paragraph>
+            <div style={{ paddingLeft: 20, paddingRight: 20, paddingBottom: 20 }}>
+                <Button size="medium" color="primary" variant="weak" onClick={onCurrentLocationUseClick}>{TEXT.USE_CURRENT_LOCATION}</Button>
+            </div>
             <Post.Paragraph>
                 <GoogleMap
                     mapContainerStyle={mapContainerStyle}
@@ -260,94 +236,37 @@ const PlaceEditPage = () => {
                 placeholder={TEXT.MSG_LOCATION_GUIDE}
                 value={address}
             />
-            <Post.H3>{TEXT.LATITUDE_LONGITUDE}</Post.H3>
-            <TextField
-                variant="box"
-                placeholder={TEXT.MSG_LOCATION_GUIDE}
-                value={latitude + ", " + longitude}
-            />
         </div>
     }
 
-    const ratingView = () => {
-        return <>
-            <Post.H3>{TEXT.RATING}</Post.H3>
-            <Post.Paragraph>
-                <Rating readOnly={false} value={rating} max={5} size="medium" aria-label={TEXT.RATING} onValueChange={setRating} />
-            </Post.Paragraph>
-        </>
-    }
-
-    const visitTimeView = () => {
-        return <div>
-            <Post.H3>{TEXT.VISIT_AT}</Post.H3>
-            <div style={{ marginLeft: 20 }} >
-                <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale="ko" localeText={koKR.components.MuiLocalizationProvider.defaultProps.localeText}>
-                    <DateTimePicker
-                        value={visitDate}
-                        onChange={(newValue) => setVisitDate(newValue)}
-                    />
-                </LocalizationProvider>
-            </div>
-        </div>
-    }
-
-    const tagView = () => {
-        const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-            const raw = e.target.value;
-            setInputTag(raw);
-            if (raw.length > 0 && raw[raw.length - 1] === " " && raw.includes("#")) {
-                const candidate = raw.trim().substring(0)
-                if (candidate) {
-                    setTagSet((prev) => {
-                        const next = new Set(prev);
-                        next.add(candidate);
-                        return next;
-                    });
-
-                    setInputTag("#");
-                    setTimeout(() => {
-                        if (inputRef.current) inputRef.current.focus();
-                    }, 0);
+    const historyListView = () => {
+        const onHistoryListItemClick = (placeHistory: PlaceHistory) => {
+            const currentCategory = categoryList.filter(c => c.id === category)
+            navigate(ROUTES.PLACE_HISTORY_EDIT, {
+                state: {
+                    selectedPlace: selectedPlace,
+                    selectedPlaceHistory: placeHistory,
+                    categoryText: currentCategory[0].title
                 }
-            }
-        };
+            })
+        }
 
-
-        const handleDelete = (tagToDelete: string) => {
-            setTagSet((prev) => {
-                const next = new Set(prev);
-                next.delete(tagToDelete);
-                return next;
-            });
-        };
-
-        return <div>
-            <Post.H3>{TEXT.TAG}</Post.H3>
-            <TextField
-                variant="box"
-                ref={inputRef}
-                placeholder={TEXT.MSG_TAG_GUIDE}
-                value={inputTag}
-                onChange={handleInputChange}
-                onInput={handleInputChange}
-            />
-
-            <TagItemWrapper>
-                {Array.from(tagSet).map((tag) => (
-                    <TagItem
-                        key={tag}
-                        onClick={() => handleDelete(tag)}>
-                        {tag}
-                    </TagItem>
-                ))}
-            </TagItemWrapper>
-        </div>
-    }
-
-    const historyList = () => {
         return <>
-
+            <Post.H3>{TEXT.PLACE_HISTORY}</Post.H3>
+            <List>
+                {historyList.map((history) => {
+                    return <ListRow
+                        contents={<ListRow.Texts type="2RowTypeA" top={history.visitAt || ""} bottom={
+                            <div style={{ display: "flex", flexDirection: "column" }}>
+                                <Text style={{ fontStyle: "italic" }}>{history.tags}</Text>
+                                <Text>{history.memo}</Text>
+                            </div>} />}
+                        right={
+                            <Rating readOnly={true} value={history.rating} max={history.rating} size="medium" variant="compact" aria-label={TEXT.RATING} />
+                        }
+                        onClick={() => onHistoryListItemClick(history)} />
+                })}
+            </List>
         </>
     }
 
@@ -358,7 +277,6 @@ const PlaceEditPage = () => {
                 state: {
                     selectedPlace: selectedPlace,
                     categoryText: currentCategory[0].title
-
                 }
             })
         }
@@ -366,30 +284,37 @@ const PlaceEditPage = () => {
             {isEditMode && <BottomButtonWrapper>
                 <Button variant="weak" onClick={onHistoryAddClick}>{TEXT.HISTORY_ADD}</Button>
                 <Button size="medium" color="danger" style={{ width: "85%" }} onClick={() => {
-                    setIsDeleteDialogOpen(true)
-                }}>{TEXT.DELETE}</Button>
+                    setDeleteDialogOpen(true)
+                }}>{TEXT.PLACE_DELETE}</Button>
             </BottomButtonWrapper>}
             <FixedBottomCTA.Double
                 leftButton={<Button style={{ flex: 1 }} onClick={() => {
-                    resetAll()
                     navigate(-1)
                 }} variant="weak">{TEXT.CANCEL}</Button>}
-                rightButton={<Button style={{ flex: 1 }} disabled={nameError} onClick={() => setIsCreateDialogOpen(true)}>{isEditMode ? TEXT.MODIFY : TEXT.CREATE}</Button>}
+                rightButton={<Button style={{ flex: 1 }} disabled={nameError} onClick={() => setCreateDialogOpen(true)}>{isEditMode ? TEXT.MODIFY : TEXT.CREATE}</Button>}
             />
         </>
     }
 
     const onDeleteClick = async () => {
-        setIsDeleteDialogOpen(false)
+        setDeleteDialogOpen(false)
         setIsLoading(true)
         await deletePlace(selectedPlace.id)
         setIsLoading(false)
-        resetAll()
-        navigate(ROUTES.MAP, { replace: true })
+        setAlertDialogOpen(true)
     }
 
     const onCreateClick = async () => {
-        setIsCreateDialogOpen(false)
+        setCreateDialogOpen(false)
+        if (!isEditMode) {
+            if (product && placeList.length >= product.place_limit) {
+                toastInfo.message = `최대 ${product.place_limit}개 까지 장소 추가가 가능합니다.`
+                toastInfo.show = true
+                setToastInfo({ ...toastInfo })
+                return
+            }
+        }
+
         if (!name || name.length === 0) {
             toastInfo.show = true
             toastInfo.message = TEXT.MSG_PLACE_NAME
@@ -397,14 +322,6 @@ const PlaceEditPage = () => {
         } else if (!category) {
             toastInfo.show = true
             toastInfo.message = TEXT.MSG_CATEGORY
-            setToastInfo({ ...toastInfo })
-        } else if (account.type === ACCOUNT_TYPE_USER_BASIC && pictureFiles.length + medias.length > 10) {
-            toastInfo.show = true
-            toastInfo.message = TEXT.MSG_PICTURES_BASIC
-            setToastInfo({ ...toastInfo })
-        } else if (account.type === ACCOUNT_TYPE_USER_PRO && pictureFiles.length + medias.length > 30) {
-            toastInfo.show = true
-            toastInfo.message = TEXT.MSG_PICTURES_PRO
             setToastInfo({ ...toastInfo })
         } else {
 
@@ -416,17 +333,6 @@ const PlaceEditPage = () => {
                     selectedPlace.latitude = latitude
                     selectedPlace.latitude = latitude
                     selectedPlace.address = address
-                    // selectedPlace.memo = memo
-                    // selectedPlace.rating = rating
-                    // selectedPlace.visitAt = dayjsToText(visitDate)
-                    // selectedPlace.updated = dayjsToText(dayjs(new Date()))
-                    // selectedPlace.medias = medias
-                    // selectedPlace.tags = Array.from(tagSet)
-                    // if (pictureFiles.length > 0) {
-                    //     const newMedias: Media[] = await uploadFiles(selectedPlace.id, pictureFiles)
-                    //     selectedPlace.medias = selectedPlace.medias.concat(newMedias)
-                    // }
-
                     await updatePlace(selectedPlace.id, selectedPlace)
                 } else {
                     const data: Place = {
@@ -436,34 +342,19 @@ const PlaceEditPage = () => {
                         latitude: latitude,
                         longitude: longitude,
                         address: address,
-                        // memo: memo,
-                        // rating: rating,
-                        // visitAt: dayjsToText(visitDate),
-                        // created: dayjsToText(dayjs(new Date())),
-                        // updated: dayjsToText(dayjs(new Date())),
-                        // medias: [],
-                        // tags: [],
                         creator: account.id,
                         created: "",
-                        updated: ""
+                        updated: "",
+                        historyList: []
                     }
-                    const result = await createPlace(data)
-                    if (result) {
-                        const newId = result.id
-                        // const medias: Media[] = await uploadFiles(newId, pictureFiles)
-                        // result.medias = medias
-                        await updatePlace(newId, result)
-                    } else {
-                        console.log(`result is null`)
-                    }
-
+                    await createPlace(data)
                 }
-
-
+            } catch (e) {
+                console.log(e)
             } finally {
                 setIsLoading(false)
-                resetAll()
-                navigate(ROUTES.MAP, { replace: true })
+                setAlertDialogOpen(true)
+
             }
         }
     }
@@ -474,11 +365,11 @@ const PlaceEditPage = () => {
 
     const createDialog = () => {
         return <ConfirmDialog
-            open={isCreateDialogOpen}
+            open={createDialogOpen}
             title={<ConfirmDialog.Title>{isEditMode ? TEXT.MSG_MODIFY_PLACE_CONFIRM : TEXT.MSG_CREATE_PLACE_CONFIRM}</ConfirmDialog.Title>}
             cancelButton={
                 <ConfirmDialog.CancelButton
-                    onClick={() => setIsCreateDialogOpen(false)}
+                    onClick={() => setCreateDialogOpen(false)}
                 >
                     {TEXT.NO}
                 </ConfirmDialog.CancelButton>
@@ -488,17 +379,17 @@ const PlaceEditPage = () => {
                     {TEXT.YES}
                 </ConfirmDialog.ConfirmButton>
             }
-            onClose={() => setIsCreateDialogOpen(false)}
+            onClose={() => setCreateDialogOpen(false)}
         />
     }
 
     const deleteDialog = () => {
         return <ConfirmDialog
-            open={isDeleteDialogOpen}
+            open={deleteDialogOpen}
             title={<ConfirmDialog.Title>{TEXT.MSG_DELETE_PLACE_CONFIRM}</ConfirmDialog.Title>}
             cancelButton={
                 <ConfirmDialog.CancelButton
-                    onClick={() => setIsDeleteDialogOpen(false)}
+                    onClick={() => setDeleteDialogOpen(false)}
                 >
                     {TEXT.NO}
                 </ConfirmDialog.CancelButton>
@@ -508,8 +399,23 @@ const PlaceEditPage = () => {
                     {TEXT.YES}
                 </ConfirmDialog.ConfirmButton>
             }
-            onClose={() => setIsDeleteDialogOpen(false)}
+            onClose={() => setDeleteDialogOpen(false)}
         />
+    }
+
+    const alertDialog = () => {
+        return <AlertDialog
+            open={alertDialogOpen}
+            title={<AlertDialog.Title>{TEXT.MSG_COMPLETED}</AlertDialog.Title>}
+            alertButton={<AlertDialog.AlertButton onClick={() => {
+                setAlertDialogOpen(false)
+                navigate(-1)
+            }}>{TEXT.OK}</AlertDialog.AlertButton>}
+            onClose={() => {
+                setAlertDialogOpen(false)
+            }
+
+            } />
     }
 
     if (isLoading) {
@@ -520,9 +426,11 @@ const PlaceEditPage = () => {
         {nameView()}
         {categoryView()}
         {mapAddressView()}
+        {historyListView()}
         {buttonView()}
         {createDialog()}
         {deleteDialog()}
+        {alertDialog()}
         <Toast
             position="bottom"
             open={toastInfo.show}

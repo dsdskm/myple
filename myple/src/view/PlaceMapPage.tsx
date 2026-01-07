@@ -1,15 +1,15 @@
 import { useEffect, useState } from 'react';
 import { GoogleMap, Marker } from '@react-google-maps/api';
 import styled from 'styled-components';
-import { BottomSheet, Button, Paragraph, Post, Rating } from '@toss/tds-mobile';
+import { BottomSheet, Button, Text, Paragraph, Rating } from '@toss/tds-mobile';
 import { ROUTES, TEXT } from '../common/constants';
 import BottomTabBar from './BottomTabBar';
 import { getCategory, getPlaces } from '../service/api';
 import { useApp } from '../context/AppContext';
-import { Place } from '../types/place';
+import { Media, Place } from '../types/place';
 import { Accuracy, getCurrentLocation, startUpdateLocation, } from '@apps-in-toss/web-framework';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { getDPlusTime, slicingVisitAtTime } from '../common/utils';
+import ImagePreview, { ImagePreviewContainer } from './common/ImagePreview';
 
 const MapWrapper = styled.div`
   position: relative;
@@ -47,26 +47,6 @@ const ButtonArea = styled.div`
   gap: 10px;
 `;
 
-const ImagePreviewContainer = styled.div`
-    height: 270px;
-    display: flex;
-    justify-content: flex-start; /* 왼쪽 정렬 */
-    align-items: center;
-    overflow-x: auto;
-    gap: 10px;
-    padding: 10px;
-    margin-bottom: 10px;
-    width: 100%; /* 전체 너비 확보 */
-`;
-
-const ImagePreview = styled.img`
-    width: 250px;
-    height: 250px;
-    object-fit: cover;
-    border-radius: 8px;
-    margin: 0 10px 0 0;
-`;
-
 const PlaceInfoHeader = styled.div`
     align-items: center;
     justify-content: center;
@@ -80,6 +60,7 @@ const PlaceInfoContents = styled.div`
     display: flex;
     flex-direction: column;
     margin-left:20px;
+    margin-right:20px;
     gap:5px
 `
 const DEFAULT_ZOOM = 12
@@ -156,34 +137,58 @@ export default function MapPage() {
     }, [paramPlace])
 
     const placeInfoComponent = () => {
+        if (!selectedPlace) {
+            return <></>
+        }
+
+        const placeHistoryList = selectedPlace.historyList
+        const tags = new Set<string>()
+        let images: Media[] = []
+        selectedPlace.historyList.forEach((history) => {
+            history.tags.forEach((tag) => {
+                tags.add(tag)
+            })
+            if (history.medias) {
+                images = images.concat(history.medias as Media[])
+            }
+        })
+        const recentHistory = selectedPlace.historyList.length > 0 ? selectedPlace.historyList[0] : null
         return selectedPlace && categoryMap && <BottomSheet
             UNSAFE_disableFocusLock
             open={isPlaceInfoOpen}
             onClose={() => setIsPlaceInfoOpen(false)}
             header={
                 <PlaceInfoHeader>
-                     <BottomSheet.Header>{selectedPlace.name}</BottomSheet.Header>
-                     {/* <Rating readOnly={false} value={selectedPlace.rating} max={selectedPlace.rating} size="medium" aria-label={TEXT.RATING} /> */}
+                    <BottomSheet.Header>{selectedPlace.name}</BottomSheet.Header>
                 </PlaceInfoHeader>
             }>
             <PlaceInfoContents>
-                <Paragraph.Text>{categoryMap.get(selectedPlace.category)}</Paragraph.Text>
-                {/* {selectedPlace.tags && <Paragraph.Text>{selectedPlace.tags}</Paragraph.Text>} */}
-                {/* {selectedPlace.visitAt && <Paragraph.Text>{slicingVisitAtTime(selectedPlace.visitAt)}, {getDPlusTime(selectedPlace.visitAt)}</Paragraph.Text>} */}
-                {/* {selectedPlace.memo && <Paragraph.Text >{selectedPlace.memo}</Paragraph.Text>} */}
+                <div style={{ display: "flex", flexDirection: "row", justifyContent: "space-between", alignItems: "space-between", width: "100%" }}>
+                    <Paragraph.Text>{categoryMap.get(selectedPlace.category)}</Paragraph.Text>
+                    {placeHistoryList.length > 0 && <Rating readOnly={true} value={placeHistoryList[0].rating} max={placeHistoryList[0].rating} size="medium" variant="iconOnly" aria-label={TEXT.RATING} />}
+                </div>
+
                 {selectedPlace.address && <Paragraph.Text >{selectedPlace.address}</Paragraph.Text>}
-                {/* {selectedPlace.medias.length > 0 && <ImagePreviewContainer>
-                    {selectedPlace.medias.map((image) => {
-                        return <ImagePreview src={image.url} key={image.url} alt="" />;
+                <ImagePreviewContainer>
+                    {images.map((image: any) => {
+                        return <ImagePreview
+                            key={image.fileName}
+                            src={image.url}
+                            id={image.fileName}
+                            onClick={() => { }} onDelete={null} />
                     })}
-                </ImagePreviewContainer>} */}
+                </ImagePreviewContainer>
+                {recentHistory && <Text>{recentHistory.memo}</Text>}
+                {recentHistory && <Text style={{ fontStyle: "italic", fontSize: 14, marginTop: 5 }}>{Array.from(tags)}</Text>}
+                {recentHistory && <Text style={{ fontSize: 14, marginTop: 5, alignSelf: "flex-end" }}>{TEXT.RECENT_VISIT_AT} {recentHistory.visitAt}</Text>}
+                <Text style={{ fontSize: 14, marginTop: 5, alignSelf: "flex-end" }}>총 {selectedPlace.historyList.length}회 방문</Text>
             </PlaceInfoContents>
             <SubmitWrapper>
                 <SubmitButton size="medium" onClick={() => navigate(ROUTES.PLACE_EDIT, {
                     state: {
                         selectedPlace: selectedPlace
                     }
-                })}> {TEXT.MODIFY}</SubmitButton>
+                })}> {TEXT.DETAILS}</SubmitButton>
             </SubmitWrapper>
         </BottomSheet >
     }

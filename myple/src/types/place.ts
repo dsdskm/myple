@@ -8,6 +8,7 @@ export interface Place {
     created: string;
     updated: string;
     creator: string;
+    historyList: PlaceHistory[]
 }
 
 export interface PlaceHistory {

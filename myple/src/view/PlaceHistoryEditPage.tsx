@@ -1,9 +1,8 @@
 import styled from "styled-components"
-import { useApp } from "../context/AppContext"
 import { useLocation, useNavigate } from "react-router-dom"
 import { Media, Place, PlaceHistory } from "../types/place"
-import { useRef, useState } from "react"
-import { AlertDialog, Border, Button, ConfirmDialog, FixedBottomCTA, Paragraph, Post, Rating, TextArea, TextField } from "@toss/tds-mobile"
+import { useEffect, useRef, useState } from "react"
+import { AlertDialog, Button, ConfirmDialog, FixedBottomCTA, Paragraph, Post, Rating, TextArea, TextField, Toast } from "@toss/tds-mobile"
 import { TEXT } from "../common/constants"
 import { fetchAlbumPhotos, openCamera } from "@apps-in-toss/web-framework"
 import { DateTimePicker, LocalizationProvider } from "@mui/x-date-pickers"
@@ -11,22 +10,14 @@ import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs"
 import dayjs, { Dayjs } from "dayjs"
 import { koKR } from "@mui/x-date-pickers/locales"
 import Loading from "./common/Loading"
-import { dayjsToText } from "../common/utils"
-import { createPlaceHistory, updatePlaceHistory, uploadFiles } from "../service/api"
+import { dayjsToText, textToDayjs } from "../common/utils"
+import { createPlaceHistory, deletePlaceHistory, getProductInfo, updatePlaceHistory, uploadFiles } from "../service/api"
+import ImagePreview, { ImagePreviewContainer } from "./common/ImagePreview"
+import { ToastInfo } from "../types/toast"
+import { useApp } from "../context/AppContext"
+import { Product } from "../types/product"
+import { BottomButtonWrapper, PageWrapper } from "./PlaceEditPage"
 
-const PageWrapper = styled.div`
-    padding: 10px;
-    display: flex;
-    flex-direction:column;
-    gap: 10px;
-    padding:20px;
-`
-const ImagePreviewContainer = styled.div`
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-    margin-left:20px;
-`;
 
 const TagItemWrapper = styled.div`
     margin-left:20px;
@@ -47,118 +38,64 @@ const TagItem = styled.div`
     user-select: none;
 `
 
-interface ImagePreviewProps {
-    src: string;
-    id: string;
-    onClick: () => void;
-    onDelete: (id: string) => void;
-}
-
-
-const SIZE_LARGE = 250;
-const SIZE_SMALL = 100;
-const ImagePreview = ({ src, id, onClick, onDelete }: ImagePreviewProps) => {
-    const [size, setSize] = useState<number>(SIZE_SMALL); // 기본 250px
-    const toggleSize = () => {
-        setSize((prev) => (prev === SIZE_LARGE ? SIZE_SMALL : SIZE_LARGE));
-    };
-
-    return (
-        <div
-            style={{
-                position: 'relative',
-                width: size,
-                height: size,
-                cursor: 'pointer',
-                borderRadius: '8px',
-                overflow: 'hidden',
-                backgroundColor: '#f0f0f0',
-            }}
-            onClick={() => {
-                toggleSize();
-                onClick();
-            }}
-        >
-            {/* 실제 이미지 */}
-            <img
-                src={src}
-                alt=""
-                style={{
-                    width: '100%',
-                    height: '100%',
-                    objectFit: 'cover',
-                }}
-            />
-
-            {/* 삭제 버튼 (오른쪽 상단) */}
-            <button
-                type="button"
-                onClick={(e) => {
-                    e.stopPropagation(); // 이미지 클릭 이벤트 방지
-                    const confirmDelete = async () => {
-                        if (window.confirm(TEXT.MSG_IMAGE_DELETE)) {
-                            onDelete(id);
-                        }
-                    };
-                    confirmDelete();
-                }}
-                style={{
-                    position: 'absolute',
-                    top: '4px',
-                    right: '4px',
-                    width: '24px',
-                    height: '24px',
-                    background: 'rgba(0,0,0,0.5)',
-                    border: 'none',
-                    borderRadius: '50%',
-                    fontSize: '14px',
-                    lineHeight: '1',
-                    cursor: 'pointer',
-                    color: '#fff',
-                }}
-                title="삭제"
-            >
-                ×
-            </button>
-        </div>
-    );
-};
-
-interface ToastInfo {
-    show: boolean;
-    message: string;
-}
+const FixedHeader = styled.div`
+    position: fixed;
+    top: 0;
+    left: 0;
+    height:80px;
+    width: 100%;
+    background-color: white;
+    display:flex;
+    flex-direction:column;
+    z-index: 1000;
+    padding: 20px;
+    box-shadow: 0 2px 4px rgba(0, 0,0, 0.1);
+`;
 
 const PlaceHistoryEditPage = () => {
     const { account } = useApp()
     const navigate = useNavigate()
     const location = useLocation();
 
-    const selectedPlace: Place = location.state && location.state.selectedPlace || ""
-    const selectedPlaceHistory: PlaceHistory = location.state && location.state.selectedPlaceHistory || ""
+    const selectedPlace: Place = (location.state && location.state.selectedPlace) || ""
+    const selectedPlaceHistory: PlaceHistory = (location.state && location.state.selectedPlaceHistory) || ""
     const isEditMode = selectedPlaceHistory ? true : false
-    const categoryText = location.state && location.state.categoryText || ""
+    const categoryText = (location.state && location.state.categoryText) || ""
 
-    const [name, setName] = useState<string>(selectedPlace.name)
-    const [category, setCategory] = useState<string>(categoryText)
-    const [address, setAddress] = useState<string>(selectedPlace.address)
-    const [memo, setMemo] = useState<string>("")
-    const [rating, setRating] = useState<number>(0)
+    const [name] = useState<string>(selectedPlace.name)
+    const [address] = useState<string>(selectedPlace.address)
+    const [memo, setMemo] = useState<string>(selectedPlaceHistory.memo)
+    const [rating, setRating] = useState<number>(selectedPlaceHistory.rating || 0)
     const [pictureFiles, setPictureFiles] = useState<Media[]>([]);
-    const [medias, setMedias] = useState<Media[]>([])
-    const [visitDate, setVisitDate] = useState<Dayjs | null>(dayjs(new Date()))
+    const [medias, setMedias] = useState<Media[]>(selectedPlaceHistory.medias)
+    const [visitDate, setVisitDate] = useState<Dayjs | null>(textToDayjs(selectedPlaceHistory.visitAt) || dayjs(new Date()))
     const [inputTag, setInputTag] = useState<string>("#")
-    const [tagSet, setTagSet] = useState<Set<string>>(new Set())
+    const [tagSet, setTagSet] = useState<Set<string>>(new Set(selectedPlaceHistory.tags) || new Set())
     const inputRef = useRef<HTMLInputElement>(null);
+    const [product, setProduct] = useState<Product | null>()
+
     const [createDialogOpen, setCreateDialogOpen] = useState<boolean>(false);
     const [alertDialogOpen, setAlertDialogOpen] = useState<boolean>(false)
-    const [isLoading, setIsLoading] = useState<boolean>(false)
+    const [deleteDialogOpen, setDeleteDialogOpen] = useState<boolean>(false)
     const [toastInfo, setToastInfo] = useState<ToastInfo>({
         show: false,
         message: ""
     })
+    const [isLoading, setIsLoading] = useState<boolean>(false)
+
+    useEffect(() => {
+        const loadProductInfo = async () => {
+            if (account) {
+                const result = await getProductInfo(account.id)
+                setProduct(result)
+            }
+        }
+
+        loadProductInfo()
+    }, [account])
+
     const memoView = () => {
-        return <div>
+        return <>
             <Post.H3>{TEXT.MEMO}</Post.H3>
             <TextArea
                 variant="box"
@@ -167,7 +104,7 @@ const PlaceHistoryEditPage = () => {
                 value={memo}
                 onChange={(e) => setMemo(e.target.value)}
             />
-        </div>
+        </>
     }
 
     const ratingView = () => {
@@ -209,12 +146,12 @@ const PlaceHistoryEditPage = () => {
     };
 
     const imageView = () => {
-        return <div>
+        return <>
             <Post.H3>{TEXT.PICTURE}</Post.H3>
             <Button onClick={handleOpenCamera} color="light" style={{ marginBottom: 10 }}>{TEXT.TAKE_PHOTO}</Button>
             <Button onClick={handlePictureUpload} color="light" style={{ marginBottom: 10 }}>{TEXT.GET_POHOTO}</Button>
             <ImagePreviewContainer>
-                {medias.map((image: any) => {
+                {medias && medias.map((image: any) => {
                     return <ImagePreview
                         key={image.fileName}
                         src={image.url}
@@ -241,7 +178,7 @@ const PlaceHistoryEditPage = () => {
                     />
                 })}
             </ImagePreviewContainer>
-        </ div >
+        </>
     }
 
     const tagView = () => {
@@ -274,7 +211,7 @@ const PlaceHistoryEditPage = () => {
             });
         };
 
-        return <div>
+        return <>
             <Post.H3>{TEXT.TAG}</Post.H3>
             <TextField
                 variant="box"
@@ -294,13 +231,11 @@ const PlaceHistoryEditPage = () => {
                     </TagItem>
                 ))}
             </TagItemWrapper>
-        </div>
+        </>
     }
 
-
-
     const visitTimeView = () => {
-        return <div>
+        return <>
             <Post.H3>{TEXT.VISIT_AT}</Post.H3>
             <div style={{ marginLeft: 20 }} >
                 <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale="ko" localeText={koKR.components.MuiLocalizationProvider.defaultProps.localeText}>
@@ -310,11 +245,27 @@ const PlaceHistoryEditPage = () => {
                     />
                 </LocalizationProvider>
             </div>
-        </div>
+        </>
     }
 
     const onCreateClick = async () => {
         setCreateDialogOpen(false)
+        if (isEditMode) {
+            if (product && (medias.length + pictureFiles.length) > product.place_history_photo_limit) {
+                toastInfo.message = `최대 ${product.place_history_photo_limit}개 까지 사진 추가가 가능합니다.`
+                toastInfo.show = true
+                setToastInfo({ ...toastInfo })
+                return
+            }
+        } else {
+            if (product && pictureFiles.length > product.place_history_photo_limit) {
+                toastInfo.message = `최대 ${product.place_history_photo_limit}개 까지 사진 추가가 가능합니다.`
+                toastInfo.show = true
+                setToastInfo({ ...toastInfo })
+                return
+            }
+        }
+
         if (memo && memo.length > 50) {
             toastInfo.show = true
             toastInfo.message = TEXT.MSG_MEMO
@@ -323,7 +274,17 @@ const PlaceHistoryEditPage = () => {
             try {
                 setIsLoading(true)
                 if (isEditMode) {
-
+                    selectedPlaceHistory.memo = memo
+                    selectedPlaceHistory.rating = rating
+                    selectedPlaceHistory.tags = Array.from(tagSet)
+                    selectedPlaceHistory.medias = medias
+                    selectedPlaceHistory.updated = dayjsToText(dayjs(new Date()))
+                    selectedPlaceHistory.visitAt = dayjsToText(visitDate)
+                    if (pictureFiles.length > 0) {
+                        const newMedias: Media[] = await uploadFiles(selectedPlaceHistory.placeId, selectedPlaceHistory.id, pictureFiles)
+                        selectedPlaceHistory.medias = selectedPlaceHistory.medias.concat(newMedias)
+                    }
+                    await updatePlaceHistory(selectedPlaceHistory.id, selectedPlaceHistory)
                 } else {
                     const data: PlaceHistory = {
                         id: "",
@@ -353,6 +314,14 @@ const PlaceHistoryEditPage = () => {
         }
     }
 
+    const onDeleteClick = async () => {
+        setDeleteDialogOpen(false)
+        setIsLoading(true)
+        await deletePlaceHistory(selectedPlaceHistory.placeId, selectedPlaceHistory.id)
+        setIsLoading(false)
+        setAlertDialogOpen(true)
+    }
+
     const createDialog = () => {
         return <ConfirmDialog
             open={createDialogOpen}
@@ -372,6 +341,25 @@ const PlaceHistoryEditPage = () => {
             onClose={() => setCreateDialogOpen(false)}
         />
     }
+    const deleteDialog = () => {
+        return <ConfirmDialog
+            open={deleteDialogOpen}
+            title={<ConfirmDialog.Title>{TEXT.MSG_DELETE_PLACE_HISTORY_CONFIRM}</ConfirmDialog.Title>}
+            cancelButton={
+                <ConfirmDialog.CancelButton
+                    onClick={() => setDeleteDialogOpen(false)}
+                >
+                    {TEXT.NO}
+                </ConfirmDialog.CancelButton>
+            }
+            confirmButton={
+                <ConfirmDialog.ConfirmButton onClick={onDeleteClick}>
+                    {TEXT.YES}
+                </ConfirmDialog.ConfirmButton>
+            }
+            onClose={() => setDeleteDialogOpen(false)}
+        />
+    }
 
     const alertDialog = () => {
         return <AlertDialog
@@ -380,7 +368,6 @@ const PlaceHistoryEditPage = () => {
             alertButton={<AlertDialog.AlertButton onClick={() => {
                 setAlertDialogOpen(false)
                 navigate(-1)
-
             }}>{TEXT.OK}</AlertDialog.AlertButton>}
             onClose={() => {
                 setAlertDialogOpen(false)
@@ -388,9 +375,14 @@ const PlaceHistoryEditPage = () => {
 
             } />
     }
-
     const buttonView = () => {
+
         return <>
+            {isEditMode && <BottomButtonWrapper>
+                <Button size="medium" color="danger" style={{ width: "85%" }} onClick={() => {
+                    setDeleteDialogOpen(true)
+                }}>{TEXT.PLACE_HISTORY_DELETE}</Button>
+            </BottomButtonWrapper>}
             <FixedBottomCTA.Double
                 leftButton={<Button style={{ flex: 1 }} onClick={() => {
                     navigate(-1)
@@ -405,10 +397,11 @@ const PlaceHistoryEditPage = () => {
     }
 
     return <PageWrapper>
-        <Paragraph.Text>{name} / {categoryText}</Paragraph.Text>
-        <Paragraph.Text>{address}</Paragraph.Text>
-
-        <Border variant="full" style={{ width: "100%", backgroundColor: "black" }} color="black" />
+        <FixedHeader>
+            <Paragraph.Text>{name} / {categoryText}</Paragraph.Text>
+            <Paragraph.Text>{address}</Paragraph.Text>
+        </FixedHeader>
+        <div style={{ height: 80 }} />
         {memoView()}
         {ratingView()}
         {imageView()}
@@ -416,7 +409,18 @@ const PlaceHistoryEditPage = () => {
         {tagView()}
         {buttonView()}
         {createDialog()}
+        {deleteDialog()}
         {alertDialog()}
+        <Toast
+            position="bottom"
+            open={toastInfo.show}
+            text={toastInfo.message}
+            duration={3000}
+            onClose={() => {
+                toastInfo.show = false
+                setToastInfo({ ...toastInfo })
+            }}
+        />
     </PageWrapper>
 }
 

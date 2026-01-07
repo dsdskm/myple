@@ -1,15 +1,17 @@
-import { AlertDialog, BottomCTA, Button, ConfirmDialog, List, ListRow, Modal, Post, TableRow, TextField } from "@toss/tds-mobile";
+import { AlertDialog, BottomCTA, Button, ConfirmDialog, List, ListRow, Modal, Post, TableRow, TextField, Toast } from "@toss/tds-mobile";
 import { ACCOUNT_TYPE_USER_BASIC, ACCOUNT_TYPE_USER_PRO, LOGOUT_REFERRER, ROUTES, TEXT } from "../common/constants";
 import BottomTabBar from "./BottomTabBar"
 import styled from 'styled-components';
 import { useEffect, useState } from "react";
-import { getCategory, getSubscriptionInfo, requestLogout, updateCategory, updateUser } from "../service/api";
+import { getCategory, getProductInfo, getSubscriptionInfo, requestLogout, updateCategory, updateUser } from "../service/api";
 import { useNavigate } from 'react-router-dom';
 import { useApp } from "../context/AppContext";
 import { ACTION_TYPE_SET_ACCOUNT, initialAccountState } from "../types/account";
 import { Category } from "../types/category";
 import Loading from "./common/Loading";
 import { SubscriptionInfo } from "../types/subscriptionInfo";
+import { Product } from "../types/product";
+import { ToastInfo } from "../types/toast";
 
 const Contents = styled.div`
   display: flex;
@@ -29,7 +31,7 @@ const MyPage = () => {
     const navigate = useNavigate();
     const { account, setAccount } = useApp()
     const [isWithdrawDialogOpen, setIsWithdrawDialogOpen] = useState<boolean>(false);
-    const [categoryData, setCategoryData] = useState<Category>({ id: "", limitCount: 0, list: [], created: "", updated: "" })
+    const [categoryData, setCategoryData] = useState<Category>({ id: "", list: [], created: "", updated: "" })
     const [targetCategoryList, setTargetCategoryList] = useState<{ id: number, title: string }[]>([])
     const [targetCategoryListItem, setTargetCategoryListItem] = useState<{ id: number, title: string }>()
     const [targetCategoryError, setTargetCategoryError] = useState<boolean>(false)
@@ -40,7 +42,11 @@ const MyPage = () => {
     const [subscriptionConfirmDialogOpen, setSubscriptionConfirmDialogOpen] = useState<boolean>(false)
     const [unsubscriptionConfirmDialogOpen, setUnSubscriptionConfirmDialogOpen] = useState<boolean>(false)
     const [subscriptionAlertDialogOpen, setSubscriptionAlertDialogOpen] = useState<boolean>(false)
-
+    const [product, setProduct] = useState<Product | null>()
+    const [toastInfo, setToastInfo] = useState<ToastInfo>({
+        show: false,
+        message: ""
+    })
     const [isLoading, setIsLoading] = useState<boolean>(false)
     useEffect(() => {
         const loadCategories = async () => {
@@ -52,9 +58,14 @@ const MyPage = () => {
                 }
             }
         }
-
+        const loadProductInfo = async () => {
+            if (account) {
+                const result = await getProductInfo(account.id)
+                setProduct(result)
+            }
+        }
         loadCategories()
-
+        loadProductInfo()
     }, [account])
 
     useEffect(() => {
@@ -162,7 +173,14 @@ const MyPage = () => {
         }
 
         const onCategoryItemAddClick = () => {
-            setShowEditCategory(0, "")
+            if (product && targetCategoryList.length >= product.category_limit) {
+                toastInfo.message = `최대 ${product.category_limit}개 까지 카테고리 추가가 가능합니다.`
+                toastInfo.show = true
+                setToastInfo({ ...toastInfo })
+            } else {
+                setShowEditCategory(0, "")
+            }
+
         }
 
         const onArrowUpClick = (index: number) => {
@@ -231,8 +249,7 @@ const MyPage = () => {
                                 />
                             })}
                         </List>
-                        {account.type === ACCOUNT_TYPE_USER_PRO && <ListRow.IconButton
-                            disabled={targetCategoryList.length >= categoryData.limitCount}
+                        {product && <ListRow.IconButton
                             variant="clear"
                             aria-label="add"
                             iconSize={36}
@@ -245,11 +262,10 @@ const MyPage = () => {
                                     {TEXT.CANCEL}
                                 </Button>
                             }
-                            rightButton={<Button disabled={targetCategoryList.length > categoryData.limitCount} onClick={onCategoryCreateClick}>
+                            rightButton={<Button /*disabled={targetCategoryList.length > categoryData.limitCount}*/ onClick={onCategoryCreateClick}>
                                 {TEXT.MODIFY}
                             </Button>}
                         />
-
                     </Modal.Content>
                 </Modal>
                 {targetCategoryListItem && <Modal open={categoryModifyDialogOpen} onOpenChange={setCategoryModifyDialogOpen}>
@@ -370,30 +386,33 @@ const MyPage = () => {
         </>
     }
 
+    const infoView = () => {
+
+        return <>
+            <TableRow align="space-between" left={TEXT.ID} right={account.id} />
+            <TableRow align="space-between" left={TEXT.NAME} right={account.name} />
+            <TableRow align="space-between" left={TEXT.GENDER} right={account.gender === "MALE" ? TEXT.MALE : TEXT.FEMALE} />
+            <TableRow align="space-between" left={TEXT.PHONE} right={account.phone} />
+            <TableRow align="space-between" left={TEXT.BIRTHDAY} right={account.birthday} />
+            <TableRow align="space-between" left={TEXT.AGREED_TERMS} right={account.agreedTerms && account.agreedTerms[0] === "serviceAgreed" ? TEXT.YES : TEXT.NO} />
+            <TableRow align="space-between" left={TEXT.CATEGORY} right={<Button style={{ marginLeft: 5 }} size="small" onClick={() => setCategoryDialogOpen(true)}>{TEXT.CATEGORY_MANAGEMENT}</Button>} />
+            {product &&
+                <>
+                    <TableRow align="space-between" left={TEXT.PRODUCT_CATEGORY_LIMIT} right={product.category_limit} />
+                    <TableRow align="space-between" left={TEXT.PRODUCT_PLACE_LIMIT} right={product.place_limit} />
+                    <TableRow align="space-between" left={TEXT.PRODUCT_PLACE_HISTORY_PHOTO_LIMIT} right={product.place_history_photo_limit} />
+                </>}
+        </>
+    }
+
     if (isLoading) {
         return <Loading />
     }
+
     return <div>
         <BottomTabBar />
         <Contents>
-            <div>
-                <TableRow align="space-between" left={TEXT.ID} right={account.id} />
-                <TableRow align="space-between" left={TEXT.NAME} right={account.name} />
-                <TableRow align="space-between" left={TEXT.GENDER} right={account.gender === "MALE" ? TEXT.MALE : TEXT.FEMALE} />
-                <TableRow align="space-between" left={TEXT.PHONE} right={account.phone} />
-                <TableRow align="space-between" left={TEXT.BIRTHDAY} right={account.birthday} />
-                <TableRow align="space-between" left={TEXT.AGREED_TERMS} right={account.agreedTerms && account.agreedTerms[0] === "serviceAgreed" ? TEXT.YES : TEXT.NO} />
-                {/* <TableRow align="space-between" left={TEXT.ACCOUNT_TYPE} right={<>{account.type}
-                    <Button
-                        style={{ marginLeft: 5 }}
-                        size="small"
-                        color={account.type === ACCOUNT_TYPE_USER_BASIC ? "primary" : "danger"}
-                        onClick={() => account.type === ACCOUNT_TYPE_USER_BASIC ? setSubscriptionDialogOpen(true) : setUnSubscriptionConfirmDialogOpen(true)}>
-                        {account.type === ACCOUNT_TYPE_USER_BASIC ? `${TEXT.UPGRADE}(${TEXT.SUBSCRIPTION})` : TEXT.UNSUBSCRIPTION}
-                    </Button>
-                </>} /> */}
-                <TableRow align="space-between" left={TEXT.CATEGORY} right={<Button style={{ marginLeft: 5 }} size="small" onClick={() => setCategoryDialogOpen(true)}>{TEXT.CATEGORY_MANAGEMENT}</Button>} />
-            </div>
+            {infoView()}
             {categoryData && categoryView()}
             <Button style={{ margin: 10 }} color="danger" size="medium" onClick={() => setIsWithdrawDialogOpen(true)}>
                 {TEXT.WITHDRAW}
@@ -402,6 +421,16 @@ const MyPage = () => {
         {logoutDialog()}
         {subscriptionInfoDialog()}
         {subscriptionConfirmDialog()}
+        <Toast
+            position="bottom"
+            open={toastInfo.show}
+            text={toastInfo.message}
+            duration={3000}
+            onClose={() => {
+                toastInfo.show = false
+                setToastInfo({ ...toastInfo })
+            }}
+        />
     </div>
 }
 

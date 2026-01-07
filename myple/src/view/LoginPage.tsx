@@ -1,13 +1,14 @@
 import { Button, Toast } from '@toss/tds-mobile';
 import styled from 'styled-components';
 import { ROUTES, TEXT } from '../common/constants';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import Loading from './common/Loading';
 import { useNavigate } from 'react-router-dom';
 import { appLogin, getCurrentLocation } from '@apps-in-toss/web-framework';
 import { requestUserInfo } from '../service/api';
 import { Account, ACTION_TYPE_SET_ACCOUNT, initialAccountState } from '../types/account';
 import { useApp } from '../context/AppContext';
+import { ToastInfo } from '../types/toast';
 
 const Wrapper = styled.div`
     height:100vh;
@@ -17,11 +18,6 @@ const Wrapper = styled.div`
     justify-content:center;
     align-items:center;
 `;
-
-interface ToastInfo {
-    show: boolean;
-    message: string;
-}
 
 const LoginPage = () => {
     const navigate = useNavigate()

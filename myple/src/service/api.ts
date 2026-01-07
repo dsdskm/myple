@@ -4,6 +4,7 @@ import { Account } from '../types/account';
 import FormData from 'form-data';
 import { Category } from '../types/category';
 import { SubscriptionInfo } from '../types/subscriptionInfo';
+import { Product } from '../types/product';
 
 const serverApiClient = axios.create({
     baseURL: process.env.REACT_APP_BACKEND_URL,
@@ -287,6 +288,16 @@ export const deleteCategory = async (id: string): Promise<void> => {
 export const getSubscriptionInfo = async () => {
     try {
         const response = await serverApiClient.get<SubscriptionInfo>('/info/subscription')
+        return response.data
+    } catch (error) {
+        console.log(error)
+        return null
+    }
+}
+
+export const getProductInfo = async (id: string): Promise<Product | null> => {
+    try {
+        const response = await serverApiClient.get<Product>(`/product/${id}`)
         return response.data
     } catch (error) {
         console.log(error)
