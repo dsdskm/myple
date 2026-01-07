@@ -1,9 +1,8 @@
 import { db } from '../config/firebase';
-import { Account } from '../types/account';
+import { Account, TossUser } from '../types/account';
 
 import { requestTossAccessToken, requestTossLogout, requestTossUserInfo } from '../api/api';
 import { TossToken } from '../types/toss.token';
-import { TossUser } from '../types/toss.user';
 
 const placeCollection = db.collection('places');
 

@@ -21,7 +21,6 @@ export const init = async (id: string): Promise<void> => {
         ]
         const category: Category = {
             id: id,
-            limitCount: CATEGORY_LIMIT_COUNT_BASE,
             list: CATEGORY_MENU_BASE_ARR,
             created: getFormattedDateForAccount(time),
             updated: getFormattedDateForAccount(time)

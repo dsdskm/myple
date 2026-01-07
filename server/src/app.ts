@@ -4,6 +4,7 @@ import infoRouter from './router/info.router';
 import placeRouter from './router/place.router';
 import categoryRouter from './router/category.router';
 import accountRouter from "./router/account.router"
+import productRouter from "./router/product.router"
 import tossRouter from "./router/toss.router"
 import fileRouter from "./router/file.router"
 import scriptRouter from "./router/script.router"
@@ -55,6 +56,7 @@ app.use('/account', accountRouter);
 app.use('/place', placeRouter);
 app.use('/category', categoryRouter);
 app.use('/toss', tossRouter);
+app.use('/product', productRouter);
 app.use('/file', fileRouter);
 app.use('/script', scriptRouter);
 

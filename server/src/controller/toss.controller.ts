@@ -2,8 +2,10 @@ import { Request, Response } from 'express';
 import * as tossService from '../service/toss.service';
 import * as accountService from '../service/account.service';
 import * as categoryService from '../service/category.service';
+import * as productService from "../service/product.service"
 import { decryptUserData } from '../common/decrypt';
 import { Account } from '../types/account';
+import { Product } from '../types/product';
 
 export const getUserInfo = async (req: Request, res: Response) => {
     try {
@@ -30,6 +32,7 @@ export const getUserInfo = async (req: Request, res: Response) => {
                 updated: ""
             } : null
             if (accountData) {
+
                 const a = await accountService.findById(accountData.id)
                 if (a) {
                     accountData.type = a.type
@@ -38,6 +41,18 @@ export const getUserInfo = async (req: Request, res: Response) => {
                 }
                 await accountService.update(accountData.id, accountData)
                 await categoryService.init(accountData.id)
+                const p = await productService.findById(accountData.id)
+                if (!p) {
+                    const product: Product = {
+                        id: accountData.id,
+                        category_limit: 5,
+                        place_limit: 30,
+                        place_history_photo_limit: 5,
+                        created: '',
+                        updated: ''
+                    }
+                    await productService.create(product)
+                }
             }
 
             res.status(200).json(accountData);

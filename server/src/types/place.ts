@@ -8,11 +8,12 @@ export interface Place {
     created: string;
     updated: string;
     creator: string;
+    historyList: PlaceHistory[]
 }
 
 export interface PlaceHistory {
     id: string;
-    placeId:string;
+    placeId: string;
     memo: string;
     rating: number;
     visitAt: string;

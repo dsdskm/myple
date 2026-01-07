@@ -2,8 +2,8 @@ import https from 'https';
 import fs from 'fs';
 import * as path from 'path';
 import { TossToken } from '../types/toss.token';
-import { TossUser } from '../types/toss.user';
 import dotenv from 'dotenv';
+import { TossUser } from '../types/account';
 dotenv.config();
 
 const certPath = path.resolve(__dirname, '../../key/myple-mtls_public.crt');

@@ -1,0 +1,5 @@
+.DS_Store
+server/.env
+server/.env
+server/key/service_account.json
+server/node_modules

@@ -145,15 +145,10 @@ export const generatePlaces = async (req: Request, res: Response) => {
                 latitude: latitude,
                 longitude: longitude,
                 address: address,
-                // memo: memo.toString(),
-                // rating: Math.floor(Math.random() * 5) + 1,
-                // visitAt: generatetRandomDateString(),
                 created: '',
                 updated: '',
-                // medias: getMedias(),
-                // tags: tags,
                 creator: 'tothetg@naver.com',
-                // sample: true
+                historyList: []
             }
             console.log(`data ${JSON.stringify(data)}`)
             const createdData = await placeService.createNewPlace(data)

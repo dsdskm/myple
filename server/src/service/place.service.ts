@@ -69,11 +69,21 @@ export const findAllPlaces = async (): Promise<Place[]> => {
     if (snapshot.empty) {
         return [];
     }
-    return snapshot.docs.map(doc => ({
-        id: doc.id,
-        ...(doc.data() as Omit<Place, 'id'>),
-    }));
+    const list: Place[] = []
+    for (const doc of snapshot.docs) {
+        const data = doc.data()
+        const placeHistorySnapshot = await placeCollection.doc(data.id).collection("history").get()
+        const historyList = []
+        for (const subdoc of placeHistorySnapshot.docs) {
+            const subdata = subdoc.data()
+            historyList.push(subdata)
+        }
+        data.historyList = historyList
+        list.push(data as Place)
+    }
+    return list
 };
+
 
 export const findAllPlaceHistories = async (placeId: string): Promise<PlaceHistory[]> => {
     const snapshot = await placeCollection.doc(placeId).collection(COLLECTION_PLACE_HISTORY).get();
@@ -93,7 +103,19 @@ export const findPlacesByCreator = async (creator: string): Promise<Place[]> => 
     if (snapshot.empty) {
         return [];
     }
-    return snapshot.docs.map(doc => doc.data() as Place);
+    const list: Place[] = []
+    for (const doc of snapshot.docs) {
+        const data = doc.data()
+        const placeHistorySnapshot = await placeCollection.doc(data.id).collection("history").get()
+        const historyList = []
+        for (const subdoc of placeHistorySnapshot.docs) {
+            const subdata = subdoc.data()
+            historyList.push(subdata)
+        }
+        data.historyList = historyList
+        list.push(data as Place)
+    }
+    return list
 };
 
 export const findPlaceHistoryById = async (placeId: string, id: string): Promise<PlaceHistory> => {
