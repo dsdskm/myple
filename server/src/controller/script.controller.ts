@@ -134,7 +134,6 @@ export const generatePlaces = async (req: Request, res: Response) => {
     try {
         const list: Place[] = []
         const count = Number(req.query.count)
-        console.log(`generatePlaces count=${req.params.count}`)
         for (let i = 0; i < count; i++) {
             const { name, category } = generateNameCategoryMemoTags(i)
             const { latitude, longitude, address } = await generateLatitudeLongitudeAddress()
@@ -150,7 +149,6 @@ export const generatePlaces = async (req: Request, res: Response) => {
                 creator: 'tothetg@naver.com',
                 historyList: []
             }
-            console.log(`data ${JSON.stringify(data)}`)
             const createdData = await placeService.createNewPlace(data)
             if (createdData) {
                 for (let j = 0; j < Math.floor(Math.random() * 5) + 5; j++) {

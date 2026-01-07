@@ -53,7 +53,7 @@ export const updatePlaceHistory = async (req: Request, res: Response) => {
         if (updateData && updateData.id) {
             const updatedPlaceHistory = await placeService.updatePlaceHistory(updateData.id, updateData);
             if (updatedPlaceHistory) {
-                // await deleteOrphanFiles(updatedPlaceHistory.placeId, id)
+                await deleteOrphanFiles(updatedPlaceHistory.placeId, id)
                 res.status(200).json(updatedPlaceHistory);
             } else {
                 res.status(500).json(false);
