@@ -6,7 +6,7 @@ import { Media, MediaFile, Place, PlaceHistory } from '../types/place';
 
 async function uploadToBucket(placeId: string, id: string, mediaItems: MediaFile[]): Promise<Media[]> {
     const uploaded: Media[] = [];
-    console.log(`uploadToBucket placeId ${placeId} id ${id}`)
+    console.log(`uploadToBucket placeId ${placeId} place history id ${id}`)
     try {
         for (const { file, type } of mediaItems) {
             // 파일 이름에 날짜를 붙여 고유하게 만든다.
@@ -40,7 +40,7 @@ export const uploadFiles = async (
     id: string,
     mediaItems: MediaFile[]
 ): Promise<Media[]> => {
-    console.log(`uploadFiles placeId ${placeId} id ${id}`)
+    console.log(`uploadFiles placeId ${placeId} place history id ${id}`)
     return await uploadToBucket(placeId, id, mediaItems);
 };
 
