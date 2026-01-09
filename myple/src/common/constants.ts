@@ -8,6 +8,11 @@ export const ROUTES = {
 }
 
 export const TEXT = {
+    TAB_MAP: "지도",
+    TAB_LIST: "목록",
+    TAB_ADD: "생성",
+    TAB_MY: "내 정보",
+    LOOG_TITLE: "나만의 장소",
     SEARCH: "검색",
     ADD: "추가",
     PLACE_NAME: "장소 이름",
@@ -64,9 +69,9 @@ export const TEXT = {
     SUBSCRIPTION_LIMITATIONS: "제약 사항",
     CATEGORY_ALL: "카테고리 전체",
     HISTORY_ADD: "방문 내역 추가",
-    PRODUCT_CATEGORY_LIMIT:"최대 카테고리 저장 개수",
-    PRODUCT_PLACE_LIMIT:"최대 장소 저장 개수",
-    PRODUCT_PLACE_HISTORY_PHOTO_LIMIT:"최대 장소 사진 저장 개수",
+    PRODUCT_CATEGORY_LIMIT: "최대 카테고리 저장 개수",
+    PRODUCT_PLACE_LIMIT: "최대 장소 저장 개수",
+    PRODUCT_PLACE_HISTORY_PHOTO_LIMIT: "최대 장소 사진 저장 개수",
     MSG_LOGIN_SUCCESS: "로그인 성공",
     MSG_LOGIN_FAILED: "로그인 실패",
     MSG_LOGOUT_CONFIRM: "로그아웃하시겠습니까?",
@@ -94,6 +99,9 @@ export const TEXT = {
     MSG_UNSUBSCRIBE_COMPLETED: "구독 해지가 완료되었습니다. 감사합니다.",
     MSG_IMAGE_DELETE: "선택한 이미지를 삭제하시겠습니까?",
     MSG_COMPLETED: "완료되었습니다.",
+    MSG_NETWORK_ERROR: "네트워크 상태를 확인해주세요.",
+    MSG_EMPTY_RESULT: "검색 결과가 없습니다.",
+    MSG_EMPTY_RESULT_DESC: "장소명과 태그를 다시 입력해주세요.",
     MENU_CHOICE_ITEMS: "항목을 선택하세요",
     MENU_CATEGORY_CHOICE: "카테고리 선택",
     MENU_SORT_NAME_DESC: "장소 이름 내림차순",
@@ -115,3 +123,14 @@ export const LOGOUT_REFERRER = {
 
 export const ACCOUNT_TYPE_USER_BASIC = "BASIC"
 export const ACCOUNT_TYPE_USER_PRO = "PRO"
+
+export const PERMISSIONS = {
+    ALLOWED: "allowed",
+    DENIED: "denied"
+}
+
+export const NETWORK_STATUS = {
+    OFFLINE: "OFFLINE",
+    UNKNOWN: "UNKNOWN",
+    WWAN: "WWAN"
+}

@@ -1,17 +1,17 @@
-import { AlertDialog, BottomCTA, Button, ConfirmDialog, List, ListRow, Modal, Post, TableRow, TextField, Toast } from "@toss/tds-mobile";
-import { ACCOUNT_TYPE_USER_BASIC, ACCOUNT_TYPE_USER_PRO, LOGOUT_REFERRER, ROUTES, TEXT } from "../common/constants";
+import { BottomCTA, Button, ConfirmDialog, List, ListRow, Modal, Post, TableRow, TextField, Toast } from "@toss/tds-mobile";
+import { LOGOUT_REFERRER, NETWORK_STATUS, ROUTES, TEXT } from "../common/constants";
 import BottomTabBar from "./BottomTabBar"
 import styled from 'styled-components';
 import { useEffect, useState } from "react";
-import { getCategory, getProductInfo, getSubscriptionInfo, requestLogout, updateCategory, updateUser } from "../service/api";
+import { getCategory, getProductInfo, requestLogout, updateCategory } from "../service/api";
 import { useNavigate } from 'react-router-dom';
 import { useApp } from "../context/AppContext";
 import { ACTION_TYPE_SET_ACCOUNT, initialAccountState } from "../types/account";
 import { Category } from "../types/category";
 import Loading from "./common/Loading";
-import { SubscriptionInfo } from "../types/subscriptionInfo";
 import { Product } from "../types/product";
 import { ToastInfo } from "../types/toast";
+import { getNetworkStatus } from "@apps-in-toss/web-framework";
 
 const Contents = styled.div`
   display: flex;
@@ -35,15 +35,10 @@ const MyPage = () => {
     const [targetCategoryList, setTargetCategoryList] = useState<{ id: number, title: string }[]>([])
     const [targetCategoryListItem, setTargetCategoryListItem] = useState<{ id: number, title: string }>()
     const [targetCategoryError, setTargetCategoryError] = useState<boolean>(false)
-    const [subscriptionInfo, setSubscriptionInfo] = useState<SubscriptionInfo>()
     const [categoryDialogOpen, setCategoryDialogOpen] = useState<boolean>(false)
     const [categoryModifyDialogOpen, setCategoryModifyDialogOpen] = useState<boolean>(false)
-    const [subscriptionDialogOpen, setSubscriptionDialogOpen] = useState<boolean>(false)
-    const [subscriptionConfirmDialogOpen, setSubscriptionConfirmDialogOpen] = useState<boolean>(false)
-    const [unsubscriptionConfirmDialogOpen, setUnSubscriptionConfirmDialogOpen] = useState<boolean>(false)
-    const [subscriptionAlertDialogOpen, setSubscriptionAlertDialogOpen] = useState<boolean>(false)
     const [product, setProduct] = useState<Product | null>()
-    const [toastInfo, setToastInfo] = useState<ToastInfo>({
+    const [toast, setToast] = useState<ToastInfo>({
         show: false,
         message: ""
     })
@@ -60,27 +55,28 @@ const MyPage = () => {
             const result = await getProductInfo(account.id)
             setProduct(result)
         }
+
+        const load = async () => {
+            const networkStatus = await getNetworkStatus();
+            if (networkStatus !== NETWORK_STATUS.OFFLINE && networkStatus !== NETWORK_STATUS.UNKNOWN && networkStatus !== NETWORK_STATUS.WWAN) {
+                loadCategories()
+                loadProductInfo()
+            } else {
+                setToast({ show: true, message: TEXT.MSG_NETWORK_ERROR })
+            }
+        }
         if (account) {
-            loadCategories()
-            loadProductInfo()
+            load()
         }
     }, [account])
 
-    useEffect(() => {
-        const loadSubscriptionInfo = async () => {
-            const result = await getSubscriptionInfo()
-            if (result) {
-                setSubscriptionInfo(result)
-            } else {
-                console.log(`result is null`)
-            }
-
-        }
-        loadSubscriptionInfo()
-    }, [])
-
     const onWithdrawClick = async () => {
         try {
+            const networkStatus = await getNetworkStatus();
+            if (networkStatus === NETWORK_STATUS.OFFLINE || networkStatus === NETWORK_STATUS.UNKNOWN || networkStatus === NETWORK_STATUS.WWAN) {
+                setToast({ show: true, message: TEXT.MSG_NETWORK_ERROR })
+                return
+            }
             await requestLogout(account.userKey, LOGOUT_REFERRER.UNLINK);
             setAccount({ type: ACTION_TYPE_SET_ACCOUNT, payload: initialAccountState })
             navigate(ROUTES.LOGIN, { replace: true })
@@ -145,7 +141,12 @@ const MyPage = () => {
             setCategoryModifyDialogOpen(true)
         }
 
-        const onCategoryModifyOkClick = () => {
+        const onCategoryModifyOkClick = async () => {
+            const networkStatus = await getNetworkStatus();
+            if (networkStatus === NETWORK_STATUS.OFFLINE || networkStatus === NETWORK_STATUS.UNKNOWN || networkStatus === NETWORK_STATUS.WWAN) {
+                setToast({ show: true, message: TEXT.MSG_NETWORK_ERROR })
+                return
+            }
             if (targetCategoryListItem) {
                 if (targetCategoryListItem.id === 0) {
                     targetCategoryList.push({ id: new Date().getTime(), title: targetCategoryListItem.title })
@@ -172,9 +173,7 @@ const MyPage = () => {
 
         const onCategoryItemAddClick = () => {
             if (product && targetCategoryList.length >= product.category_limit) {
-                toastInfo.message = `최대 ${product.category_limit}개 까지 카테고리 추가가 가능합니다.`
-                toastInfo.show = true
-                setToastInfo({ ...toastInfo })
+                setToast({ show: true, message: `최대 ${product.category_limit}개 까지 카테고리 추가가 가능합니다.` })
             } else {
                 setShowEditCategory(0, "")
             }
@@ -260,7 +259,7 @@ const MyPage = () => {
                                     {TEXT.CANCEL}
                                 </Button>
                             }
-                            rightButton={<Button /*disabled={targetCategoryList.length > categoryData.limitCount}*/ onClick={onCategoryCreateClick}>
+                            rightButton={<Button onClick={onCategoryCreateClick}>
                                 {TEXT.MODIFY}
                             </Button>}
                         />
@@ -289,98 +288,6 @@ const MyPage = () => {
                 </Modal>}
             </>
             }
-        </>
-    }
-
-    const subscriptionInfoDialog = () => {
-        return <>{subscriptionInfo && <Modal open={subscriptionDialogOpen} onOpenChange={setSubscriptionDialogOpen}>
-            <Modal.Overlay />
-            <Modal.Content
-                style={{
-                    padding: '32px 10px 10px 10px',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    textAlign: 'center',
-                }}
-            >
-                <div style={{ display: "flex", flexDirection: "column", alignItems: "start" }}>
-                    <Post.H3>*{TEXT.SUBSCRIPTION_BENEFITS}</Post.H3>
-                    {subscriptionInfo.benefits.map((t, index) => {
-                        return <Post.Paragraph style={{ textAlign: "start" }}>{index + 1}. {t}</Post.Paragraph>
-                    })}
-
-                    <Post.H3>*{TEXT.SUBSCRIPTION_LIMITATIONS}</Post.H3>
-                    {subscriptionInfo.limitations.map((t, index) => {
-                        return <Post.Paragraph style={{ textAlign: "start" }}>{index + 1}. {t}</Post.Paragraph>
-                    })}
-                </div>
-                <BottomCTA.Double
-                    leftButton={
-                        <Button variant="weak" onClick={() => setSubscriptionDialogOpen(false)}>
-                            {TEXT.CANCEL}
-                        </Button>
-                    }
-                    rightButton={<Button disabled={targetCategoryError} onClick={() => setSubscriptionConfirmDialogOpen(true)}>
-                        {TEXT.SUBSCRIPTION}
-                    </Button>}
-                />
-
-            </Modal.Content>
-        </Modal>}</>
-    }
-
-    const subscriptionConfirmDialog = () => {
-        const onSubscriptionClick = async (subscribe: boolean) => {
-            try {
-                // TODO: toss pay
-                setIsLoading(true)
-                account.type = subscribe ? ACCOUNT_TYPE_USER_PRO : ACCOUNT_TYPE_USER_BASIC
-                await updateUser(account)
-                setSubscriptionConfirmDialogOpen(false)
-                setUnSubscriptionConfirmDialogOpen(false)
-                setSubscriptionAlertDialogOpen(true)
-            } catch (err) {
-                console.log(err)
-            } finally {
-                setSubscriptionDialogOpen(false)
-                setIsLoading(false)
-            }
-        }
-
-        return <>
-            <ConfirmDialog
-                open={subscriptionConfirmDialogOpen}
-                title={<ConfirmDialog.Title>{TEXT.MSG_SUBSCRIBE}</ConfirmDialog.Title>}
-                cancelButton={<ConfirmDialog.CancelButton
-                    onClick={() => setSubscriptionConfirmDialogOpen(false)}>
-                    {TEXT.NO}
-                </ConfirmDialog.CancelButton>
-                }
-                confirmButton={<ConfirmDialog.ConfirmButton onClick={() => onSubscriptionClick(true)}>{TEXT.YES}</ConfirmDialog.ConfirmButton>
-
-                }
-                onClose={() => setSubscriptionConfirmDialogOpen(false)} />
-            <ConfirmDialog
-                open={unsubscriptionConfirmDialogOpen}
-                title={<ConfirmDialog.Title>{TEXT.MSG_UNSUBSCRIBE}</ConfirmDialog.Title>}
-                cancelButton={<ConfirmDialog.CancelButton
-                    onClick={() => {
-                        setSubscriptionDialogOpen(false)
-                        setUnSubscriptionConfirmDialogOpen(false)
-                    }}>
-                    {TEXT.NO}
-                </ConfirmDialog.CancelButton>
-                }
-                confirmButton={<ConfirmDialog.ConfirmButton onClick={() => onSubscriptionClick(false)}>{TEXT.YES}</ConfirmDialog.ConfirmButton>
-
-                }
-                onClose={() => setUnSubscriptionConfirmDialogOpen(false)} />
-            <AlertDialog
-                open={subscriptionAlertDialogOpen}
-                title={<AlertDialog.Title>{account.type === ACCOUNT_TYPE_USER_PRO ? TEXT.MSG_SUBSCRIBE_COMPLETED : TEXT.MSG_UNSUBSCRIBE_COMPLETED}</AlertDialog.Title>}
-                alertButton={<AlertDialog.AlertButton onClick={() => setSubscriptionAlertDialogOpen(false)}>{TEXT.OK}</AlertDialog.AlertButton>}
-                onClose={() => setSubscriptionAlertDialogOpen(false)} />
         </>
     }
 
@@ -416,16 +323,13 @@ const MyPage = () => {
             </Button>
         </Contents>
         {logoutDialog()}
-        {subscriptionInfoDialog()}
-        {subscriptionConfirmDialog()}
         <Toast
             position="bottom"
-            open={toastInfo.show}
-            text={toastInfo.message}
-            duration={3000}
+            open={toast.show}
+            text={toast.message}
+            duration={2000}
             onClose={() => {
-                toastInfo.show = false
-                setToastInfo({ ...toastInfo })
+                setToast({ show: false, message: "" })
             }}
         />
     </div>

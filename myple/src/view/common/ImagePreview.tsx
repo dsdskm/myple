@@ -47,6 +47,11 @@ const DeleteButton = styled.button`
   }
 `;
 
+const Image = styled.img`
+    width:100%;
+    height:100%;
+    object-fit:cover;
+`
 
 interface ImagePreviewProps {
     src: string;
@@ -77,14 +82,9 @@ const ImagePreview = ({ src, id, onClick, onDelete }: ImagePreviewProps) => {
             }}
         >
             {/* 실제 이미지 */}
-            <img
+            <Image
                 src={src}
-                alt=""
-                style={{
-                    width: '100%',
-                    height: '100%',
-                    objectFit: 'cover',
-                }}
+                alt="preview"
             />
 
             {/* 삭제 버튼 (오른쪽 상단) */}

@@ -1,9 +1,19 @@
-import { Loader } from "@toss/tds-mobile"
+import { Loader, } from "@toss/tds-mobile"
+import styled from "styled-components"
+
+const LoadingWrapper = styled.div`
+    display:flex;
+    flex:1;
+    justify-content:center;
+    align-items:center;
+    height:100vh;
+`
 
 const Loading = () => {
-    return <div style={{ display: 'flex', flex: 1, justifyContent: "center", alignItems: "center", height: "100vh" }} >
+    return <LoadingWrapper>
         <Loader size="large" />
-    </div >
+    </LoadingWrapper>
 }
+
 
 export default Loading

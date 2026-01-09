@@ -1,10 +1,10 @@
-import { Button, Toast } from '@toss/tds-mobile';
+import { Button, Paragraph, Toast } from '@toss/tds-mobile';
 import styled from 'styled-components';
 import { ROUTES, TEXT } from '../common/constants';
 import { useState } from 'react';
 import Loading from './common/Loading';
 import { useNavigate } from 'react-router-dom';
-import { appLogin, getCurrentLocation } from '@apps-in-toss/web-framework';
+import { appLogin } from '@apps-in-toss/web-framework';
 import { requestUserInfo } from '../service/api';
 import { Account, ACTION_TYPE_SET_ACCOUNT, initialAccountState } from '../types/account';
 import { useApp } from '../context/AppContext';
@@ -18,6 +18,17 @@ const Wrapper = styled.div`
     justify-content:center;
     align-items:center;
 `;
+
+const LogoImage = styled.img`
+    width:300px;
+    height:300px;
+`
+
+const Creator = styled.div`
+    margin-bottom:20px;
+    position: absolute;
+    bottom: 0 ;
+`
 
 const LoginPage = () => {
     const navigate = useNavigate()
@@ -35,8 +46,6 @@ const LoginPage = () => {
             const { authorizationCode, referrer } = await appLogin();
             const userInfo: Account | null = await requestUserInfo(authorizationCode, referrer)
             if (userInfo) {
-                const permission = await getCurrentLocation.openPermissionDialog();
-                console.log(`handleGetPermissionForGetCurrentLocation permission`, permission)
                 setAccount({ type: ACTION_TYPE_SET_ACCOUNT, payload: userInfo })
                 navigate(ROUTES.MAP, { replace: true })
                 toastInfo.message = TEXT.MSG_LOGIN_SUCCESS
@@ -62,17 +71,22 @@ const LoginPage = () => {
     }
 
     return <Wrapper>
+        <LogoImage
+            alt="logo"
+            src={"/app_icon.png"} />
         <Button onClick={onLoginClick}>{TEXT.LOGIN}</Button>
+        <Paragraph.Text style={{ marginTop: 15 }}>{TEXT.LOOG_TITLE}</Paragraph.Text>
         <Toast
             position="bottom"
             open={toastInfo.show}
             text={toastInfo.message}
-            duration={3000}
+            duration={2000}
             onClose={() => {
                 toastInfo.show = false
                 setToastInfo({ ...toastInfo })
             }}
         />
+        <Creator>by myple.master@gmail.com</Creator>
     </Wrapper>
 }
 

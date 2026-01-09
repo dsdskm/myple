@@ -1,15 +1,16 @@
 import { useEffect, useState } from 'react';
 import { GoogleMap, Marker } from '@react-google-maps/api';
 import styled from 'styled-components';
-import { BottomSheet, Button, Text, Paragraph, Rating } from '@toss/tds-mobile';
-import { ROUTES, TEXT } from '../common/constants';
+import { BottomSheet, Button, Text, Paragraph, Rating, Toast } from '@toss/tds-mobile';
+import { NETWORK_STATUS, PERMISSIONS, ROUTES, TEXT } from '../common/constants';
 import BottomTabBar from './BottomTabBar';
 import { getCategory, getPlaces } from '../service/api';
 import { useApp } from '../context/AppContext';
 import { Media, Place } from '../types/place';
-import { Accuracy, getCurrentLocation, startUpdateLocation, } from '@apps-in-toss/web-framework';
+import { Accuracy, getCurrentLocation, getNetworkStatus, startUpdateLocation, } from '@apps-in-toss/web-framework';
 import { useLocation, useNavigate } from 'react-router-dom';
 import ImagePreview, { ImagePreviewContainer } from './common/ImagePreview';
+import { ToastInfo } from '../types/toast';
 
 const MapWrapper = styled.div`
   position: relative;
@@ -76,7 +77,9 @@ export default function MapPage() {
     const [selectedPlace, setSelectedPlace] = useState<Place | null>()
     const [zoom, setZoome] = useState<number>(DEFAULT_ZOOM)
     const [categoryMap, setCategoryMap] = useState<Map<number, string>>()
+    const [toast, setToast] = useState<ToastInfo>({ show: false, message: "" })
     const allMakerList = [...myPlaceList, { id: "curloc", name: "current", latitude: currentLocation[0], longitude: currentLocation[1] }]
+
 
     useEffect(() => {
         startUpdateLocation({
@@ -107,9 +110,17 @@ export default function MapPage() {
                 setCategoryMap(map)
             }
         }
+        const load = async () => {
+            const networkStatus = await getNetworkStatus();
+            if (networkStatus !== NETWORK_STATUS.OFFLINE && networkStatus !== NETWORK_STATUS.UNKNOWN && networkStatus !== NETWORK_STATUS.WWAN) {
+                loadPlaces()
+                loadCategories()
+            } else {
+                setToast({ show: true, message: TEXT.MSG_NETWORK_ERROR })
+            }
+        }
         if (account) {
-            loadCategories()
-            loadPlaces()
+            load()
         }
 
     }, [account])
@@ -121,7 +132,11 @@ export default function MapPage() {
                 if (paramPlace) {
                     setMapCenterLocation({ lat: paramPlace.latitude, lng: paramPlace.longitude })
                 } else {
-                    onCurrentLocationClick()
+                    const currentPermission = await getCurrentLocation.getPermission()
+                    if (currentPermission === PERMISSIONS.ALLOWED) {
+                        onCurrentLocationClick()
+                    }
+
                 }
             } catch (err) {
                 console.log(err)
@@ -209,9 +224,16 @@ export default function MapPage() {
     }
 
     const onCurrentLocationClick = async () => {
-        const response = await getCurrentLocation({ accuracy: Accuracy.Balanced });
-        setCurrentLocation([response.coords.latitude, response.coords.longitude])
-        setMapCenterLocation({ lat: response.coords.latitude, lng: response.coords.longitude })
+        const currentPermission = await getCurrentLocation.getPermission()
+        if (currentPermission === PERMISSIONS.ALLOWED) {
+            const response = await getCurrentLocation({ accuracy: Accuracy.Balanced });
+            setCurrentLocation([response.coords.latitude, response.coords.longitude])
+            setMapCenterLocation({ lat: response.coords.latitude, lng: response.coords.longitude })
+        } else {
+            const locationPermssion = await getCurrentLocation.openPermissionDialog();
+            console.log(`locationPermssion ${locationPermssion}`)
+        }
+
     }
 
     const mapView = () => {
@@ -239,17 +261,31 @@ export default function MapPage() {
         </GoogleMap>
     }
 
+    const buttonView = () => {
+        return <ButtonArea>
+            <Button size='small' onClick={onCurrentLocationClick}>{TEXT.CURRENT_LOCATION}</Button>
+        </ButtonArea>
+    }
+
     return (
         <div>
             <BottomTabBar />
             <MapWrapper>
-                <ButtonArea>
-                    <Button size='small' onClick={onCurrentLocationClick}>{TEXT.CURRENT_LOCATION}</Button>
-                </ButtonArea>
+                {buttonView()}
                 {mapView()}
             </MapWrapper>
 
             {selectedPlace && placeInfoComponent()}
+            <Toast
+                position="bottom"
+                open={toast.show}
+                text={toast.message}
+                duration={2000}
+                onClose={() => {
+                    setToast({ show: true, message: "" })
+
+                }}
+            />
         </div>
     );
 }

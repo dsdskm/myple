@@ -12,6 +12,7 @@ import PlaceHistoryEditPage from "./view/PlaceHistoryEditPage";
 function App() {
   const { account } = useApp()
   const navigate = useNavigate()
+
   useEffect(() => {
     if (!account.id) {
       navigate(ROUTES.LOGIN, { replace: true })

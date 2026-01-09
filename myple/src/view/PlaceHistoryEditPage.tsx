@@ -3,8 +3,8 @@ import { useLocation, useNavigate } from "react-router-dom"
 import { Media, Place, PlaceHistory } from "../types/place"
 import { useEffect, useRef, useState } from "react"
 import { AlertDialog, Button, ConfirmDialog, FixedBottomCTA, Paragraph, Post, Rating, TextArea, TextField, Toast } from "@toss/tds-mobile"
-import { TEXT } from "../common/constants"
-import { fetchAlbumPhotos, openCamera } from "@apps-in-toss/web-framework"
+import { NETWORK_STATUS, PERMISSIONS, TEXT } from "../common/constants"
+import { fetchAlbumPhotos, getNetworkStatus, openCamera } from "@apps-in-toss/web-framework"
 import { DateTimePicker, LocalizationProvider } from "@mui/x-date-pickers"
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs"
 import dayjs, { Dayjs } from "dayjs"
@@ -82,7 +82,7 @@ const PlaceHistoryEditPage = () => {
     const [createDialogOpen, setCreateDialogOpen] = useState<boolean>(false);
     const [alertDialogOpen, setAlertDialogOpen] = useState<boolean>(false)
     const [deleteDialogOpen, setDeleteDialogOpen] = useState<boolean>(false)
-    const [toastInfo, setToastInfo] = useState<ToastInfo>({
+    const [toast, setToast] = useState<ToastInfo>({
         show: false,
         message: ""
     })
@@ -93,8 +93,17 @@ const PlaceHistoryEditPage = () => {
             const result = await getProductInfo(account.id)
             setProduct(result)
         }
+
+        const load = async () => {
+            const networkStatus = await getNetworkStatus();
+            if (networkStatus !== NETWORK_STATUS.OFFLINE && networkStatus !== NETWORK_STATUS.UNKNOWN && networkStatus !== NETWORK_STATUS.WWAN) {
+                loadProductInfo()
+            } else {
+                setToast({ show: true, message: TEXT.MSG_NETWORK_ERROR })
+            }
+        }
         if (account) {
-            loadProductInfo()
+            load()
         }
 
     }, [account])
@@ -123,10 +132,18 @@ const PlaceHistoryEditPage = () => {
 
     async function handleOpenCamera() {
         try {
-            const base64 = true;
-            const response = await openCamera({ base64 });
-            const newPictures = [...pictureFiles, { fileName: response.id, url: response.dataUri, type: "image" }]
-            setPictureFiles(newPictures)
+            const cameraPermission = await openCamera.getPermission()
+            if (cameraPermission === PERMISSIONS.ALLOWED) {
+                const base64 = true;
+                const response = await openCamera({ base64 });
+                const newPictures = [...pictureFiles, { fileName: response.id, url: response.dataUri, type: "image" }]
+                setPictureFiles(newPictures)
+            } else {
+                const cameraPermission = await openCamera.openPermissionDialog()
+                console.log(`cameraPermission ${cameraPermission}`)
+            }
+
+
         } catch (error) {
             console.log(error);
         }
@@ -134,17 +151,23 @@ const PlaceHistoryEditPage = () => {
 
     const handlePictureUpload = async () => {
         try {
-            const response = await fetchAlbumPhotos({
-                maxCount: 10,
-                base64: true,
-            });
-            const mediaFiles: Media[] = response.map(item => ({
-                type: "image",
-                url: item.dataUri,   // dataUri를 url로 사용
-                fileName: item.id,   // id를 fileName으로 사용
-            }));
+            const photoPermission = await fetchAlbumPhotos.getPermission()
+            if (photoPermission === PERMISSIONS.ALLOWED) {
+                const response = await fetchAlbumPhotos({
+                    maxCount: 10,
+                    base64: true,
+                });
+                const mediaFiles: Media[] = response.map(item => ({
+                    type: "image",
+                    url: item.dataUri,   // dataUri를 url로 사용
+                    fileName: item.id,   // id를 fileName으로 사용
+                }));
 
-            setPictureFiles(prev => [...prev, ...mediaFiles]);
+                setPictureFiles(prev => [...prev, ...mediaFiles]);
+            } else {
+                const photoPermission = await fetchAlbumPhotos.openPermissionDialog()
+                console.log(`photoPermission ${photoPermission}`)
+            }
         } catch (error) {
             console.log(error)
         }
@@ -256,26 +279,25 @@ const PlaceHistoryEditPage = () => {
 
     const onCreateClick = async () => {
         setCreateDialogOpen(false)
+        const networkStatus = await getNetworkStatus();
+        if (networkStatus === NETWORK_STATUS.OFFLINE || networkStatus === NETWORK_STATUS.UNKNOWN || networkStatus === NETWORK_STATUS.WWAN) {
+            setToast({ show: true, message: TEXT.MSG_NETWORK_ERROR })
+            return
+        }
         if (isEditMode) {
             if (product && (medias.length + pictureFiles.length) > product.place_history_photo_limit) {
-                toastInfo.message = `최대 ${product.place_history_photo_limit}개 까지 사진 추가가 가능합니다.`
-                toastInfo.show = true
-                setToastInfo({ ...toastInfo })
+                setToast({ show: true, message: `최대 ${product.place_history_photo_limit}개 까지 사진 추가가 가능합니다.` })
                 return
             }
         } else {
             if (product && pictureFiles.length > product.place_history_photo_limit) {
-                toastInfo.message = `최대 ${product.place_history_photo_limit}개 까지 사진 추가가 가능합니다.`
-                toastInfo.show = true
-                setToastInfo({ ...toastInfo })
+                setToast({ show: true, message: `최대 ${product.place_history_photo_limit}개 까지 사진 추가가 가능합니다.` })
                 return
             }
         }
 
         if (memo && memo.length > 50) {
-            toastInfo.show = true
-            toastInfo.message = TEXT.MSG_MEMO
-            setToastInfo({ ...toastInfo })
+            setToast({ show: true, message: TEXT.MSG_MEMO })
         } else {
             try {
                 setIsLoading(true)
@@ -419,12 +441,11 @@ const PlaceHistoryEditPage = () => {
         {alertDialog()}
         <Toast
             position="bottom"
-            open={toastInfo.show}
-            text={toastInfo.message}
-            duration={3000}
+            open={toast.show}
+            text={toast.message}
+            duration={2000}
             onClose={() => {
-                toastInfo.show = false
-                setToastInfo({ ...toastInfo })
+                setToast({ show: false, message: "" })
             }}
         />
     </PageWrapper>

@@ -4,11 +4,13 @@ import { useApp } from "../context/AppContext"
 import { ChangeEvent, useEffect, useMemo, useState } from "react"
 import { Media, Place, PlaceHistory } from "../types/place"
 import { getCategory, getPlaces } from "../service/api"
-import { Button, IconButton, ListHeader, Menu, Post, Rating, SearchField, Text } from "@toss/tds-mobile"
+import { Asset, Button, IconButton, ListHeader, Menu, Post, Rating, Result, SearchField, Text, Toast } from "@toss/tds-mobile"
 import styled from 'styled-components';
-import { ROUTES, TEXT } from "../common/constants"
+import { NETWORK_STATUS, ROUTES, TEXT } from "../common/constants"
 import { parseKoreanDateTime } from "../common/utils"
 import ImagePreview, { ImagePreviewContainer } from "./common/ImagePreview"
+import { getNetworkStatus } from "@apps-in-toss/web-framework"
+import { ToastInfo } from "../types/toast"
 
 
 const MenuWrapper = styled.div`
@@ -70,6 +72,7 @@ const PlaceListPage = () => {
     const [currentCategoryId, setCurrentCategoryId] = useState<number>(MENU_CATEGORY_ALL)
     const [currentCategoryText, setCurrentCategory] = useState<string>(TEXT.CATEGORY_ALL)
     const [targSearching, setTagSearching] = useState<boolean>(false)
+    const [toast, setToast] = useState<ToastInfo>({ show: false, message: "" })
 
     useEffect(() => {
         const loadPlaces = async () => {
@@ -98,9 +101,18 @@ const PlaceListPage = () => {
             }
         }
 
+        const load = async () => {
+            const networkStatus = await getNetworkStatus();
+            if (networkStatus !== NETWORK_STATUS.OFFLINE && networkStatus !== NETWORK_STATUS.UNKNOWN && networkStatus !== NETWORK_STATUS.WWAN) {
+                loadPlaces()
+                loadCategories()
+            } else {
+                setToast({ show: true, message: TEXT.MSG_NETWORK_ERROR })
+            }
+        }
+
         if (account) {
-            loadPlaces()
-            loadCategories()
+            load()
         }
 
     }, [account])
@@ -458,12 +470,32 @@ const PlaceListPage = () => {
             })}
         </ListWrapper>
     }
+
+    const emptyView = () => {
+        return <>
+            <Result
+                figure={<Asset.Icon name="icn-info-line" frameShape={Asset.frameShape.CleanH24} />}
+                title={TEXT.MSG_EMPTY_RESULT}
+                description={TEXT.MSG_EMPTY_RESULT_DESC}
+            />
+        </>
+    }
     return <div style={{ paddingLeft: 10, paddingRight: 10 }}>
         <SearchField placeholder={TEXT.MSG_SEARCH_HINT} fixed onChange={onSearchTextChange} />
         {filteringView()}
         <BottomTabBar />
         {listView()}
         {historyListView()}
+        {sortedFilteredList.length === 0 && filteredHistoryList.length === 0 && emptyView()}
+        <Toast
+            position="bottom"
+            open={toast.show}
+            text={toast.message}
+            duration={2000}
+            onClose={() => {
+                setToast({ show: false, message: "" })
+            }}
+        />
     </div >
 }
 

@@ -1,9 +1,9 @@
 import { AlertDialog, Button, ConfirmDialog, FixedBottomCTA, List, ListRow, Menu, Post, Rating, Text, TextField, Toast } from "@toss/tds-mobile"
-import { ROUTES, TEXT } from "../common/constants"
+import { NETWORK_STATUS, PERMISSIONS, ROUTES, TEXT } from "../common/constants"
 import { GoogleMap, Marker } from "@react-google-maps/api"
 import { useCallback, useEffect, useState } from "react";
 import { roundToFour } from "../common/utils";
-import { Accuracy, getCurrentLocation } from "@apps-in-toss/web-bridge";
+import { Accuracy, getCurrentLocation, getNetworkStatus } from "@apps-in-toss/web-bridge";
 import styled from "styled-components";
 import 'dayjs/locale/ko';
 import { Place, PlaceHistory } from "../types/place";
@@ -33,6 +33,12 @@ export const BottomButtonWrapper = styled.div`
     justify-content:center;
     gap:20px
 `
+
+const CurrentLocationButtonWrapper = styled.div`
+    padding-left: 20px;
+    padding-right: 20px;
+    padding-bottom: 20px;
+`
 const PlaceEditPage = () => {
     const { account } = useApp()
     const navigate = useNavigate()
@@ -57,7 +63,7 @@ const PlaceEditPage = () => {
     const [createDialogOpen, setCreateDialogOpen] = useState<boolean>(false);
     const [deleteDialogOpen, setDeleteDialogOpen] = useState<boolean>(false)
     const [alertDialogOpen, setAlertDialogOpen] = useState<boolean>(false)
-    const [toastInfo, setToastInfo] = useState<ToastInfo>({
+    const [toast, setToast] = useState<ToastInfo>({
         show: false,
         message: ""
     })
@@ -66,7 +72,7 @@ const PlaceEditPage = () => {
     useEffect(() => {
         const loadPlaces = async () => {
             const list = await getPlaces(account.id)
-            if (selectedPlace) {
+            if (list && selectedPlace) {
                 const target = list.filter((p) => p.id === selectedPlace.id)[0]
                 if (target) {
                     setName(target.name)
@@ -87,13 +93,23 @@ const PlaceEditPage = () => {
         }
         const loadProductInfo = async () => {
             const result = await getProductInfo(account.id)
-            setProduct(result)
+            if (result) {
+                setProduct(result)
+            }
+        }
 
+        const load = async () => {
+            const networkStatus = await getNetworkStatus();
+            if (networkStatus !== NETWORK_STATUS.OFFLINE && networkStatus !== NETWORK_STATUS.UNKNOWN && networkStatus !== NETWORK_STATUS.WWAN) {
+                loadPlaces()
+                loadCategories()
+                loadProductInfo()
+            } else {
+                setToast({ show: true, message: TEXT.MSG_NETWORK_ERROR })
+            }
         }
         if (account) {
-            loadPlaces()
-            loadCategories()
-            loadProductInfo()
+            load()
         }
 
 
@@ -110,12 +126,6 @@ const PlaceEditPage = () => {
         }
         handleGetCurrentLocation()
     }, [])
-
-    useEffect(() => {
-        if (!selectedPlace) {
-            onCurrentLocationUseClick()
-        }
-    }, [selectedPlace])
 
     const handleMapClick = useCallback((event: google.maps.MapMouseEvent) => {
         if (event.latLng) {
@@ -188,40 +198,45 @@ const PlaceEditPage = () => {
                             </Menu.DropdownCheckItem>
                         })}
                     </Menu.Dropdown>
-                }
-            >
+                }>
                 <Button color="light">{currentCategory && currentCategory[0] ? currentCategory[0].title : TEXT.MENU_CATEGORY_CHOICE}</Button>
             </Menu.Trigger >
         </>
     }
 
     const onCurrentLocationUseClick = async () => {
-        const response = await getCurrentLocation({ accuracy: Accuracy.Balanced });
-        const lat = response.coords.latitude
-        const lng = response.coords.longitude
-        const geocoder = new window.google.maps.Geocoder();
-        geocoder.geocode({ location: { lat, lng }, language: 'ko' }, (results, status) => {
-            if (status === 'OK') {
-                if (results && results[0]) {
-                    setAddress(results[0].formatted_address)
-                    setLatitude(roundToFour(lat))
-                    setLongitude(roundToFour(lng))
+        const currentPermission = await getCurrentLocation.getPermission()
+        if (currentPermission === PERMISSIONS.ALLOWED) {
+            const response = await getCurrentLocation({ accuracy: Accuracy.Balanced });
+            const lat = response.coords.latitude
+            const lng = response.coords.longitude
+            const geocoder = new window.google.maps.Geocoder();
+            geocoder.geocode({ location: { lat, lng }, language: 'ko' }, (results, status) => {
+                if (status === 'OK') {
+                    if (results && results[0]) {
+                        setAddress(results[0].formatted_address)
+                        setLatitude(roundToFour(lat))
+                        setLongitude(roundToFour(lng))
+                    } else {
+                        console.log('No results found');
+                    }
                 } else {
-                    console.log('No results found');
+                    console.log('Geocoder failed due to: ' + status);
                 }
-            } else {
-                console.log('Geocoder failed due to: ' + status);
-            }
-        });
+            });
+        } else {
+            const locationPermssion = await getCurrentLocation.openPermissionDialog();
+            console.log(`locationPermssion ${locationPermssion}`)
+        }
     }
 
     const mapAddressView = () => {
         return <div>
             <Post.H3>{TEXT.LOCATION}</Post.H3>
             <Post.Paragraph>{TEXT.MSG_LOCATION_GUIDE}</Post.Paragraph>
-            <div style={{ paddingLeft: 20, paddingRight: 20, paddingBottom: 20 }}>
+            <CurrentLocationButtonWrapper>
                 <Button size="medium" color="primary" variant="weak" onClick={onCurrentLocationUseClick}>{TEXT.USE_CURRENT_LOCATION}</Button>
-            </div>
+            </CurrentLocationButtonWrapper>
             <Post.Paragraph>
                 <GoogleMap
                     mapContainerStyle={mapContainerStyle}
@@ -308,23 +323,24 @@ const PlaceEditPage = () => {
 
     const onCreateClick = async () => {
         setCreateDialogOpen(false)
+        const networkStatus = await getNetworkStatus();
+        if (networkStatus === NETWORK_STATUS.OFFLINE || networkStatus === NETWORK_STATUS.UNKNOWN || networkStatus === NETWORK_STATUS.WWAN) {
+            setToast({ show: true, message: TEXT.MSG_NETWORK_ERROR })
+            return
+        }
+
+
         if (!isEditMode) {
             if (product && placeList.length >= product.place_limit) {
-                toastInfo.message = `최대 ${product.place_limit}개 까지 장소 추가가 가능합니다.`
-                toastInfo.show = true
-                setToastInfo({ ...toastInfo })
+                setToast({ show: true, message: `최대 ${product.place_limit}개 까지 장소 추가가 가능합니다.` })
                 return
             }
         }
 
         if (!name || name.length === 0) {
-            toastInfo.show = true
-            toastInfo.message = TEXT.MSG_PLACE_NAME
-            setToastInfo({ ...toastInfo })
+            setToast({ show: true, message: TEXT.MSG_PLACE_NAME })
         } else if (!category) {
-            toastInfo.show = true
-            toastInfo.message = TEXT.MSG_CATEGORY
-            setToastInfo({ ...toastInfo })
+            setToast({ show: true, message: TEXT.MSG_CATEGORY })
         } else {
 
             try {
@@ -428,19 +444,18 @@ const PlaceEditPage = () => {
         {nameView()}
         {categoryView()}
         {mapAddressView()}
-        {historyListView()}
+        {historyList.length > 0 && historyListView()}
         {buttonView()}
         {createDialog()}
         {deleteDialog()}
         {alertDialog()}
         <Toast
             position="bottom"
-            open={toastInfo.show}
-            text={toastInfo.message}
-            duration={3000}
+            open={toast.show}
+            text={toast.message}
+            duration={2000}
             onClose={() => {
-                toastInfo.show = false
-                setToastInfo({ ...toastInfo })
+                setToast({ show: false, message: "" })
             }}
         />
     </PageWrapper >

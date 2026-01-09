@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import styled from 'styled-components';
-import { ROUTES } from '../common/constants';
+import { ROUTES, TEXT } from '../common/constants';
 
 /* ---------- Styled Components ---------- */
 const TabBarWrapper = styled.div`
@@ -44,46 +44,47 @@ const TabLabel = styled.div`
   margin-top: 4px;
 `;
 
+const TabImage = styled.img`
+    width:24px;
+    height:24px;
+    object-fit:contain
+`
+
 const tabs = [
     {
-        label: '지도',
-        icon: <img
+        label: `${TEXT.TAB_MAP}`,
+        icon: <TabImage
             src="/tab_map.png"          /* public/search.png 가 자동으로 /search.png 로 매핑됩니다 */
             alt="search"
-            style={{ width: 24, height: 24, objectFit: 'contain' }}
         />,   // 이미지 컴포넌트를 직접 넣어줍니다
         path: ROUTES.MAP,
     },
     {
-        label: '리스트',
-        icon: <img
+        label: `${TEXT.TAB_LIST}`,
+        icon: <TabImage
             src="/tab_list.png"          /* public/search.png 가 자동으로 /search.png 로 매핑됩니다 */
             alt="search"
-            style={{ width: 24, height: 24, objectFit: 'contain' }}
         />,
         path: ROUTES.PLACE_LIST,
     },
     {
-        label: '추가',
-        icon: <img
+        label: `${TEXT.TAB_ADD}`,
+        icon: <TabImage
             src="/tab_add.png"          /* public/search.png 가 자동으로 /search.png 로 매핑됩니다 */
             alt="search"
-            style={{ width: 24, height: 24, objectFit: 'contain' }}
         />,
         path: ROUTES.PLACE_EDIT,
     },
     {
-        label: '내 정보',
-        icon: <img
+        label: `${TEXT.TAB_MY}`,
+        icon: <TabImage
             src="/tab_info.png"          /* public/search.png 가 자동으로 /search.png 로 매핑됩니다 */
             alt="search"
-            style={{ width: 24, height: 24, objectFit: 'contain' }}
         />,
         path: ROUTES.MY,
     },
 ];
 
-/* ---------- BottomTabBar 컴포넌트 ---------- */
 export default function BottomTabBar() {
     return (
         <TabBarWrapper>

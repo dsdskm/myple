@@ -37,7 +37,7 @@ export const get = async <T>(url: string, token?: string): Promise<T> => {
     } catch (err) {
         // 여기서 에러 로깅·전파 등을 자유롭게 처리
         console.error('GET request error:', err);
-        throw err;
+        return {} as T
     }
 };
 
@@ -56,7 +56,7 @@ export const post = async <TResponse, TBody = unknown>(
         return response.data;
     } catch (err) {
         console.error('POST request error:', err);
-        throw err;
+        return {} as TResponse
     }
 };
 
@@ -77,19 +77,14 @@ export const uploadFiles = async (
     for (const image of pictures) {
         const base64 = image.url
 
-        // Base64 문자열이 비어 있거나 유효하지 않은 경우 처리
         const binary = atob(base64);
         const uint8 = new Uint8Array(binary.length);
         for (let i = 0; i < binary.length; i++) {
             uint8[i] = binary.charCodeAt(i);
         }
 
-        // Blob 생성 (MIME 타입 지정)
         const blob = new Blob([uint8], { type: 'image/jpeg' });
-
-        // 파일명은 image.id 로 지정 (필요하면 .jpg 등 확장자 추가)
         const fileName = `${image.fileName}`;
-        console.log(`Appending file: ${fileName}`);
         form.append('files', blob, fileName);
     }
 
@@ -115,7 +110,6 @@ export const updateUser = async (userData: Partial<Account>): Promise<Account | 
         return response.data
     } catch (error) {
         console.log(error)
-    } finally {
         return null
     }
 
@@ -128,8 +122,6 @@ export const getUser = async (id: string): Promise<Account | null> => {
     } catch (error) {
         console.log(error)
         return null
-    } finally {
-
     }
 
 }
@@ -142,8 +134,6 @@ export const createPlace = async (data: Omit<Place, 'id' | 'created'>): Promise<
     } catch (error) {
         console.log(error)
         return null
-    } finally {
-
     }
 };
 
@@ -154,8 +144,6 @@ export const createPlaceHistory = async (data: Omit<PlaceHistory, 'id' | 'create
     } catch (error) {
         console.log(error)
         return null
-    } finally {
-
     }
 };
 
@@ -166,8 +154,6 @@ export const updatePlace = async (id: string, placeData: Partial<Omit<Place, 'id
     } catch (error) {
         console.log(error)
         return null
-    } finally {
-
     }
 };
 
@@ -178,8 +164,6 @@ export const updatePlaceHistory = async (id: string, data: Partial<Omit<PlaceHis
     } catch (error) {
         console.log(error)
         return null
-    } finally {
-
     }
 
 };
