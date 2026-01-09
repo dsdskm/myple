@@ -78,7 +78,6 @@ export default function MapPage() {
     const [zoom, setZoome] = useState<number>(DEFAULT_ZOOM)
     const [categoryMap, setCategoryMap] = useState<Map<number, string>>()
     const [toast, setToast] = useState<ToastInfo>({ show: false, message: "" })
-    const allMakerList = [...myPlaceList, { id: "curloc", name: "current", latitude: currentLocation[0], longitude: currentLocation[1] }]
 
 
     useEffect(() => {
@@ -102,7 +101,6 @@ export default function MapPage() {
         }
 
         const loadCategories = async () => {
-
             const categoryData = await getCategory(account.id)
             if (categoryData) {
                 const map = new Map<number, string>()
@@ -242,21 +240,26 @@ export default function MapPage() {
             center={mapCenterLocation}
             zoom={zoom}
         >
-            {allMakerList.map((marker) => {
-                const isCurrent = marker.id === "curloc"
+            {categoryMap && myPlaceList.map((place) => {
                 return <Marker
-                    key={marker.id}
-                    label={marker.name}
-                    title={marker.name}
-                    icon={isCurrent ? {
-                        url: "current_location.png", scaledSize: new google.maps.Size(40, 40)
-                    } : undefined}
+                    key={place.id}
+                    label={{ text: `[${categoryMap.get(place.category)}] ${place.name}`, color: '#000', fontSize: "20px", fontWeight: "bold" }}
+                    title={place.name}
                     position={{
-                        lat: marker.latitude, lng: marker.longitude
+                        lat: place.latitude, lng: place.longitude
                     }}
-                    onClick={() => isCurrent ? undefined : onMarkerClick(marker.id)}
+                    onClick={() => onMarkerClick(place.id)}
                 />
             })}
+            <Marker
+                key={"current"}
+                label={{ text: `[현재위치]`, color: '#000', fontSize: "20px", fontWeight: "bold" }}
+                title={"현재위치"}
+                icon={{ url: "current_location.png", scaledSize: new google.maps.Size(40, 40) }}
+                position={{
+                    lat: currentLocation[0], lng: currentLocation[1]
+                }}
+            />
 
         </GoogleMap>
     }
@@ -266,6 +269,8 @@ export default function MapPage() {
             <Button size='small' onClick={onCurrentLocationClick}>{TEXT.CURRENT_LOCATION}</Button>
         </ButtonArea>
     }
+
+    console.log(`currentLocation ${currentLocation}`)
 
     return (
         <div>
