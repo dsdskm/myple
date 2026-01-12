@@ -1,5 +1,5 @@
 import { BottomCTA, Button, ConfirmDialog, List, ListRow, Modal, Post, TableRow, TextField, Toast } from "@toss/tds-mobile";
-import { LOGOUT_REFERRER, NETWORK_STATUS, ROUTES, TEXT } from "../common/constants";
+import { ALT, getCategoryLimitText, LOGOUT_REFERRER, NETWORK_STATUS, PUBLIC_IMAGES, ROUTES, TEXT } from "../common/constants";
 import BottomTabBar from "./BottomTabBar"
 import styled from 'styled-components';
 import { useEffect, useState } from "react";
@@ -173,7 +173,7 @@ const MyPage = () => {
 
         const onCategoryItemAddClick = () => {
             if (product && targetCategoryList.length >= product.category_limit) {
-                setToast({ show: true, message: `최대 ${product.category_limit}개 까지 카테고리 추가가 가능합니다.` })
+                setToast({ show: true, message: getCategoryLimitText(product.category_limit) })
             } else {
                 setShowEditCategory(0, "")
             }
@@ -212,15 +212,15 @@ const MyPage = () => {
                                         <ListRow.IconButton
                                             variant="clear"
                                             iconSize={20}
-                                            aria-label="arrow_up"
-                                            src="/arrow_up.png"
+                                            aria-label={ALT.ARROW_UP}
+                                            src={PUBLIC_IMAGES.ARROW_UP}
                                             onClick={() => { onArrowUpClick(index) }}
                                         />
                                         <ListRow.IconButton
                                             variant="clear"
                                             iconSize={20}
-                                            aria-label="arrow_down"
-                                            src="/arrow_down.png"
+                                            aria-label={ALT.ARROW_DOWN}
+                                            src={PUBLIC_IMAGES.ARROW_DOWN}
                                             onClick={() => { onArrowDownClick(index) }}
                                         />
                                     </div>}
@@ -229,15 +229,15 @@ const MyPage = () => {
                                             <ListRow.IconButton
                                                 variant="clear"
                                                 iconSize={20}
-                                                aria-label=""
-                                                src="/edit.png"
+                                                aria-label={ALT.EDIT}
+                                                src={PUBLIC_IMAGES.EDIT}
                                                 onClick={() => { setShowEditCategory(c.id, c.title) }}
                                             />
                                             <ListRow.IconButton
                                                 variant="clear"
                                                 iconSize={20}
-                                                aria-label="delete"
-                                                src="/delete.png"
+                                                aria-label={ALT.DELETE}
+                                                src={PUBLIC_IMAGES.DELETE}
                                                 onClick={() => { onDeleteClick(c.id) }}
                                             />
 
@@ -248,9 +248,9 @@ const MyPage = () => {
                         </List>
                         {product && <ListRow.IconButton
                             variant="clear"
-                            aria-label="add"
+                            aria-label={ALT.ADD}
                             iconSize={36}
-                            src="/add.png"
+                            src={PUBLIC_IMAGES.ADD}
                             onClick={onCategoryItemAddClick}
                         />}
                         <BottomCTA.Double

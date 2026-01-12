@@ -1,6 +1,6 @@
 import { Button, Paragraph, Toast } from '@toss/tds-mobile';
 import styled from 'styled-components';
-import { ROUTES, TEXT } from '../common/constants';
+import { ALT, PUBLIC_IMAGES, ROUTES, TEXT } from '../common/constants';
 import { useState } from 'react';
 import Loading from './common/Loading';
 import { useNavigate } from 'react-router-dom';
@@ -72,8 +72,8 @@ const LoginPage = () => {
 
     return <Wrapper>
         <LogoImage
-            alt="logo"
-            src={"/app_icon.png"} />
+            alt={ALT.LOGO}
+            src={PUBLIC_IMAGES.LOGO} />
         <Button onClick={onLoginClick}>{TEXT.LOGIN}</Button>
         <Paragraph.Text style={{ marginTop: 15 }}>{TEXT.LOOG_TITLE}</Paragraph.Text>
         <Toast
@@ -86,7 +86,7 @@ const LoginPage = () => {
                 setToastInfo({ ...toastInfo })
             }}
         />
-        <Creator>by myple.master@gmail.com</Creator>
+        <Creator>{TEXT.CREATOR}</Creator>
     </Wrapper>
 }
 

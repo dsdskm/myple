@@ -3,7 +3,7 @@ import { useLocation, useNavigate } from "react-router-dom"
 import { Media, Place, PlaceHistory } from "../types/place"
 import { useEffect, useRef, useState } from "react"
 import { AlertDialog, Button, ConfirmDialog, FixedBottomCTA, Paragraph, Post, Rating, TextArea, TextField, Toast } from "@toss/tds-mobile"
-import { NETWORK_STATUS, PERMISSIONS, TEXT } from "../common/constants"
+import { getPlaceHistoryPhotoLimitText, NETWORK_STATUS, PERMISSIONS, TEXT } from "../common/constants"
 import { fetchAlbumPhotos, getNetworkStatus, openCamera } from "@apps-in-toss/web-framework"
 import { DateTimePicker, LocalizationProvider } from "@mui/x-date-pickers"
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs"
@@ -286,12 +286,12 @@ const PlaceHistoryEditPage = () => {
         }
         if (isEditMode) {
             if (product && (medias.length + pictureFiles.length) > product.place_history_photo_limit) {
-                setToast({ show: true, message: `최대 ${product.place_history_photo_limit}개 까지 사진 추가가 가능합니다.` })
+                setToast({ show: true, message: getPlaceHistoryPhotoLimitText(product.place_history_photo_limit) })
                 return
             }
         } else {
             if (product && pictureFiles.length > product.place_history_photo_limit) {
-                setToast({ show: true, message: `최대 ${product.place_history_photo_limit}개 까지 사진 추가가 가능합니다.` })
+                setToast({ show: true, message: getPlaceHistoryPhotoLimitText(product.place_history_photo_limit) })
                 return
             }
         }

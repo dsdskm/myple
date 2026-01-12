@@ -1,7 +1,6 @@
-import React from 'react';
 import { Link } from 'react-router-dom';
 import styled from 'styled-components';
-import { ROUTES, TEXT } from '../common/constants';
+import { ALT, PUBLIC_IMAGES, ROUTES, TEXT } from '../common/constants';
 
 /* ---------- Styled Components ---------- */
 const TabBarWrapper = styled.div`
@@ -54,32 +53,32 @@ const tabs = [
     {
         label: `${TEXT.TAB_MAP}`,
         icon: <TabImage
-            src="/tab_map.png"          /* public/search.png 가 자동으로 /search.png 로 매핑됩니다 */
-            alt="search"
-        />,   // 이미지 컴포넌트를 직접 넣어줍니다
+            src={PUBLIC_IMAGES.TAB_MAP}
+            alt={ALT.TAB_MAP}
+        />,
         path: ROUTES.MAP,
     },
     {
         label: `${TEXT.TAB_LIST}`,
         icon: <TabImage
-            src="/tab_list.png"          /* public/search.png 가 자동으로 /search.png 로 매핑됩니다 */
-            alt="search"
+            src={PUBLIC_IMAGES.TAB_LIST}
+            alt={ALT.TAB_LIST}
         />,
         path: ROUTES.PLACE_LIST,
     },
     {
         label: `${TEXT.TAB_ADD}`,
         icon: <TabImage
-            src="/tab_add.png"          /* public/search.png 가 자동으로 /search.png 로 매핑됩니다 */
-            alt="search"
+            src={PUBLIC_IMAGES.TAB_ADD}
+            alt={ALT.TAB_ADD}
         />,
         path: ROUTES.PLACE_EDIT,
     },
     {
         label: `${TEXT.TAB_MY}`,
         icon: <TabImage
-            src="/tab_info.png"          /* public/search.png 가 자동으로 /search.png 로 매핑됩니다 */
-            alt="search"
+            src={PUBLIC_IMAGES.TAB_MY}
+            alt={ALT.TAB_MY}
         />,
         path: ROUTES.MY,
     },

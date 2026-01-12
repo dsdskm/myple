@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { TEXT } from "../../common/constants";
+import { ALT, TEXT } from "../../common/constants";
 import styled from "styled-components"
 
 export const ImagePreviewContainer = styled.div`
@@ -81,17 +81,15 @@ const ImagePreview = ({ src, id, onClick, onDelete }: ImagePreviewProps) => {
                 e.stopPropagation()
             }}
         >
-            {/* 실제 이미지 */}
             <Image
                 src={src}
-                alt="preview"
+                alt={ALT.IMAGE}
             />
 
-            {/* 삭제 버튼 (오른쪽 상단) */}
             {onDelete && <DeleteButton
                 type="button"
                 onClick={(e) => {
-                    e.stopPropagation(); // 이미지 클릭 이벤트 방지
+                    e.stopPropagation();
                     const confirmDelete = async () => {
                         if (window.confirm(TEXT.MSG_IMAGE_DELETE)) {
                             onDelete(id);

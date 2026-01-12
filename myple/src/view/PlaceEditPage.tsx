@@ -39,6 +39,11 @@ const CurrentLocationButtonWrapper = styled.div`
     padding-right: 20px;
     padding-bottom: 20px;
 `
+
+const HistoryListItemWrapper = styled.div`
+    display: flex;
+    flexDirection: column;
+`
 const PlaceEditPage = () => {
     const { account } = useApp()
     const navigate = useNavigate()
@@ -274,10 +279,10 @@ const PlaceEditPage = () => {
                 {historyList.map((history) => {
                     return <ListRow
                         contents={<ListRow.Texts type="2RowTypeA" top={history.visitAt || ""} bottom={
-                            <div style={{ display: "flex", flexDirection: "column" }}>
+                            <HistoryListItemWrapper>
                                 <Text style={{ fontStyle: "italic" }}>{history.tags}</Text>
                                 <Text>{history.memo}</Text>
-                            </div>} />}
+                            </HistoryListItemWrapper>} />}
                         right={
                             <Rating readOnly={true} value={history.rating} max={history.rating} size="medium" variant="compact" aria-label={TEXT.RATING} />
                         }

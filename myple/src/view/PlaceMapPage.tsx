@@ -64,6 +64,14 @@ const PlaceInfoContents = styled.div`
     margin-right:20px;
     gap:5px
 `
+
+const PlaceInfoRow = styled.div`
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: space-between;
+    width: 100%;
+`
 const DEFAULT_ZOOM = 12
 export default function MapPage() {
     const navigate = useNavigate()
@@ -173,10 +181,10 @@ export default function MapPage() {
                 </PlaceInfoHeader>
             }>
             <PlaceInfoContents>
-                <div style={{ display: "flex", flexDirection: "row", justifyContent: "space-between", alignItems: "space-between", width: "100%" }}>
+                <PlaceInfoRow>
                     <Paragraph.Text>{categoryMap.get(selectedPlace.category)}</Paragraph.Text>
                     {placeHistoryList.length > 0 && <Rating readOnly={true} value={placeHistoryList[0].rating} max={placeHistoryList[0].rating} size="medium" variant="iconOnly" aria-label={TEXT.RATING} />}
-                </div>
+                </PlaceInfoRow>
 
                 {selectedPlace.address && <Paragraph.Text >{selectedPlace.address}</Paragraph.Text>}
                 <ImagePreviewContainer>
@@ -253,8 +261,8 @@ export default function MapPage() {
             })}
             <Marker
                 key={"current"}
-                label={{ text: `[현재위치]`, color: '#000', fontSize: "20px", fontWeight: "bold" }}
-                title={"현재위치"}
+                label={{ text: TEXT.CURRENT_LOCATION, color: '#000', fontSize: "20px", fontWeight: "bold" }}
+                title={TEXT.CURRENT_LOCATION}
                 icon={{ url: "current_location.png", scaledSize: new google.maps.Size(40, 40) }}
                 position={{
                     lat: currentLocation[0], lng: currentLocation[1]
@@ -269,8 +277,6 @@ export default function MapPage() {
             <Button size='small' onClick={onCurrentLocationClick}>{TEXT.CURRENT_LOCATION}</Button>
         </ButtonArea>
     }
-
-    console.log(`currentLocation ${currentLocation}`)
 
     return (
         <div>

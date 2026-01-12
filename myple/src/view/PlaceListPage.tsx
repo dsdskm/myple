@@ -6,7 +6,7 @@ import { Media, Place, PlaceHistory } from "../types/place"
 import { getCategory, getPlaces } from "../service/api"
 import { Asset, Button, IconButton, ListHeader, Menu, Post, Rating, Result, SearchField, Text, Toast } from "@toss/tds-mobile"
 import styled from 'styled-components';
-import { NETWORK_STATUS, ROUTES, TEXT } from "../common/constants"
+import { getSearchResult, NETWORK_STATUS, PUBLIC_IMAGES, ROUTES, TEXT } from "../common/constants"
 import { parseKoreanDateTime } from "../common/utils"
 import ImagePreview, { ImagePreviewContainer } from "./common/ImagePreview"
 import { getNetworkStatus } from "@apps-in-toss/web-framework"
@@ -45,6 +45,11 @@ const ListDescriptionWrapper = styled.div`
     justify-content:center;
     align-items:flex-start;
 `
+
+const SearchResultWrapper = styled.div`
+    display: flex;
+    justify-content: flex-end;
+`
 const MENU_SORT_NAME_DESC = 1;
 const MENU_SORT_NAME_ASC = 2;
 const MENU_SORT_RECENT_RATING_DESC = 3;
@@ -71,7 +76,7 @@ const PlaceListPage = () => {
     const [categoryMenuOpen, setCategoryMenuOpen] = useState<boolean>(false)
     const [currentCategoryId, setCurrentCategoryId] = useState<number>(MENU_CATEGORY_ALL)
     const [currentCategoryText, setCurrentCategory] = useState<string>(TEXT.CATEGORY_ALL)
-    const [targSearching, setTagSearching] = useState<boolean>(false)
+    const [tagSearching, setTagSearching] = useState<boolean>(false)
     const [toast, setToast] = useState<ToastInfo>({ show: false, message: "" })
 
     useEffect(() => {
@@ -219,7 +224,7 @@ const PlaceListPage = () => {
         }
         return (
             <div>
-                {!targSearching && <MenuWrapper>
+                {!tagSearching && <MenuWrapper>
                     {categoryMap && <Menu.Trigger
                         open={categoryMenuOpen}
                         onOpen={() => setCategoryMenuOpen(true)}
@@ -319,10 +324,9 @@ const PlaceListPage = () => {
                         <Button size="small">{currentSort}</Button>
                     </Menu.Trigger>
                 </MenuWrapper>}
-                <div style={{ display: "flex", justifyContent: "flex-end" }}>
-                    {!targSearching && <Post.H4>총 {sortedFilteredList.length}개 장소</Post.H4>}
-                    {targSearching && <Post.H4>총 {sortedFilteredList.length}개 방문 내역</Post.H4>}
-                </div>
+                <SearchResultWrapper>
+                    <Post.H4>{getSearchResult(tagSearching, sortedFilteredList.length)}</Post.H4>
+                </SearchResultWrapper>
             </div>
         );
     }
@@ -356,7 +360,7 @@ const PlaceListPage = () => {
                         }
                         right={
                             <ListRightWrapper>
-                                <IconButton src="/tab_map.png" variant="clear" aria-label={TEXT.LOCATION} onClick={
+                                <IconButton src={PUBLIC_IMAGES.TAB_MAP} variant="clear" aria-label={TEXT.LOCATION} onClick={
                                     (e) => {
                                         navigate(ROUTES.MAP, {
                                             state: {
@@ -428,7 +432,7 @@ const PlaceListPage = () => {
                     }
                         right={
                             <ListRightWrapper>
-                                <IconButton src="/tab_map.png" variant="clear" aria-label={TEXT.LOCATION} onClick={
+                                <IconButton src={PUBLIC_IMAGES.TAB_MAP} variant="clear" aria-label={TEXT.LOCATION} onClick={
                                     (e) => {
                                         navigate(ROUTES.MAP, {
                                             state: {

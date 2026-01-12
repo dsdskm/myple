@@ -72,37 +72,34 @@ export const TEXT = {
     PRODUCT_CATEGORY_LIMIT: "최대 카테고리 저장 개수",
     PRODUCT_PLACE_LIMIT: "최대 장소 저장 개수",
     PRODUCT_PLACE_HISTORY_PHOTO_LIMIT: "최대 장소 사진 저장 개수",
-    MSG_LOGIN_SUCCESS: "로그인 성공",
-    MSG_LOGIN_FAILED: "로그인 실패",
-    MSG_LOGOUT_CONFIRM: "로그아웃하시겠습니까?",
-    MSG_WITHDRAW_CONFIRM: "서비스 탈퇴하시겠습니까?",
-    MSG_DELETE_CONFORM: "삭제하시겠습니까?(복구불가)",
-    MSG_PLACE_NAME: "장소 이름을 입력하세요.(10자 이내)",
-    MSG_CATEGORY: "카테고리를 선택하세요.",
-    MSG_CREATE_PLACE_CONFIRM: "장소를 등록하시겠습니까?",
-    MSG_MODIFY_PLACE_CONFIRM: "장소를 수정하시겠습니까?",
-    MSG_CREATE_PLACE_HISTORY_CONFIRM: "방문 내역을 등록하시겠습니까?",
-    MSG_MODIFY_PLACE_HISTORY_CONFIRM: "방문 내역을 수정하시겠습니까?",
-    MSG_DELETE_PLACE_CONFIRM: "장소를 삭제하시겠습니까?",
-    MSG_DELETE_PLACE_HISTORY_CONFIRM: "방문 내역을 삭제하시겠습니까?",
-    MSG_LOCATION_GUIDE: "지도에서 위치를 선택하세요.",
-    MSG_TAG_GUIDE: "#태그를 입력하세요.",
-    MSG_MEMO: "메모를 입력하세요.(50자 이내)",
-    MSG_PICTURES_BASIC: "사진은 최대 10장 업로드 가능합니다.",
-    MSG_PICTURES_PRO: "사진은 최대 30장 업로드 가능합니다.",
-    MSG_SORTING_MENU: "정렬 기준을 선택하세요.",
-    MSG_CATEGORY_FILTERING_MENU: "카테고리를 선택하세요.",
-    MSG_SEARCH_HINT: "장소, #태그를 입력하세요.",
-    MSG_SUBSCRIBE: "구독하시겠습니까?",
-    MSG_SUBSCRIBE_COMPLETED: "구독이 완료되었습니다. 감사합니다.",
-    MSG_UNSUBSCRIBE: "구독 해지하시겠습니까?",
-    MSG_UNSUBSCRIBE_COMPLETED: "구독 해지가 완료되었습니다. 감사합니다.",
-    MSG_IMAGE_DELETE: "선택한 이미지를 삭제하시겠습니까?",
-    MSG_COMPLETED: "완료되었습니다.",
+    CREATOR: "by myple.master@gmail.com",
+    MSG_LOGIN_SUCCESS: "로그인에 성공했어요.",
+    MSG_LOGIN_FAILED: "로그인에 실패했어요.",
+    MSG_LOGOUT_CONFIRM: "로그아웃 하시겠어요?",
+    MSG_WITHDRAW_CONFIRM: "서비스 탈퇴하시겠어요?",
+    MSG_DELETE_CONFORM: "삭제 하시겠어요?(복구는 불가능해요)",
+    MSG_PLACE_NAME: "장소 이름을 입력해주세요.(10자 이내)",
+    MSG_CATEGORY: "카테고리를 선택해주세요.",
+    MSG_CREATE_PLACE_CONFIRM: "장소를 등록하시겠어요?",
+    MSG_MODIFY_PLACE_CONFIRM: "장소를 수정하시겠어요?",
+    MSG_CREATE_PLACE_HISTORY_CONFIRM: "방문 내역을 등록하시겠어요?",
+    MSG_MODIFY_PLACE_HISTORY_CONFIRM: "방문 내역을 수정하시겠어요?",
+    MSG_DELETE_PLACE_CONFIRM: "장소를 삭제하시겠어요?",
+    MSG_DELETE_PLACE_HISTORY_CONFIRM: "방문 내역을 삭제하시겠어요?",
+    MSG_LOCATION_GUIDE: "지도에서 위치를 선택해주세요.",
+    MSG_TAG_GUIDE: "#태그를 입력해주세요.",
+    MSG_MEMO: "메모를 입력해주세요.(50자 이내)",
+    MSG_PICTURES_BASIC: "사진은 최대 10장 업로드 가능해요.",
+    MSG_PICTURES_PRO: "사진은 최대 30장 업로드 가능해요.",
+    MSG_SORTING_MENU: "정렬 기준을 선택해주세요.",
+    MSG_CATEGORY_FILTERING_MENU: "카테고리를 선택해주세요.",
+    MSG_SEARCH_HINT: "장소, #태그를 입력해주세요.",
+    MSG_IMAGE_DELETE: "선택한 이미지를 삭제하시겠어요?",
+    MSG_COMPLETED: "완료되었어요.",
     MSG_NETWORK_ERROR: "네트워크 상태를 확인해주세요.",
-    MSG_EMPTY_RESULT: "검색 결과가 없습니다.",
+    MSG_EMPTY_RESULT: "검색 결과가 없어요.",
     MSG_EMPTY_RESULT_DESC: "장소명과 태그를 다시 입력해주세요.",
-    MENU_CHOICE_ITEMS: "항목을 선택하세요",
+    MENU_CHOICE_ITEMS: "항목을 선택해주세요",
     MENU_CATEGORY_CHOICE: "카테고리 선택",
     MENU_SORT_NAME_DESC: "장소 이름 내림차순",
     MENU_SORT_NAME_ASC: "장소 이름 오름차순",
@@ -133,4 +130,50 @@ export const NETWORK_STATUS = {
     OFFLINE: "OFFLINE",
     UNKNOWN: "UNKNOWN",
     WWAN: "WWAN"
+}
+
+export const ALT = {
+    TAB_MAP: "지도 탭",
+    TAB_LIST: "목록 탭",
+    TAB_ADD: "장소 생성 탭",
+    TAB_MY: "내 정보 탭",
+    IMAGE: "장소 이미지",
+    LOGO: "로고 이미지",
+    ARROW_UP: "상단으로 이동 버튼",
+    ARROW_DOWN: "하단으로 이동 버튼",
+    ADD: "추가",
+    EDIT: "수정",
+    DELETE: "삭제"
+
+
+}
+
+export const PUBLIC_IMAGES = {
+    TAB_MAP: "/tab_map.png",
+    TAB_LIST: "/tab_list.png",
+    TAB_ADD: "/tab_add.png",
+    TAB_MY: "/tab_info.png",
+    LOGO: "/app_icon.png",
+    ADD: "/add.png",
+    ARROW_UP: "/arrow_up.png",
+    ARROW_DOWN: "/arrow_down.png",
+    EDIT: "/edit.png",
+    DELETE: "/delete.png"
+}
+
+export const getCategoryLimitText = (limit: number) => {
+    return `최대 ${limit}개 까지 카테고리 추가가 가능해요.`
+}
+
+export const getPlaceHistoryPhotoLimitText = (limit: number) => {
+    return `최대 ${limit}개 까지 사진 추가가 가능해요.`
+}
+
+export const getSearchResult = (tagSearching: boolean, count: number) => {
+    if (tagSearching) {
+        return `총 ${count}개 방문 내역`
+    } else {
+        return `총 ${count}개 장소`
+    }
+
 }
