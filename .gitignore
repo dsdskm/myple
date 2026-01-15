@@ -1,4 +1,4 @@
-myple/.env
-myple/node_modules
+app/.env
+app/node_modules
 .DS_Store
-myple/.env
+app/.granite
