@@ -1,3 +1,6 @@
+export const AD_TEST_INTERSTITIAL_ID = "ait-ad-test-interstitial-id"
+export const AD_TEST_REWARD_ID = "ait-ad-test-rewarded-id"
+
 export const ROUTES = {
     LOGIN: "/",
     MAP: "/map",
@@ -72,7 +75,7 @@ export const TEXT = {
     PRODUCT_CATEGORY_LIMIT: "최대 카테고리 저장 개수",
     PRODUCT_PLACE_LIMIT: "최대 장소 저장 개수",
     PRODUCT_PLACE_HISTORY_PHOTO_LIMIT: "최대 장소 사진 저장 개수",
-    CREATOR: "by myple.master@gmail.com",
+    CREATOR: "by ABA TECH",
     MSG_LOGIN_SUCCESS: "로그인에 성공했어요.",
     MSG_LOGIN_FAILED: "로그인에 실패했어요.",
     MSG_LOGOUT_CONFIRM: "로그아웃 하시겠어요?",
@@ -175,5 +178,4 @@ export const getSearchResult = (tagSearching: boolean, count: number) => {
     } else {
         return `총 ${count}개 장소`
     }
-
 }
