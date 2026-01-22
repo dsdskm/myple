@@ -2,3 +2,6 @@ app/.env
 app/node_modules
 .DS_Store
 app/.granite
+app/build/web/static/js/main.e70f1e41.js.map
+app/build/web/static/js/main.e70f1e41.js.LICENSE.txt
+app/build/web/static/js/main.e70f1e41.js

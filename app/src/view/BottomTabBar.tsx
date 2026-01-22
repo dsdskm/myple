@@ -1,6 +1,6 @@
-import { Link } from 'react-router-dom';
-import styled from 'styled-components';
-import { ALT, PUBLIC_IMAGES, ROUTES, TEXT } from '../common/constants';
+import { Link } from "react-router-dom";
+import styled from "styled-components";
+import { ALT, PUBLIC_IMAGES, ROUTES, TEXT } from "../common/constants";
 
 /* ---------- Styled Components ---------- */
 const TabBarWrapper = styled.div`
@@ -44,59 +44,48 @@ const TabLabel = styled.div`
 `;
 
 const TabImage = styled.img`
-    width:24px;
-    height:24px;
-    object-fit:contain
-`
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+`;
 
 const tabs = [
-    {
-        label: `${TEXT.TAB_MAP}`,
-        icon: <TabImage
-            src={PUBLIC_IMAGES.TAB_MAP}
-            alt={ALT.TAB_MAP}
-        />,
-        path: ROUTES.MAP,
-    },
-    {
-        label: `${TEXT.TAB_LIST}`,
-        icon: <TabImage
-            src={PUBLIC_IMAGES.TAB_LIST}
-            alt={ALT.TAB_LIST}
-        />,
-        path: ROUTES.PLACE_LIST,
-    },
-    {
-        label: `${TEXT.TAB_ADD}`,
-        icon: <TabImage
-            src={PUBLIC_IMAGES.TAB_ADD}
-            alt={ALT.TAB_ADD}
-        />,
-        path: ROUTES.PLACE_EDIT,
-    },
-    {
-        label: `${TEXT.TAB_MY}`,
-        icon: <TabImage
-            src={PUBLIC_IMAGES.TAB_MY}
-            alt={ALT.TAB_MY}
-        />,
-        path: ROUTES.MY,
-    },
+  {
+    label: `${TEXT.TAB_MAP}`,
+    icon: <TabImage src={PUBLIC_IMAGES.TAB_MAP} alt={ALT.TAB_MAP} />,
+    path: ROUTES.MAP,
+  },
+  {
+    label: `${TEXT.TAB_LIST}`,
+    icon: <TabImage src={PUBLIC_IMAGES.TAB_LIST} alt={ALT.TAB_LIST} />,
+    path: ROUTES.PLACE_LIST,
+  },
+  {
+    label: `${TEXT.TAB_ADD}`,
+    icon: <TabImage src={PUBLIC_IMAGES.TAB_ADD} alt={ALT.TAB_ADD} />,
+    path: ROUTES.PLACE_EDIT,
+  },
+  {
+    label: `${TEXT.TAB_MY}`,
+    icon: <TabImage src={PUBLIC_IMAGES.TAB_MY} alt={ALT.TAB_MY} />,
+    path: ROUTES.MY,
+  },
+  {
+    label: `${TEXT.TAB_ITEM}`,
+    icon: <TabImage src={PUBLIC_IMAGES.TAB_ITEM} alt={ALT.TAB_ITEM} />,
+    path: ROUTES.ITEM,
+  },
 ];
 
 export default function BottomTabBar() {
-    return (
-        <TabBarWrapper>
-            {tabs.map((tab) => (
-                <TabButton
-                    key={tab.path}
-                    to={tab.path}
-                    className={window.location.pathname === tab.path ? 'active' : ''}
-                >
-                    <TabIcon>{tab.icon}</TabIcon>
-                    <TabLabel>{tab.label}</TabLabel>
-                </TabButton>
-            ))}
-        </TabBarWrapper>
-    );
+  return (
+    <TabBarWrapper>
+      {tabs.map((tab) => (
+        <TabButton key={tab.path} to={tab.path} className={window.location.pathname === tab.path ? "active" : ""}>
+          <TabIcon>{tab.icon}</TabIcon>
+          <TabLabel>{tab.label}</TabLabel>
+        </TabButton>
+      ))}
+    </TabBarWrapper>
+  );
 }

@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { GoogleMap, Marker } from '@react-google-maps/api';
 import styled from 'styled-components';
 import { BottomSheet, Button, Text, Paragraph, Rating, Toast } from '@toss/tds-mobile';
-import { NETWORK_STATUS, PERMISSIONS, ROUTES, TEXT } from '../common/constants';
+import { NETWORK_STATUS, PERMISSIONS, PUBLIC_IMAGES, ROUTES, TEXT } from '../common/constants';
 import BottomTabBar from './BottomTabBar';
 import { getCategory, getPlaces } from '../service/api';
 import { useApp } from '../context/AppContext';
@@ -263,7 +263,7 @@ export default function MapPage() {
                 key={"current"}
                 label={{ text: TEXT.CURRENT_LOCATION, color: '#000', fontSize: "20px", fontWeight: "bold" }}
                 title={TEXT.CURRENT_LOCATION}
-                icon={{ url: "current_location.png", scaledSize: new google.maps.Size(40, 40) }}
+                icon={{ url: PUBLIC_IMAGES.CURRENT_LOCATION, scaledSize: new google.maps.Size(40, 40) }}
                 position={{
                     lat: currentLocation[0], lng: currentLocation[1]
                 }}
