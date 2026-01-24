@@ -9,11 +9,6 @@ ifconfig | grep inet
 .env REACT_APP_BACKEND_URL 체크
 granite.config.ts의 web host 주소 확인 필요
 
-# TDS
-https://tossmini-docs.toss.im/tds-mobile/start/
-
-# UX 가이드
-https://developers-apps-in-toss.toss.im/design/overview.html
-
-# 출시 가이드
-https://developers-apps-in-toss.toss.im/checklist/app-nongame.html
+# 빌드
+npm run build
+myple.ait 업로드

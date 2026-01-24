@@ -53,7 +53,7 @@ export const TEXT = {
   LOGOUT: "로그아웃",
   WITHDRAW: "탈퇴",
   PURCHASE: "구매하기",
-  DONATE: "기부하기",
+  DONATE: "후원하기",
   SORT: "정렬",
   CURRENT_LOCATION: "현재위치",
   USE_CURRENT_LOCATION: "현재위치 사용",
@@ -80,6 +80,10 @@ export const TEXT = {
   PRODUCT_PLACE_LIMIT: "나의 장소 아이템",
   PRODUCT_PLACE_HISTORY_PHOTO_LIMIT: "최대 장소 사진 저장 개수",
   CREATOR: "by ABA TECH",
+  ITEM_PURCHASE: "아이템 구매",
+  ITEM_PURCHASE_HISTORY: "결제 내역",
+  PURCHASED: "구매완료",
+  REFUNDED: "환불완료",
   MSG_LOGIN_SUCCESS: "로그인에 성공했어요.",
   MSG_LOGIN_FAILED: "로그인에 실패했어요.",
   MSG_LOGOUT_CONFIRM: "로그아웃 하시겠어요?",
@@ -104,8 +108,11 @@ export const TEXT = {
   MSG_IMAGE_DELETE: "선택한 이미지를 삭제하시겠어요?",
   MSG_COMPLETED: "완료되었어요.",
   MSG_NETWORK_ERROR: "네트워크 상태를 확인해주세요.",
+  MSG_EMPTY_LIST: "등록된 장소가 없어요.",
+  MSG_EMPTY_LIST_DESC: "장소를 등록해주세요.",
   MSG_EMPTY_RESULT: "검색 결과가 없어요.",
   MSG_EMPTY_RESULT_DESC: "장소명과 태그를 다시 입력해주세요.",
+  MSG_EMPTY_PURCHASED: "결제 내역이 없어요.",
   MENU_CHOICE_ITEMS: "항목을 선택해주세요",
   MENU_CATEGORY_CHOICE: "카테고리 선택",
   MENU_SORT_NAME_DESC: "장소 이름 내림차순",
@@ -189,3 +196,15 @@ export const SKU_DONATION = [
   "ait.0000013409.59c084e8.809c49724d.8516598797",
   "ait.0000013409.66954027.f5c53c189b.8516763202",
 ];
+
+export const SORTED_SKU = [
+  "ait.0000013409.ac3cae34.a6eaf02da1.8516084075", // 카테고리 아이템 1개
+  "ait.0000013409.613f80da.86d4babf66.9097452633", // 카테고리 아이템 10개
+  "ait.0000013409.b59f83c6.c26c873758.8516193431", // 장소 아이템 1개
+  "ait.0000013409.d68d4dac.03db2f86f7.9097420542", // 장소 아이템 10개
+  "ait.0000013409.69d659a9.88ba59297e.8516451702", // 감사한 후원 11000
+  "ait.0000013409.59c084e8.809c49724d.8516598797", // 많이 감사한 후원 110000
+  "ait.0000013409.66954027.f5c53c189b.8516763202", // 사랑합니다.
+];
+
+export const AD_ID = "ait.v2.live.372bc4cbb7dd44e6"; // 전면 광고

@@ -30,7 +30,7 @@ import { Category } from "../types/category";
 import Loading from "./common/Loading";
 import { Product } from "../types/product";
 import { ToastInfo } from "../types/toast";
-import { getNetworkStatus, IAP, IapProductListItem } from "@apps-in-toss/web-framework";
+import { getNetworkStatus } from "@apps-in-toss/web-framework";
 
 const Contents = styled.div`
   display: flex;
@@ -70,7 +70,6 @@ const MyPage = () => {
     message: "",
   });
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [productItemList, setProductItemList] = useState<IapProductListItem[]>([]);
 
   useEffect(() => {
     const loadCategories = async () => {
@@ -102,16 +101,6 @@ const MyPage = () => {
       load();
     }
   }, [account]);
-
-  useEffect(() => {
-    const loadProductItemList = async () => {
-      const { products } = await IAP.getProductItemList();
-      const list: IapProductListItem[] = products;
-      setProductItemList(list);
-    };
-
-    loadProductItemList();
-  }, []);
 
   const onWithdrawClick = async () => {
     try {

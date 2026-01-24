@@ -8,13 +8,14 @@ const TabBarWrapper = styled.div`
   bottom: 0;
   left: 0;
   right: 0;
-  height: 60px;
+  height: 70px;
   background-color: #fff;
   border-top: 1px solid #e0e0e0;
   display: flex;
   justify-content: space-around;
   align-items: center;
   z-index: 1000;
+  margin-bottom:10px;
 `;
 
 const TabButton = styled(Link)`
