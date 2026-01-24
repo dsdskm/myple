@@ -30,6 +30,7 @@ WORKDIR /app
 
 # package.json과 package-lock.json 복사
 COPY package*.json ./
+COPY /key ./key
 
 # 프로덕션 의존성만 설치하여 이미지 크기를 줄입니다.
 RUN npm install --only=production
