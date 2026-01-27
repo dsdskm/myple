@@ -3,13 +3,17 @@ import { defineConfig } from '@apps-in-toss/web-framework/config';
 export default defineConfig({
   appName: 'myple',
   brand: {
-    displayName: 'myple', // 화면에 노출될 앱의 한글 이름으로 바꿔주세요.
+    displayName: '마이플', // 화면에 노출될 앱의 한글 이름으로 바꿔주세요.
     primaryColor: '#3182F6', // 화면에 노출될 앱의 기본 색상으로 바꿔주세요.
-    icon: ".publc//app_icon.png",
+    icon: "https://firebasestorage.googleapis.com/v0/b/myple-15ea9.firebasestorage.app/o/app_icon.png?alt=media&token=f954135d-5050-4199-ad27-4389899e2e18",
     bridgeColorMode: 'basic',
+
+  },
+  navigationBar: {
+    withBackButton: true,
   },
   web: {
-    host: '192.168.219.110', // 내 PC의 IP,
+    host: '192.168.0.12', // 내 PC의 IP,
     port: 3000,
     commands: {
       dev: 'react-scripts start',

@@ -113,6 +113,8 @@ export const TEXT = {
   MSG_EMPTY_RESULT: "검색 결과가 없어요.",
   MSG_EMPTY_RESULT_DESC: "장소명과 태그를 다시 입력해주세요.",
   MSG_EMPTY_PURCHASED: "결제 내역이 없어요.",
+  MSG_BACK_KEY_EVENT: "앱을 종료하시겠어요?",
+  MSG_ERROR: "에러가 발생했어요.",
   MENU_CHOICE_ITEMS: "항목을 선택해주세요",
   MENU_CATEGORY_CHOICE: "카테고리 선택",
   MENU_SORT_NAME_DESC: "장소 이름 내림차순",

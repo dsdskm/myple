@@ -1,7 +1,7 @@
-import { Button, Paragraph, Toast } from "@toss/tds-mobile";
+import { Button, ConfirmDialog, Paragraph, Toast } from "@toss/tds-mobile";
 import styled from "styled-components";
 import { AD_ID, ALT, PUBLIC_IMAGES, ROUTES, TEXT } from "../common/constants";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Loading from "./common/Loading";
 import { useNavigate } from "react-router-dom";
 import { appLogin, GoogleAdMob } from "@apps-in-toss/web-framework";
@@ -9,6 +9,7 @@ import { requestUserInfo } from "../service/api";
 import { Account, ACTION_TYPE_SET_ACCOUNT, initialAccountState } from "../types/account";
 import { useApp } from "../context/AppContext";
 import { ToastInfo } from "../types/toast";
+import { closeView, graniteEvent } from '@apps-in-toss/web-framework'
 
 const Wrapper = styled.div`
   height: 100vh;
@@ -37,8 +38,22 @@ const LoginPage = () => {
     show: false,
     message: "",
   });
-
+  const [exitDialogOpen, setExitDialogOpen] = useState<boolean>(false)
   const [isLoading, setIsLoading] = useState<boolean>(false);
+
+  useEffect(() => {
+    const unsubscription = graniteEvent.addEventListener('backEvent', {
+      onEvent: () => {
+        setExitDialogOpen(true)
+      },
+      onError: (error) => {
+        alert(TEXT.MSG_ERROR);
+        setExitDialogOpen(false)
+      },
+    });
+
+    return unsubscription;
+  }, []);
 
   const showAd = () => {
     const options = {
@@ -100,7 +115,9 @@ const LoginPage = () => {
     setIsLoading(true);
     try {
       const { authorizationCode, referrer } = await appLogin();
+      console.log(`authorizationCode ${authorizationCode}, referrer ${referrer}`)
       const userInfo: Account | null = await requestUserInfo(authorizationCode, referrer);
+      console.log(`userInfo ${userInfo}`)
       if (userInfo) {
         setAccount({ type: ACTION_TYPE_SET_ACCOUNT, payload: userInfo });
         if (GoogleAdMob.loadAppsInTossAdMob.isSupported()) {
@@ -130,6 +147,27 @@ const LoginPage = () => {
     }
   };
 
+  const exitDialog = () => {
+    const onExitClick = () => {
+      closeView();
+      setExitDialogOpen(false);
+    }
+    return (
+      <ConfirmDialog
+        open={exitDialogOpen}
+        title={<ConfirmDialog.Title>{TEXT.MSG_BACK_KEY_EVENT}</ConfirmDialog.Title>}
+        cancelButton={
+          <ConfirmDialog.CancelButton onClick={() => setExitDialogOpen(false)}>
+            {TEXT.NO}
+          </ConfirmDialog.CancelButton>
+        }
+        confirmButton={<ConfirmDialog.ConfirmButton onClick={onExitClick}>{TEXT.YES}</ConfirmDialog.ConfirmButton>}
+        onClose={() => setExitDialogOpen(false)}
+      />
+    );
+  };
+
+
   if (isLoading) {
     return <Loading />;
   }
@@ -150,6 +188,7 @@ const LoginPage = () => {
         }}
       />
       <Creator>{TEXT.CREATOR}</Creator>
+      {exitDialog()}
     </Wrapper>
   );
 };

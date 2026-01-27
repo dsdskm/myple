@@ -49,7 +49,7 @@ const modalContentStyle: any = {
 const MyPage = () => {
   const navigate = useNavigate();
   const { account, setAccount } = useApp();
-  const [isWithdrawDialogOpen, setIsWithdrawDialogOpen] = useState<boolean>(false);
+  const [withdrawDialogOpen, setWithdrawDialogOpen] = useState<boolean>(false);
   const [categoryData, setCategoryData] = useState<Category>({
     id: "",
     list: [],
@@ -122,22 +122,22 @@ const MyPage = () => {
     } catch (e) {
       console.log(e);
     } finally {
-      setIsWithdrawDialogOpen(false);
+      setWithdrawDialogOpen(false);
     }
   };
 
   const logoutDialog = () => {
     return (
       <ConfirmDialog
-        open={isWithdrawDialogOpen}
+        open={withdrawDialogOpen}
         title={<ConfirmDialog.Title>{TEXT.MSG_WITHDRAW_CONFIRM}</ConfirmDialog.Title>}
         cancelButton={
-          <ConfirmDialog.CancelButton onClick={() => setIsWithdrawDialogOpen(false)}>
+          <ConfirmDialog.CancelButton onClick={() => setWithdrawDialogOpen(false)}>
             {TEXT.NO}
           </ConfirmDialog.CancelButton>
         }
         confirmButton={<ConfirmDialog.ConfirmButton onClick={onWithdrawClick}>{TEXT.YES}</ConfirmDialog.ConfirmButton>}
-        onClose={() => setIsWithdrawDialogOpen(false)}
+        onClose={() => setWithdrawDialogOpen(false)}
       />
     );
   };
@@ -402,7 +402,7 @@ const MyPage = () => {
           style={{ marginLeft: 10, marginRight: 10 }}
           color="danger"
           size="medium"
-          onClick={() => setIsWithdrawDialogOpen(true)}
+          onClick={() => setWithdrawDialogOpen(true)}
         >
           {TEXT.WITHDRAW}
         </Button>
