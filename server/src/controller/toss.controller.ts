@@ -11,6 +11,7 @@ export const getUserInfo = async (req: Request, res: Response) => {
     try {
         const { authorizationCode, referrer } = req.params;
         const tossToken = await tossService.requestAccessToken(authorizationCode, referrer)
+        console.log(`getUserInfo authorizationCode ${authorizationCode} referrer ${referrer} tossToken ${JSON.stringify(tossToken)}`)
         if (tossToken) {
             const user = await tossService.requestUserInfo(tossToken);
             const accountData: Account | null = user ? {
@@ -32,7 +33,6 @@ export const getUserInfo = async (req: Request, res: Response) => {
                 updated: ""
             } : null
             if (accountData) {
-
                 const a = await accountService.findById(accountData.id)
                 if (a) {
                     accountData.type = a.type
@@ -62,6 +62,7 @@ export const getUserInfo = async (req: Request, res: Response) => {
 
 
     } catch (error) {
+        console.log(`error ${JSON.stringify(error)}`)
         res.status(500);
     }
 };
