@@ -120,14 +120,19 @@ const LoginPage = () => {
       console.log(`userInfo ${userInfo}`)
       if (userInfo) {
         setAccount({ type: ACTION_TYPE_SET_ACCOUNT, payload: userInfo });
-        if (GoogleAdMob.loadAppsInTossAdMob.isSupported()) {
-          showAd();
-        } else {
-          navigate(ROUTES.MAP, { replace: true });
-          toastInfo.message = TEXT.MSG_LOGIN_SUCCESS;
-          toastInfo.show = true;
-          setToastInfo({ ...toastInfo });
-        }
+        navigate(ROUTES.MAP, { replace: true });
+        toastInfo.message = TEXT.MSG_LOGIN_SUCCESS;
+        toastInfo.show = true;
+        setToastInfo({ ...toastInfo });
+        // 이슈
+        // if (GoogleAdMob.loadAppsInTossAdMob.isSupported()) {
+        //   showAd();
+        // } else {
+        //   navigate(ROUTES.MAP, { replace: true });
+        //   toastInfo.message = TEXT.MSG_LOGIN_SUCCESS;
+        //   toastInfo.show = true;
+        //   setToastInfo({ ...toastInfo });
+        // }
       } else {
         setAccount({
           type: ACTION_TYPE_SET_ACCOUNT,
