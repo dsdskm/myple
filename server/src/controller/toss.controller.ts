@@ -14,6 +14,7 @@ export const getUserInfo = async (req: Request, res: Response) => {
         console.log(`getUserInfo authorizationCode ${authorizationCode} referrer ${referrer} tossToken ${JSON.stringify(tossToken)}`)
         if (tossToken) {
             const user = await tossService.requestUserInfo(tossToken);
+            console.log(`getUserInfo user ${JSON.stringify(user)}`)
             const accountData: Account | null = user ? {
                 id: decryptUserData(user.email),
                 type: 'BASIC',
@@ -32,6 +33,7 @@ export const getUserInfo = async (req: Request, res: Response) => {
                 email: decryptUserData(user.email),
                 updated: ""
             } : null
+            console.log(`getUserInfo accountData ${JSON.stringify(accountData)}`)
             if (accountData) {
                 const a = await accountService.findById(accountData.id)
                 if (a) {
@@ -62,7 +64,7 @@ export const getUserInfo = async (req: Request, res: Response) => {
 
 
     } catch (error) {
-        console.log(`error ${JSON.stringify(error)}`)
+        console.log(`error`, error)
         res.status(500);
     }
 };
