@@ -205,7 +205,6 @@ export const deletePlaceHistory = async (placeId: string, id: string): Promise<v
 
 export const requestUserInfo = async (authorizationCode: string, referrer: string): Promise<Account | null> => {
   try {
-    console.log(`serverApiClient process.env.REACT_APP_SERVER_KEY ${process.env.REACT_APP_SERVER_KEY} process.env.REACT_APP_BACKEND_URL ${process.env.REACT_APP_BACKEND_URL}`)
     const response = await serverApiClient.get(`/toss/user/${authorizationCode}/${referrer}`);
     return response.data;
   } catch (e) {
@@ -293,5 +292,13 @@ export const updateProduct = async (
   } catch (error) {
     console.log(error);
     return null;
+  }
+};
+
+export const sendLog = async (tag: string, message: string): Promise<void> => {
+  try {
+    await serverApiClient.post("/log", { tag, message });
+  } catch (error) {
+    console.log(error);
   }
 };

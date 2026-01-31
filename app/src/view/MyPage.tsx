@@ -31,6 +31,7 @@ import Loading from "./common/Loading";
 import { Product } from "../types/product";
 import { ToastInfo } from "../types/toast";
 import { getNetworkStatus } from "@apps-in-toss/web-framework";
+import { saveId } from "../common/utils";
 
 const Contents = styled.div`
   display: flex;
@@ -49,6 +50,7 @@ const modalContentStyle: any = {
 const MyPage = () => {
   const navigate = useNavigate();
   const { account, setAccount } = useApp();
+  console.log(`account`,account)
   const [withdrawDialogOpen, setWithdrawDialogOpen] = useState<boolean>(false);
   const [categoryData, setCategoryData] = useState<Category>({
     id: "",
@@ -118,6 +120,7 @@ const MyPage = () => {
         type: ACTION_TYPE_SET_ACCOUNT,
         payload: initialAccountState,
       });
+      saveId("")
       navigate(ROUTES.LOGIN, { replace: true });
     } catch (e) {
       console.log(e);

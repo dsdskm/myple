@@ -13,6 +13,7 @@ const Contents = styled.div`
   display: flex;
   flex-direction: column;
   gap: 10px;
+  margin-bottom: 150px;
 `;
 
 const ItemRow = styled.div`
@@ -225,7 +226,6 @@ const ItemPage = () => {
   return (
     <div>
       <BottomTabBar />
-
       <Contents>
         <Post.H1>{TEXT.ITEM_PURCHASE}</Post.H1>
         {productView()}

@@ -5,23 +5,15 @@ import PlaceEditPage from "./view/PlaceEditPage";
 import { ROUTES } from "./common/constants";
 import PlaceListPage from "./view/PlaceListPage";
 import MyPage from "./view/MyPage";
-import { useApp } from "./context/AppContext";
-import { useEffect } from "react";
 import PlaceHistoryEditPage from "./view/PlaceHistoryEditPage";
 import ItemPage from "./view/ItemPage";
+import IntroPage from "./view/IntroPage";
 
 function App() {
-  const { account } = useApp()
-  const navigate = useNavigate()
-
-  useEffect(() => {
-    if (!account.id) {
-      navigate(ROUTES.LOGIN, { replace: true })
-    }
-  }, [account, navigate])
   return (
     <div className="App">
       <Routes>
+        <Route path={ROUTES.INTRO} element={<IntroPage />} />
         <Route path={ROUTES.LOGIN} element={<LoginPage />} />
         <Route path={ROUTES.MAP} element={<MapPage />} />
         <Route path={ROUTES.PLACE_LIST} element={<PlaceListPage />} />

@@ -5,11 +5,12 @@ import { useEffect, useState } from "react";
 import Loading from "./common/Loading";
 import { useNavigate } from "react-router-dom";
 import { appLogin, GoogleAdMob } from "@apps-in-toss/web-framework";
-import { requestUserInfo } from "../service/api";
+import { requestUserInfo, sendLog } from "../service/api";
 import { Account, ACTION_TYPE_SET_ACCOUNT, initialAccountState } from "../types/account";
 import { useApp } from "../context/AppContext";
 import { ToastInfo } from "../types/toast";
-import { closeView, graniteEvent } from '@apps-in-toss/web-framework'
+import { closeView, graniteEvent } from "@apps-in-toss/web-framework";
+import { saveId } from "../common/utils";
 
 const Wrapper = styled.div`
   height: 100vh;
@@ -30,7 +31,7 @@ const Creator = styled.div`
   position: absolute;
   bottom: 0;
 `;
-
+const TAG = "LoginPage";
 const LoginPage = () => {
   const navigate = useNavigate();
   const { setAccount } = useApp();
@@ -38,17 +39,17 @@ const LoginPage = () => {
     show: false,
     message: "",
   });
-  const [exitDialogOpen, setExitDialogOpen] = useState<boolean>(false)
+  const [exitDialogOpen, setExitDialogOpen] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
   useEffect(() => {
-    const unsubscription = graniteEvent.addEventListener('backEvent', {
+    const unsubscription = graniteEvent.addEventListener("backEvent", {
       onEvent: () => {
-        setExitDialogOpen(true)
+        setExitDialogOpen(true);
       },
       onError: (error) => {
         alert(TEXT.MSG_ERROR);
-        setExitDialogOpen(false)
+        setExitDialogOpen(false);
       },
     });
 
@@ -63,6 +64,7 @@ const LoginPage = () => {
       options: options,
       onEvent: (event) => {
         console.log(`ad load event`, event);
+        sendLog(TAG, `ad load event ${JSON.stringify(event)}`);
         switch (event.type) {
           case "loaded":
             console.log(`ad load success`);
@@ -98,6 +100,8 @@ const LoginPage = () => {
               },
               onError: (error) => {
                 console.log(`ad show error`, error);
+                sendLog(TAG, `ad show error ${JSON.stringify(error)}`);
+                navigate(ROUTES.MAP, { replace: true });
               },
             });
             break;
@@ -115,24 +119,22 @@ const LoginPage = () => {
     setIsLoading(true);
     try {
       const { authorizationCode, referrer } = await appLogin();
-      console.log(`authorizationCode ${authorizationCode}, referrer ${referrer}`)
+      console.log(`authorizationCode ${authorizationCode}, referrer ${referrer}`);
+      sendLog(TAG, `authorizationCode ${authorizationCode}, referrer ${referrer}`);
       const userInfo: Account | null = await requestUserInfo(authorizationCode, referrer);
-      console.log(`userInfo ${userInfo}`)
+      console.log(`userInfo`, userInfo);
+      sendLog(TAG, `userInfo ${JSON.stringify(userInfo)}`);
       if (userInfo) {
+        saveId(userInfo.id);
         setAccount({ type: ACTION_TYPE_SET_ACCOUNT, payload: userInfo });
-        navigate(ROUTES.MAP, { replace: true });
-        toastInfo.message = TEXT.MSG_LOGIN_SUCCESS;
-        toastInfo.show = true;
-        setToastInfo({ ...toastInfo });
-        // 이슈
-        // if (GoogleAdMob.loadAppsInTossAdMob.isSupported()) {
-        //   showAd();
-        // } else {
-        //   navigate(ROUTES.MAP, { replace: true });
-        //   toastInfo.message = TEXT.MSG_LOGIN_SUCCESS;
-        //   toastInfo.show = true;
-        //   setToastInfo({ ...toastInfo });
-        // }
+        if (GoogleAdMob.loadAppsInTossAdMob.isSupported()) {
+          showAd();
+        } else {
+          navigate(ROUTES.MAP, { replace: true });
+          toastInfo.message = TEXT.MSG_LOGIN_SUCCESS;
+          toastInfo.show = true;
+          setToastInfo({ ...toastInfo });
+        }
       } else {
         setAccount({
           type: ACTION_TYPE_SET_ACCOUNT,
@@ -156,22 +158,19 @@ const LoginPage = () => {
     const onExitClick = () => {
       closeView();
       setExitDialogOpen(false);
-    }
+    };
     return (
       <ConfirmDialog
         open={exitDialogOpen}
         title={<ConfirmDialog.Title>{TEXT.MSG_BACK_KEY_EVENT}</ConfirmDialog.Title>}
         cancelButton={
-          <ConfirmDialog.CancelButton onClick={() => setExitDialogOpen(false)}>
-            {TEXT.NO}
-          </ConfirmDialog.CancelButton>
+          <ConfirmDialog.CancelButton onClick={() => setExitDialogOpen(false)}>{TEXT.NO}</ConfirmDialog.CancelButton>
         }
         confirmButton={<ConfirmDialog.ConfirmButton onClick={onExitClick}>{TEXT.YES}</ConfirmDialog.ConfirmButton>}
         onClose={() => setExitDialogOpen(false)}
       />
     );
   };
-
 
   if (isLoading) {
     return <Loading />;

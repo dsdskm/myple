@@ -2,7 +2,8 @@ export const AD_TEST_INTERSTITIAL_ID = "ait-ad-test-interstitial-id";
 export const AD_TEST_REWARD_ID = "ait-ad-test-rewarded-id";
 
 export const ROUTES = {
-  LOGIN: "/",
+  INTRO: "/",
+  LOGIN: "/login",
   MAP: "/map",
   PLACE_LIST: "/place/list",
   PLACE_EDIT: "/place/edit",
@@ -175,6 +176,19 @@ export const PUBLIC_IMAGES = {
   EDIT: "https://static.toss.im/icons/svg/icon-pencil-blue.svg",
   DELETE: "https://static.toss.im/icons/svg/icon-bin.svg",
   CURRENT_LOCATION: "https://static.toss.im/icons/svg/icon-pin-location.svg",
+  SHOT_MAP: "shot_map.png",
+  SHOT_MAP_DETAIL: "shot_map_detail.png",
+  SHOT_PLACE: "shot_place.png",
+  SHOT_LIST: "shot_list.png",
+  SHOT_ITEMS: "shot_items.png",
+  SHOT_HISTORY: "shot_history.png",
+  SHOT_CATEGORY: "shot_category.png",
+};
+
+export const PUBLIC_VIDEOS = {
+  // INTRO: "/bg_intro.mp4",
+  INTRO:
+    "https://firebasestorage.googleapis.com/v0/b/myple-15ea9.firebasestorage.app/o/bg_intro.mp4?alt=media&token=a7846b66-69d7-4ab2-a299-d7d1f1fac428",
 };
 
 export const getCategoryLimitText = (limit: number) => {
