@@ -65,7 +65,7 @@ export const getUserInfo = async (req: Request, res: Response) => {
 
     } catch (error) {
         console.log(`error`, error)
-        res.status(500);
+        res.status(500).json(null);
     }
 };
 
