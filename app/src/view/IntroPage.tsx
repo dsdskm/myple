@@ -34,6 +34,10 @@ const AbsoluteCenter = styled.div`
   object-fit: contain;
 `;
 
+const AdText = styled.div`
+  width: 100%;
+`;
+
 const StartText = styled.div`
   align-self: center;
   text-align: center;
@@ -55,24 +59,6 @@ const TAG = "IntroPage";
 const IntroPage = () => {
   const navigate = useNavigate();
   const { setAccount } = useApp();
-  useEffect(() => {
-    const loadData = async () => {
-      const id = loadId();
-      if (id) {
-        const account = await getUser(id);
-        if (account) {
-          setAccount({ type: ACTION_TYPE_SET_ACCOUNT, payload: account });
-          if (GoogleAdMob.loadAppsInTossAdMob.isSupported()) {
-            showAd();
-          } else {
-            navigate(ROUTES.MAP, { replace: true });
-          }
-        }
-      }
-    };
-
-    loadData();
-  }, []);
 
   const showAd = () => {
     const options = {
@@ -102,10 +88,10 @@ const IntroPage = () => {
                   case "userEarnedReward": // 보상형 광고만 사용 가능
                     break;
                   case "dismissed":
-                    navigate(ROUTES.MAP, { replace: true });
+                    goNext();
                     break;
                   case "failedToShow":
-                    navigate(ROUTES.MAP, { replace: true });
+                    goNext();
                     break;
                   default:
                     break;
@@ -114,7 +100,7 @@ const IntroPage = () => {
               onError: (error) => {
                 console.log(`ad show error`, error);
                 sendLog(TAG, `ad show error ${JSON.stringify(error)}`);
-                navigate(ROUTES.MAP, { replace: true });
+                goNext();
               },
             });
             break;
@@ -128,14 +114,31 @@ const IntroPage = () => {
     });
   };
 
-  const onStartClick = () => {
+  const goNext = async () => {
+    const id = loadId();
+    if (id) {
+      const account = await getUser(id);
+      if (account) {
+        setAccount({ type: ACTION_TYPE_SET_ACCOUNT, payload: account });
+        navigate(ROUTES.MAP, { replace: true });
+        return;
+      }
+    }
     navigate(ROUTES.LOGIN, { replace: true });
+  };
+
+  const onStartClick = async () => {
+    if (GoogleAdMob.loadAppsInTossAdMob.isSupported()) {
+      showAd();
+    } else {
+      goNext();
+    }
   };
 
   return (
     <>
       <Root>
-        <Asset.Video
+        {/* <Asset.Video
           as="video"
           src={PUBLIC_VIDEOS.INTRO}
           autoPlay={true}
@@ -150,12 +153,13 @@ const IntroPage = () => {
             objectFit: "cover",
             zIndex: -1, // 배경처럼 뒤로
           }}
-        />
+        /> */}
 
         <VideoWrapper>
           <AbsoluteCenter>
             <SlideImages />
             <StartText onClick={onStartClick}>START</StartText>
+            <AdText>*진입 후 광고가 표시됩니다.</AdText>
           </AbsoluteCenter>
 
           <Post.H1>마이플 - 나만의 장소</Post.H1>

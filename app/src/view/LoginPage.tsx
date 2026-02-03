@@ -1,10 +1,10 @@
 import { Button, ConfirmDialog, Paragraph, Toast } from "@toss/tds-mobile";
 import styled from "styled-components";
-import { AD_ID, ALT, PUBLIC_IMAGES, ROUTES, TEXT } from "../common/constants";
+import { ALT, PUBLIC_IMAGES, ROUTES, TEXT } from "../common/constants";
 import { useEffect, useState } from "react";
 import Loading from "./common/Loading";
 import { useNavigate } from "react-router-dom";
-import { appLogin, GoogleAdMob } from "@apps-in-toss/web-framework";
+import { appLogin } from "@apps-in-toss/web-framework";
 import { requestUserInfo, sendLog } from "../service/api";
 import { Account, ACTION_TYPE_SET_ACCOUNT, initialAccountState } from "../types/account";
 import { useApp } from "../context/AppContext";
@@ -56,85 +56,17 @@ const LoginPage = () => {
     return unsubscription;
   }, []);
 
-  const showAd = () => {
-    const options = {
-      adGroupId: AD_ID,
-    };
-    GoogleAdMob.loadAppsInTossAdMob({
-      options: options,
-      onEvent: (event) => {
-        console.log(`ad load event`, event);
-        sendLog(TAG, `ad load event ${JSON.stringify(event)}`);
-        switch (event.type) {
-          case "loaded":
-            console.log(`ad load success`);
-            GoogleAdMob.showAppsInTossAdMob({
-              options: options,
-              onEvent: (event) => {
-                console.log(`ad show event`, event);
-                switch (event.type) {
-                  case "show":
-                    break;
-                  case "requested":
-                    break;
-                  case "impression":
-                    break;
-                  case "clicked":
-                    break;
-                  case "userEarnedReward": // 보상형 광고만 사용 가능
-                    break;
-                  case "dismissed":
-                    navigate(ROUTES.MAP, { replace: true });
-                    break;
-                  case "failedToShow":
-                    navigate(ROUTES.MAP, { replace: true });
-                    break;
-                  default:
-                    break;
-                }
-
-                toastInfo.message = TEXT.MSG_LOGIN_SUCCESS;
-                toastInfo.show = true;
-                setToastInfo({ ...toastInfo });
-                setIsLoading(false);
-              },
-              onError: (error) => {
-                console.log(`ad show error`, error);
-                sendLog(TAG, `ad show error ${JSON.stringify(error)}`);
-                navigate(ROUTES.MAP, { replace: true });
-              },
-            });
-            break;
-          default:
-            break;
-        }
-      },
-      onError: (error) => {
-        console.log(`ad load error`, error);
-      },
-    });
-  };
-
   const onLoginClick = async () => {
     setIsLoading(true);
     try {
       const { authorizationCode, referrer } = await appLogin();
-      console.log(`authorizationCode ${authorizationCode}, referrer ${referrer}`);
       sendLog(TAG, `authorizationCode ${authorizationCode}, referrer ${referrer}`);
       const userInfo: Account | null = await requestUserInfo(authorizationCode, referrer);
-      console.log(`userInfo`, userInfo);
       sendLog(TAG, `userInfo ${JSON.stringify(userInfo)}`);
       if (userInfo) {
         saveId(userInfo.id);
         setAccount({ type: ACTION_TYPE_SET_ACCOUNT, payload: userInfo });
-        if (GoogleAdMob.loadAppsInTossAdMob.isSupported()) {
-          showAd();
-        } else {
-          navigate(ROUTES.MAP, { replace: true });
-          toastInfo.message = TEXT.MSG_LOGIN_SUCCESS;
-          toastInfo.show = true;
-          setToastInfo({ ...toastInfo });
-        }
+        navigate(ROUTES.MAP, { replace: true });
       } else {
         setAccount({
           type: ACTION_TYPE_SET_ACCOUNT,

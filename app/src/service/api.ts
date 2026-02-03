@@ -32,6 +32,7 @@ export const get = async <T>(url: string, token?: string): Promise<T> => {
   try {
     const response = await serverApiClient.get<T>(url, {
       headers: getHeaders(token),
+      timeout: 10000,
     });
     return response.data;
   } catch (err) {
@@ -52,6 +53,7 @@ export const post = async <TResponse, TBody = unknown>(
   try {
     const response = await serverApiClient.post<TResponse>(url, body, {
       headers: getHeaders(token),
+      timeout: 10000,
     });
     return response.data;
   } catch (err) {
