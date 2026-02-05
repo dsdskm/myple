@@ -77,6 +77,7 @@ export const TEXT = {
   SUBSCRIPTION_LIMITATIONS: "제약 사항",
   CATEGORY_ALL: "카테고리 전체",
   HISTORY_ADD: "방문 내역 추가",
+  INVISIBLE:"미공개",
   PRODUCT_CATEGORY_LIMIT: "나의 카테고리 아이템",
   PRODUCT_PLACE_LIMIT: "나의 장소 아이템",
   PRODUCT_PLACE_HISTORY_PHOTO_LIMIT: "최대 장소 사진 저장 개수",

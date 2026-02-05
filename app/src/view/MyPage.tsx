@@ -50,7 +50,7 @@ const modalContentStyle: any = {
 const MyPage = () => {
   const navigate = useNavigate();
   const { account, setAccount } = useApp();
-  console.log(`account`,account)
+  console.log(`account`, account)
   const [withdrawDialogOpen, setWithdrawDialogOpen] = useState<boolean>(false);
   const [categoryData, setCategoryData] = useState<Category>({
     id: "",
@@ -362,8 +362,8 @@ const MyPage = () => {
               left={TEXT.GENDER}
               right={account.gender === "MALE" ? TEXT.MALE : TEXT.FEMALE}
             />
-            <TableRow align="space-between" left={TEXT.PHONE} right={account.phone} />
-            <TableRow align="space-between" left={TEXT.BIRTHDAY} right={account.birthday} />
+            <TableRow align="space-between" left={TEXT.PHONE} right={account.phone ? account.phone : TEXT.INVISIBLE} />
+            <TableRow align="space-between" left={TEXT.BIRTHDAY} right={account.birthday ? account.birthday : TEXT.INVISIBLE} />
             <TableRow
               align="space-between"
               left={TEXT.AGREED_TERMS}

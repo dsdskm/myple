@@ -26,6 +26,22 @@ const LogoImage = styled.img`
   height: 300px;
 `;
 
+
+const CreatorTextFixed = styled.div`
+  position: fixed;
+  left: 50%;
+  bottom: max(16px, env(safe-area-inset-bottom));
+  transform: translateX(-50%);
+  width: 100%;
+  max-width: 960px;
+  margin-bottom:20px;
+  text-align: center;
+  color: rgba(0, 0, 0, 0.7);
+  font-size: 14px;
+  z-index: 10;
+  pointer-events: none;
+`;
+
 const Creator = styled.div`
   margin-bottom: 20px;
   position: absolute;
@@ -123,7 +139,7 @@ const LoginPage = () => {
           setToastInfo({ ...toastInfo });
         }}
       />
-      <Creator>{TEXT.CREATOR}</Creator>
+      <CreatorTextFixed>{TEXT.CREATOR}</CreatorTextFixed>
       {exitDialog()}
     </Wrapper>
   );

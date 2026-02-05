@@ -4,14 +4,14 @@ import { useNavigate } from "react-router-dom";
 import styled, { keyframes } from "styled-components";
 import SlideImages from "./common/SlideImages";
 import { useApp } from "../context/AppContext";
-import { useEffect } from "react";
 import { loadId } from "../common/utils";
 import { getUser, sendLog } from "../service/api";
 import { ACTION_TYPE_SET_ACCOUNT } from "../types/account";
 import { GoogleAdMob } from "@apps-in-toss/web-framework";
+import { useState } from "react";
+import Loading from "./common/Loading";
 
 /* ---------- animation ---------- */
-
 const blink = keyframes`
   0% { opacity: 1; }
   50% { opacity: 0.3; }
@@ -20,76 +20,99 @@ const blink = keyframes`
 
 /* ---------- styled components ---------- */
 
-const Root = styled.div``;
-
-const VideoWrapper = styled.div``;
-
-const AbsoluteCenter = styled.div`
-  position: absolute;
-  top: 40%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: 50%;
-  height: 50%;
-  object-fit: contain;
+const Root = styled.div`
+  min-height: 100vh;
+  position: relative;
 `;
 
-const AdText = styled.div`
+const VideoWrapper = styled.div`
+  min-height: 100vh;
+  position: relative;
+`;
+
+/** ✅ 중앙 정렬만 담당 (크기 지정 제거) */
+const AbsoluteCenter = styled.div`
+  position: absolute;
+  top: 46%; /* 살짝 아래로 */
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: grid;
+  justify-items: center;
+  row-gap: 16px;
+`;
+
+/** ✅ 슬라이드 크기를 확실히 제한하는 박스 */
+const SlideBox = styled.div`
+  width: 250px;        /* 최대 가로폭 제한 */
+  height:400px;
+  border-radius: 12px;
+  overflow: hidden;
+  background: rgba(0, 0, 0, 0.04);
+
+  /* 내부 미디어가 박스를 넘치지 않도록 */
+  & img, & video, & canvas {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    display: block;
+  }
+`;
+
+const AdTextFixed = styled.div`
+  position: fixed;
+  left: 50%;
+  bottom: max(16px, env(safe-area-inset-bottom));
+  transform: translateX(-50%);
   width: 100%;
+  max-width: 960px;
+  margin-bottom:20px;
+  text-align: center;
+  color: rgba(0, 0, 0, 0.7);
+  font-size: 14px;
+  z-index: 10;
+  pointer-events: none;  
 `;
 
 const StartText = styled.div`
-  align-self: center;
   text-align: center;
-  margin-top: 20px;
-  margin-bottom: 40px;
-
-  color: #000000;
-  font-size: 36px;
+  margin-bottom: 8px;
+  color: #1976d2;
+  font-size: 28px;
   font-weight: 600;
-  letter-spacing: 4px;
-
+  letter-spacing: 3px;
+  margin-top:10px;
   cursor: pointer;
   animation: ${blink} 1.5s ease-in-out infinite;
   text-shadow: 0 0 12px rgba(255, 255, 255, 0.4);
+
+  @media (max-width: 768px) {
+    font-size: 24px;
+    letter-spacing: 2px;
+  }
 `;
 
 /* ---------- component ---------- */
 const TAG = "IntroPage";
 const IntroPage = () => {
+
   const navigate = useNavigate();
   const { setAccount } = useApp();
-
+  const [isLoading, setIsLoading] = useState<boolean>(false);
   const showAd = () => {
-    const options = {
-      adGroupId: AD_ID,
-    };
+    const options = { adGroupId: AD_ID };
     GoogleAdMob.loadAppsInTossAdMob({
-      options: options,
+      options,
       onEvent: (event) => {
         console.log(`ad load event`, event);
         sendLog(TAG, `ad load event ${JSON.stringify(event)}`);
         switch (event.type) {
           case "loaded":
-            console.log(`ad load success`);
             GoogleAdMob.showAppsInTossAdMob({
-              options: options,
+              options,
               onEvent: (event) => {
                 console.log(`ad show event`, event);
                 switch (event.type) {
-                  case "show":
-                    break;
-                  case "requested":
-                    break;
-                  case "impression":
-                    break;
-                  case "clicked":
-                    break;
-                  case "userEarnedReward": // 보상형 광고만 사용 가능
-                    break;
                   case "dismissed":
-                    goNext();
-                    break;
                   case "failedToShow":
                     goNext();
                     break;
@@ -100,16 +123,19 @@ const IntroPage = () => {
               onError: (error) => {
                 console.log(`ad show error`, error);
                 sendLog(TAG, `ad show error ${JSON.stringify(error)}`);
+                setIsLoading(false)
                 goNext();
               },
             });
             break;
           default:
+            setIsLoading(false)
             break;
         }
       },
       onError: (error) => {
         console.log(`ad load error`, error);
+        setIsLoading(false)
       },
     });
   };
@@ -128,6 +154,7 @@ const IntroPage = () => {
   };
 
   const onStartClick = async () => {
+    setIsLoading(true)
     if (GoogleAdMob.loadAppsInTossAdMob.isSupported()) {
       showAd();
     } else {
@@ -135,34 +162,53 @@ const IntroPage = () => {
     }
   };
 
+  if (isLoading) {
+    return <Loading />;
+  }
+
   return (
     <>
       <Root>
-        {/* <Asset.Video
+        {/* 필요 시 배경 비디오 */}
+        {/* 
+        <Asset.Video
           as="video"
           src={PUBLIC_VIDEOS.INTRO}
-          autoPlay={true}
-          loop={true}
-          muted={true}
+          autoPlay
+          loop
+          muted
           style={{
             position: "fixed",
-            top: 0,
-            left: 0,
+            inset: 0,
             width: "100vw",
             height: "100vh",
             objectFit: "cover",
-            zIndex: -1, // 배경처럼 뒤로
+            zIndex: -1,
           }}
-        /> */}
+        />
+        */}
 
         <VideoWrapper>
+          {/* 중앙: 슬라이드/영상 박스를 작게 제한 */}
           <AbsoluteCenter>
-            <SlideImages />
+            <SlideBox>
+              <SlideImages />
+              {/*
+                SlideImages가 내부에서 자체 크기 스타일을 강제한다면
+                해당 컴포넌트의 최상위 래퍼에
+                width: 100%; height: 100%; object-fit: contain; 
+                을 적용하세요.
+              */}
+            </SlideBox>
+
             <StartText onClick={onStartClick}>START</StartText>
-            <AdText>*진입 후 광고가 표시됩니다.</AdText>
           </AbsoluteCenter>
 
-          <Post.H1>마이플 - 나만의 장소</Post.H1>
+          {/* 하단 고정 문구 */}
+          <AdTextFixed>*앱 진입 후 광고가 표시됩니다.</AdTextFixed>
+
+          {/* 본문 텍스트 (상단/하단과 겹치면 여백 조정하세요) */}
+          <Post.H1 color="#1976d2">마이플 - 나만의 장소</Post.H1>
           <Post.Paragraph>나만 알고 싶은 장소를 기록해보세요.</Post.Paragraph>
         </VideoWrapper>
       </Root>
