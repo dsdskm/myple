@@ -121,7 +121,7 @@ const LoginPage = () => {
   };
 
   if (isLoading) {
-    return <Loading />;
+    return <Loading label={TEXT.MSG_LOGIN} />;
   }
 
   return (

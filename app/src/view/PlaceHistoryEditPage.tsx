@@ -86,7 +86,7 @@ const PlaceHistoryEditPage = () => {
         show: false,
         message: ""
     })
-    const [isLoading, setIsLoading] = useState<boolean>(false)
+    const [loading, setLoading] = useState<{ show: boolean, message: string }>({ show: false, message: "" })
 
     useEffect(() => {
         const loadProductInfo = async () => {
@@ -300,8 +300,8 @@ const PlaceHistoryEditPage = () => {
             setToast({ show: true, message: TEXT.MSG_MEMO })
         } else {
             try {
-                setIsLoading(true)
                 if (isEditMode) {
+                    setLoading({ show: true, message: TEXT.MSG_UPDATE_PLACE_HISTORY })
                     selectedPlaceHistory.memo = memo
                     selectedPlaceHistory.rating = rating
                     selectedPlaceHistory.tags = Array.from(tagSet)
@@ -314,6 +314,7 @@ const PlaceHistoryEditPage = () => {
                     }
                     await updatePlaceHistory(selectedPlaceHistory.id, selectedPlaceHistory)
                 } else {
+                    setLoading({ show: true, message: TEXT.MSG_CREATE_PLACE_HISTORY })
                     const data: PlaceHistory = {
                         id: "",
                         placeId: selectedPlace.id,
@@ -333,20 +334,20 @@ const PlaceHistoryEditPage = () => {
                         await updatePlaceHistory(newId, result)
                     }
                 }
+                setLoading({ show: false, message: "" })
+                setAlertDialogOpen(true)
             } catch (error) {
                 console.log(error)
-            } finally {
-                setIsLoading(false)
-                setAlertDialogOpen(true)
+                setLoading({ show: true, message: "" })
             }
         }
     }
 
     const onDeleteClick = async () => {
         setDeleteDialogOpen(false)
-        setIsLoading(true)
+        setLoading({ show: true, message: TEXT.MSG_DELETE_PLACE_HISTORY })
         await deletePlaceHistory(selectedPlaceHistory.placeId, selectedPlaceHistory.id)
-        setIsLoading(false)
+        setLoading({ show: false, message: "" })
         setAlertDialogOpen(true)
     }
 
@@ -420,8 +421,8 @@ const PlaceHistoryEditPage = () => {
         </>
     }
 
-    if (isLoading) {
-        return <Loading />
+    if (loading.show) {
+        return <Loading label={loading.message} />
     }
 
     return <PageWrapper>

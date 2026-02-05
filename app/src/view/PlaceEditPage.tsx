@@ -85,7 +85,7 @@ const PlaceEditPage = () => {
     show: false,
     message: "",
   });
-  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [loading, setLoading] = useState<{ show: boolean, message: string }>({ show: false, message: "" })
 
   useEffect(() => {
     const loadPlaces = async () => {
@@ -404,9 +404,9 @@ const PlaceEditPage = () => {
 
   const onDeleteClick = async () => {
     setDeleteDialogOpen(false);
-    setIsLoading(true);
+    setLoading({ show: true, message: TEXT.MSG_DELETE_PLACE })
     await deletePlace(selectedPlace.id);
-    setIsLoading(false);
+    setLoading({ show: false, message: "" })
     setAlertDialogOpen(true);
   };
 
@@ -435,8 +435,8 @@ const PlaceEditPage = () => {
       setToast({ show: true, message: TEXT.MSG_CATEGORY });
     } else {
       try {
-        setIsLoading(true);
         if (isEditMode) {
+          setLoading({ show: true, message: TEXT.MSG_UPDATE_PLACE })
           selectedPlace.name = name;
           selectedPlace.category = category;
           selectedPlace.latitude = latitude;
@@ -444,6 +444,7 @@ const PlaceEditPage = () => {
           selectedPlace.address = address;
           await updatePlace(selectedPlace.id, selectedPlace);
         } else {
+          setLoading({ show: true, message: TEXT.MSG_CREATE_PLACE })
           const data: Place = {
             id: "",
             name: name,
@@ -458,14 +459,14 @@ const PlaceEditPage = () => {
           };
           await createPlace(data);
         }
+        setLoading({ show: false, message: "" })
+        setAlertDialogOpen(true);
       } catch (e) {
         console.log(e);
-      } finally {
-        setIsLoading(false);
-        setAlertDialogOpen(true);
+        setLoading({ show: false, message: "" })
       }
-    }
-  };
+    };
+  }
 
   const handleNameError = (value: string) => {
     return value.length > 10;
@@ -525,8 +526,8 @@ const PlaceEditPage = () => {
     );
   };
 
-  if (isLoading) {
-    return <Loading />;
+  if (loading.show) {
+    return <Loading label={loading.message} />;
   }
 
   return (

@@ -9,9 +9,9 @@ const LoadingWrapper = styled.div`
     height:100vh;
 `
 
-const Loading = () => {
+const Loading = ({ label }: { label: string }) => {
     return <LoadingWrapper>
-        <Loader size="large" />
+        <Loader size="large" label={label} />
     </LoadingWrapper>
 }
 

@@ -121,11 +121,10 @@ const MyPage = () => {
         payload: initialAccountState,
       });
       saveId("")
+      setWithdrawDialogOpen(false);
       navigate(ROUTES.LOGIN, { replace: true });
     } catch (e) {
       console.log(e);
-    } finally {
-      setWithdrawDialogOpen(false);
     }
   };
 
@@ -156,11 +155,10 @@ const MyPage = () => {
         setIsLoading(true);
         categoryData.list = targetCategoryList;
         await updateCategory(categoryData.id, categoryData);
-      } catch (e) {
-        console.log(e);
-      } finally {
         setCategoryDialogOpen(false);
         setIsLoading(false);
+      } catch (e) {
+        console.log(e);
       }
     };
 
@@ -392,7 +390,7 @@ const MyPage = () => {
   };
 
   if (isLoading) {
-    return <Loading />;
+    return <Loading label={TEXT.MSG_CREATE_CATEGORY} />;
   }
 
   return (

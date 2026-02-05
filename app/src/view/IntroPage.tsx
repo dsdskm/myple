@@ -1,5 +1,5 @@
 import { Asset, Post } from "@toss/tds-mobile";
-import { AD_ID, PUBLIC_VIDEOS, ROUTES } from "../common/constants";
+import { AD_ID, PUBLIC_VIDEOS, ROUTES, TEXT } from "../common/constants";
 import { useNavigate } from "react-router-dom";
 import styled, { keyframes } from "styled-components";
 import SlideImages from "./common/SlideImages";
@@ -163,7 +163,7 @@ const IntroPage = () => {
   };
 
   if (isLoading) {
-    return <Loading />;
+    return <Loading label={TEXT.MSG_MOVE_TO_LOGIN} />;
   }
 
   return (

@@ -220,7 +220,7 @@ const ItemPage = () => {
   };
 
   if (isLoading) {
-    return <Loading />;
+    return <Loading label={TEXT.MSG_LOAD_ITEMS} />;
   }
 
   return (

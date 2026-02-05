@@ -13,7 +13,7 @@ export default defineConfig({
     withBackButton: true,
   },
   web: {
-    host: '192.168.0.12', // 내 PC의 IP,
+    host: '192.168.0.21', // 내 PC의 IP,
     port: 3000,
     commands: {
       dev: 'react-scripts start',
