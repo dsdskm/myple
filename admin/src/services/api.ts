@@ -1,0 +1,152 @@
+import { Account } from "@/types/account";
+import { Bill } from "@/types/bill";
+import { Category } from "@/types/category";
+import { Orders, TossOrders } from "@/types/toss.orders";
+import { Place } from "@/types/place";
+import { Product } from "@/types/product";
+import https from "https";
+import axios from "axios";
+
+export const serverApiClient = axios.create({
+  baseURL: import.meta.env.VITE_BACKEND_URL,
+  headers: {
+    "x-api-key": import.meta.env.VITE_SERVER_KEY,
+  },
+});
+
+const getHeaders = (token?: string): Record<string, string | number | boolean> => {
+  const headers: Record<string, string | number | boolean> = {
+    // 기본 헤더 (Content-Type 등)
+    ...(serverApiClient.defaults.headers as Record<string, string | number | boolean>),
+  };
+  if (token) {
+    headers["Authorization"] = `Bearer ${token}`;
+  }
+  return headers;
+};
+export const get = async <T>(url: string, token?: string): Promise<T> => {
+  try {
+    const response = await serverApiClient.get<T>(url, {
+      headers: getHeaders(token),
+      timeout: 10000,
+    });
+    return response.data;
+  } catch (err) {
+    console.error("GET request error:", err);
+    return {} as T;
+  }
+};
+
+export const post = async <TResponse, TBody = unknown>(
+  url: string,
+  body: TBody,
+  token?: string,
+): Promise<TResponse> => {
+  try {
+    const response = await serverApiClient.post<TResponse>(url, body, {
+      headers: getHeaders(token),
+      timeout: 10000,
+    });
+    return response.data;
+  } catch (err) {
+    console.error("POST request error:", err);
+    return {} as TResponse;
+  }
+};
+
+export const sendLog = async (tag: string, message: string): Promise<void> => {
+  try {
+    await serverApiClient.post("/log", { tag, message });
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+export const getUser = async (id: string): Promise<Account | null> => {
+  try {
+    const response = await serverApiClient.get<Account>(`/account/${id}`);
+    return response.data;
+  } catch (error) {
+    console.log(error);
+    return null;
+  }
+};
+
+export const getUsers = async (): Promise<Account[]> => {
+  try {
+    const response = await serverApiClient.get<Account[]>(`/account`);
+    return response.data;
+  } catch (error) {
+    console.log(error);
+    return [];
+  }
+};
+
+export const getCategory = async (id: string): Promise<Category | null> => {
+  try {
+    const response = await serverApiClient.get<Category>(`/category/${id}`);
+    return response.data;
+  } catch (error) {
+    console.log(error);
+    return null;
+  }
+};
+
+export const getProductInfo = async (id: string): Promise<Product | null> => {
+  try {
+    const response = await serverApiClient.get<Product>(`/product/${id}`);
+    return response.data;
+  } catch (error) {
+    console.log(error);
+    return null;
+  }
+};
+
+export const getPlaces = async (creator: string): Promise<Place[]> => {
+  try {
+    const response = await serverApiClient.get<Place[]>(`/place/${creator}`);
+    return response.data;
+  } catch (error) {
+    console.log(error);
+    return [];
+  }
+};
+
+export const requestLogout = async (userKey: number): Promise<void> => {
+  try {
+    await serverApiClient.post("/toss/logout", { userKey: userKey, referrer: "UNLINK" });
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+export const getBills = async (): Promise<Bill[]> => {
+  try {
+    const response = await serverApiClient.get<Bill[]>(`/bill`);
+    return response.data;
+  } catch (error) {
+    console.log(error);
+    return [];
+  }
+};
+
+export const getBillsByCreator = async (id: string): Promise<Bill | null> => {
+  try {
+    const response = await serverApiClient.get<Bill>(`/bill/${id}`);
+    return response.data;
+  } catch (error) {
+    console.log(error);
+    return null;
+  }
+};
+
+export const getOrders = async (userKey: string, orderId: string): Promise<TossOrders | null> => {
+  try {
+    const response = await serverApiClient.post<TossOrders>(`/toss/orders`, { userKey, orderId });
+    console.log(`response`, response);
+    return response.data;
+  } catch (error) {
+    console.log(error);
+    return null;
+  }
+};

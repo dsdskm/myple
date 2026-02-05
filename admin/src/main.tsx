@@ -15,11 +15,12 @@ import AuthProvider from "@/components/AuthProvider";
 import { PATH } from "@/constants/routes";
 
 import "antd/dist/reset.css";
-import UsersPage from "./pages/UsersPage";
+import UsersPage from "./pages/AccountPage";
 import BillingPage from "./pages/BillingPage";
 import NoticePage from "./pages/NoticePage";
 import FeedbackPage from "./pages/FeedbackPage";
 import TermsPage from "./pages/TermsPage";
+import AccountDetailPage from "./pages/AccountDetailPage";
 
 const queryClient = new QueryClient();
 
@@ -33,7 +34,8 @@ const router = createBrowserRouter([
         element: <AdminLayout />,
         children: [
           { path: PATH.ROOT, element: <Dashboard /> },
-          { path: PATH.USERS, element: <UsersPage /> },
+          { path: PATH.ACCOUNT, element: <UsersPage /> },
+          { path: PATH.ACCOUNT_DETAIL, element: <AccountDetailPage /> },
           { path: PATH.BILLING, element: <BillingPage /> },
           { path: PATH.NOTICE, element: <NoticePage /> },
           { path: PATH.FEEDBACK, element: <FeedbackPage /> },

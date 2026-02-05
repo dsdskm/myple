@@ -1,9 +1,10 @@
 export const PATH = {
-    ROOT: "/",
-    LOGIN: "/login",
-    USERS: "/users",
-    BILLING: "/billing",
-    TERMS: "/terms",
-    NOTICE: "/notice",
-    FEEDBACK: "/feedback",
+  ROOT: "/",
+  LOGIN: "/login",
+  ACCOUNT: "/account",
+  ACCOUNT_DETAIL: "/account/:userKey", // ✅ 추가
+  BILLING: "/billing",
+  TERMS: "/terms",
+  NOTICE: "/notice",
+  FEEDBACK: "/feedback",
 } as const;
