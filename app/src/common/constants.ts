@@ -117,7 +117,7 @@ export const TEXT = {
   MSG_EMPTY_PURCHASED: "결제 내역이 없어요.",
   MSG_BACK_KEY_EVENT: "마이플을 종료할까요?",
   MSG_ERROR: "에러가 발생했어요.",
-  MSG_MOVE_TO_LOGIN: "로그인 화면으로 이동중이에요.",
+  MSG_MOVE_TO_LOGIN: "광고 및 로그인 화면으로 이동중이에요.",
   MSG_LOAD_ITEMS: "아이템들을 불러오고 있어요.",
   MSG_LOGIN: "로그인 중이에요.",
   MSG_CREATE_CATEGORY: "카테고리를 생성중이에요.",
