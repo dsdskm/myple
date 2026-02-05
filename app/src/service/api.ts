@@ -5,6 +5,7 @@ import FormData from "form-data";
 import { Category } from "../types/category";
 import { SubscriptionInfo } from "../types/subscriptionInfo";
 import { Product } from "../types/product";
+import { Bill } from "../types/bill";
 
 const serverApiClient = axios.create({
   baseURL: process.env.REACT_APP_BACKEND_URL,
@@ -302,5 +303,15 @@ export const sendLog = async (tag: string, message: string): Promise<void> => {
     await serverApiClient.post("/log", { tag, message });
   } catch (error) {
     console.log(error);
+  }
+};
+
+export const createBill = async (data: Omit<Bill, "id" | "created">): Promise<Bill | null> => {
+  try {
+    const response = await serverApiClient.post<Bill>("/bill", data);
+    return response.data;
+  } catch (error) {
+    console.log(error);
+    return null;
   }
 };

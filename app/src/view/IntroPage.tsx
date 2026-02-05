@@ -80,7 +80,7 @@ const StartText = styled.div`
   font-size: 28px;
   font-weight: 600;
   letter-spacing: 3px;
-  margin-top:10px;
+  margin-top:50px;
   cursor: pointer;
   animation: ${blink} 1.5s ease-in-out infinite;
   text-shadow: 0 0 12px rgba(255, 255, 255, 0.4);

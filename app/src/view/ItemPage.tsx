@@ -7,7 +7,8 @@ import { ToastInfo } from "../types/toast";
 import { IAP, IapProductListItem } from "@apps-in-toss/web-framework";
 import { SKU_DONATION, SORTED_SKU, TEXT } from "../common/constants";
 import { useApp } from "../context/AppContext";
-import { getProductInfo, updateProduct } from "../service/api";
+import { createBill, getProductInfo, sendLog, updateProduct } from "../service/api";
+import { Bill } from "../types/bill";
 
 const Contents = styled.div`
   display: flex;
@@ -35,6 +36,7 @@ interface HistoryOrder {
   date: string;
 }
 
+const TAG = "ItemPage";
 const ItemPage = () => {
   const { account } = useApp();
   const [toast, setToast] = useState<ToastInfo>({
@@ -98,17 +100,32 @@ const ItemPage = () => {
     IAP.createOneTimePurchaseOrder({
       options: {
         sku,
-        processProductGrant: ({ orderId }) => {
+        processProductGrant: async ({ orderId }) => {
           console.log(`processProductGrant orderId ${orderId}`);
           onProcessProductGrant(sku);
+          await IAP.completeProductGrant({ params: { orderId } });
           return true;
         },
       },
       onEvent: (event) => {
         console.log(`event`, event);
+        const billData: Bill = {
+          id: "",
+          creator: account.id,
+          type: event.type,
+          sku: sku,
+          orderId: event.data.orderId,
+          displayName: event.data.displayName,
+          displayAmount: event.data.displayAmount,
+          amount: event.data.amount,
+          currency: event.data.currency,
+          created: "",
+        };
+        createBill(billData);
       },
       onError: (error) => {
         console.log(`error`, error);
+        sendLog(TAG, JSON.stringify(error));
       },
     });
   };
