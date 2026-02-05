@@ -4,6 +4,7 @@ import * as path from "path";
 import { TossToken } from "../types/toss.token";
 import dotenv from "dotenv";
 import { TossUser } from "../types/account";
+import { TossOrders } from "../types/toss.orders";
 dotenv.config();
 
 const certPath = path.resolve(__dirname, "../../key/myple-mtls_public.crt");
@@ -136,6 +137,58 @@ export const requestTossUserInfo = async (accessToken: string) => {
       console.error("Request error:", e);
     });
 
+    req.end();
+  });
+};
+
+export const requestTossOrders = async (userKey: string, orderId: string): Promise<TossOrders> => {
+  const body = JSON.stringify({ orderId });
+
+  const options: https.RequestOptions = {
+    hostname: "apps-in-toss-api.toss.im",
+    path: "/api-partner/v1/apps-in-toss/order/get-order-status",
+    method: "POST",
+    headers: {
+      "x-toss-user-key": userKey,
+      "Content-Type": "application/json; charset=utf-8",
+      "Content-Length": Buffer.byteLength(body),
+    },
+    cert,
+    key,
+    rejectUnauthorized: false,
+    timeout: 10000,
+  };
+
+  return new Promise((resolve, reject) => {
+    const req = https.request(options, (res) => {
+      let data = "";
+
+      res.on("data", (chunk) => (data += chunk));
+
+      res.on("end", () => {
+        try {
+          if (res.statusCode !== 200) {
+            return reject(new Error(`Toss API ${res.statusCode}: ${data}`));
+          }
+          console.log(`data`, data);
+          const parsed = JSON.parse(data);
+          resolve(parsed.success);
+        } catch (e) {
+          reject(e);
+        }
+      });
+    });
+
+    req.on("timeout", () => {
+      req.destroy();
+      reject(new Error("Toss API timeout"));
+    });
+
+    req.on("error", (e) => {
+      reject(e); // ⭐ 필수
+    });
+
+    req.write(body);
     req.end();
   });
 };
