@@ -4,6 +4,7 @@ import { Media, Place, PlaceHistory } from '../types/place';
 import { requestAddress } from '../api/api';
 dotenv.config();
 import * as placeService from '../service/place.service';
+import { decryptUserData } from '../common/decrypt';
 
 const generateNameCategoryMemoTags = (i: number) => {
     const arr = [
@@ -188,3 +189,52 @@ export const deletePlaces = async (req: Request, res: Response) => {
         res.status(500)
     }
 }
+
+export const decryption = async (req: Request, res: Response) => {
+    console.log(`decryption`)
+    try {
+        const cryptedIds: any[] = [
+            {
+                "name": "EPIMrUaREaajnUL0oabRIyM12bwz4IsbnBioF/icH4dvY/jCIw==",
+                "birthday": "EPIMrUaREaajnUL0fwtV+JiqAzTTBGQU5jSOfed4Zojbf2lH",
+                "gender": "EPIMrUaREaajnUL0C34oieTYnwmnDuAecaFV38LqJjcukg==",
+                "nationality": "EPIMrUaREaajnUL0AXQmieTooXXP7oZfZgUxjlG/aiwy",
+                "email": "EPIMrUaREaajnUL07SGPwaM/olfyHf5BWAfWcA=="
+            },
+            {
+                "name": "sWzl2bMMdsXdFtKTuE0a9N9A28HUdiiJlAzm4J/yQarGRCsANr33l2qNPQ==",
+                "birthday": "sWzl2bMMdsXdFtKTZeGSLHPKB3Sx8184HMKUrjyZjIIz5+bc",
+                "gender": "sWzl2bMMdsXdFtKTGZnnXYbMvYH8XCjBg2SbwznbEcQ=",
+                "nationality": "sWzl2bMMdsXdFtKTGJfoWQ6eOBrYrvOeBKVXtftaDTZW",
+                "email": "sWzl2bMMdsXdFtKTs6hYy+qXAjChhUuQ9NIGEw=="
+            },
+            {
+                "name": "XFX27dK2+azeHSpHGScIYU/2FfbwWAlxDmeWZr1hVBuxZJvabQ==",
+                "birthday": "XFX27dK2+azeHSpHwqews8dxyFRQdTL9ydiL798+Ly+7s5Mm",
+                "gender": "XFX27dK2+azeHSpHvt/EzhMY7FSupXhPmIp0wsvxOjg=",
+                "nationality": "XFX27dK2+azeHSpHv9HLyrtQIW0ISt8rED2BTwtKSUlh",
+                "email": "XFX27dK2+azeHSpHh/H845Iyny0WJQNg2n4mvr51TeRC6ythnxtfk8TuBSPw"
+            }
+
+
+        ]
+
+        cryptedIds.forEach((data) => {
+            const name = decryptUserData(data.name || "")
+            const birthday = decryptUserData(data.birthday || "")
+            const gender = decryptUserData(data.gender || "")
+            const nationality = decryptUserData(data.nationality || "")
+            const email = decryptUserData(data.email || "")
+            console.log(`${data.name} => ${name}`)
+            console.log(`${data.birthday} => ${birthday}`)
+            console.log(`${data.gender} => ${gender}`)
+            console.log(`${data.nationality} => ${nationality}`)
+            console.log(`${data.email} => ${email}`)
+            console.log()
+        })
+        res.status(200).json(true)
+    } catch (error) {
+        res.status(500)
+    }
+}
+

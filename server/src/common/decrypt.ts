@@ -3,16 +3,30 @@ import * as crypto from 'crypto';
 import dotenv from 'dotenv';
 dotenv.config();
 
-/**
- * AES‑256‑GCM 복호화 함수
- *
- * @param encryptedBase64   - 암호문 (Base64 인코딩, IV + ciphertext + tag)
- * @param base64EncodedKey  - AES‑256 키 (Base64)
- * @param aad               - Additional Authenticated Data (UTF‑8 문자열)
- * @returns 복호화된 평문 (UTF‑8 문자열)
- *
- * @throws Error 복호화에 실패하거나 입력이 올바르지 않을 경우
- */
+
+export const _decryptUserData = (encryptedBase64: string, base64EncodedKey: string, aad: string) => {
+    const IV_LENGTH = 12;
+
+    const decoded = Buffer.from(encryptedBase64, 'base64');
+    const key = Buffer.from(base64EncodedKey, 'base64');
+
+    const iv = Buffer.from(decoded.subarray(0, IV_LENGTH));
+    const ciphertext = Buffer.from(decoded.subarray(IV_LENGTH));
+
+    const tag = Buffer.from(ciphertext.subarray(ciphertext.length - 16));
+    const encrypted = Buffer.from(ciphertext.subarray(0, ciphertext.length - 16));
+
+    const decipher = crypto.createDecipheriv('aes-256-gcm', key, iv);
+    decipher.setAAD(Buffer.from(aad));
+    decipher.setAuthTag(tag);
+
+    const decrypted = Buffer.concat([
+        decipher.update(encrypted),
+        decipher.final(),
+    ]);
+    return decrypted.toString('utf-8');
+}
+
 export function decryptUserData(
     encryptedBase64: string,
 ): string {

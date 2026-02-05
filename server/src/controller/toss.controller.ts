@@ -6,6 +6,8 @@ import * as productService from "../service/product.service"
 import { decryptUserData } from '../common/decrypt';
 import { Account } from '../types/account';
 import { Product } from '../types/product';
+import { PRODUCT_LIMIT } from '../common/constants';
+
 
 export const getUserInfo = async (req: Request, res: Response) => {
     try {
@@ -15,26 +17,25 @@ export const getUserInfo = async (req: Request, res: Response) => {
         if (tossToken) {
             const user = await tossService.requestUserInfo(tossToken);
             console.log(`getUserInfo user ${JSON.stringify(user)}`)
-            const accountData: Account | null = user ? {
-                id: decryptUserData(user.email),
-                type: 'BASIC',
-                status: 'active',
-                userKey: user.userKey,
-                scope: user.scope,
-                agreedTerms: user.agreedTerms,
-                name: decryptUserData(user.name),
-                callingCode: decryptUserData(user.callingCode),
-                phone: decryptUserData(user.phone),
-                birthday: decryptUserData(user.birthday),
-                ci: decryptUserData(user.ci),
-                di: decryptUserData(user.di),
-                gender: decryptUserData(user.gender),
-                nationality: decryptUserData(user.nationality),
-                email: decryptUserData(user.email),
-                updated: ""
-            } : null
-            console.log(`getUserInfo accountData ${JSON.stringify(accountData)}`)
-            if (accountData) {
+            if (user) {
+                const accountData: Account | null = {
+                    id: user.userKey.toString(),
+                    type: 'BASIC',
+                    status: 'active',
+                    userKey: user.userKey,
+                    scope: user.scope,
+                    agreedTerms: user.agreedTerms,
+                    name: decryptUserData(user.name),
+                    callingCode: decryptUserData(user.callingCode),
+                    phone: decryptUserData(user.phone),
+                    birthday: decryptUserData(user.birthday),
+                    ci: decryptUserData(user.ci),
+                    di: decryptUserData(user.di),
+                    gender: decryptUserData(user.gender),
+                    nationality: decryptUserData(user.nationality),
+                    email: decryptUserData(user.email),
+                    updated: ""
+                }
                 const a = await accountService.findById(accountData.id)
                 if (a) {
                     accountData.type = a.type
@@ -47,20 +48,20 @@ export const getUserInfo = async (req: Request, res: Response) => {
                 if (!p) {
                     const product: Product = {
                         id: accountData.id,
-                        category_limit: 5,
-                        place_limit: 30,
-                        place_history_photo_limit: 5,
+                        category_limit: PRODUCT_LIMIT.CATEGORY,
+                        place_limit: PRODUCT_LIMIT.PLACE,
+                        place_history_photo_limit: PRODUCT_LIMIT.PLACE_HISTORY_PHOTO,
                         created: '',
                         updated: ''
                     }
                     await productService.create(product)
+                    console.log(`user product info created ${JSON.stringify(product)}`)
                 }
+                res.status(200).json(accountData);
+                return
             }
-
-            res.status(200).json(accountData);
-        } else {
-            res.status(500).json(null);
         }
+        res.status(500).json(null);
 
 
     } catch (error) {

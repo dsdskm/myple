@@ -1,7 +1,7 @@
 import { db } from '../config/firebase';
 import { getFormattedDateForAccount } from '../common/utils';
 import { Category } from '../types/category';
-import { CATEGORY_LIMIT_COUNT_BASE, CATEGORY_MENU_BASE_CAFE, CATEGORY_MENU_BASE_ETC, CATEGORY_MENU_BASE_FOOD, CATEGORY_MENU_BASE_HOTEL, CATEGORY_MENU_BASE_TOUR } from '../common/constants';
+import { CATEGORY_MENU_BASE_CAFE, CATEGORY_MENU_BASE_ETC, CATEGORY_MENU_BASE_FOOD, CATEGORY_MENU_BASE_HOTEL, CATEGORY_MENU_BASE_TOUR } from '../common/constants';
 
 const categoryCollection = db.collection('categories');
 
@@ -14,10 +14,10 @@ export const init = async (id: string): Promise<void> => {
         const time = new Date()
         const CATEGORY_MENU_BASE_ARR: { id: number, title: string }[] = [
             { "id": new Date().getTime(), "title": CATEGORY_MENU_BASE_FOOD },
-            { "id": new Date().getTime()+1, "title": CATEGORY_MENU_BASE_CAFE },
-            { "id": new Date().getTime()+2, "title": CATEGORY_MENU_BASE_HOTEL },
-            { "id": new Date().getTime()+3, "title": CATEGORY_MENU_BASE_TOUR },
-            { "id": new Date().getTime()+4, "title": CATEGORY_MENU_BASE_ETC }
+            { "id": new Date().getTime() + 1, "title": CATEGORY_MENU_BASE_CAFE },
+            { "id": new Date().getTime() + 2, "title": CATEGORY_MENU_BASE_HOTEL },
+            { "id": new Date().getTime() + 3, "title": CATEGORY_MENU_BASE_TOUR },
+            { "id": new Date().getTime() + 4, "title": CATEGORY_MENU_BASE_ETC }
         ]
         const category: Category = {
             id: id,
