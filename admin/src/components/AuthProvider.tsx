@@ -36,8 +36,11 @@ export default function AuthProvider({ children }: { children: React.ReactNode }
   if (!initialized) {
     return (
       <FullCenter>
-        <Spin tip={TEXT.LOADING} size="large" />
-      </FullCenter>
+        <Spin tip={TEXT.LOADING} size="large" >
+          <div style={{ width: "100vw", height: 0 }} />
+        </Spin>
+      </FullCenter >
+
     );
   }
 

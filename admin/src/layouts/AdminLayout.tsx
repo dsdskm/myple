@@ -1,6 +1,7 @@
+// src/layouts/AdminLayout.tsx
 import { Layout, Menu, Button, Avatar, Space } from "antd";
 import type { MenuProps } from "antd";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate, useLocation, Outlet } from "react-router-dom";
 import { signOut } from "firebase/auth";
 import { auth } from "@/libs/firebase";
 import { useAuth } from "@/store/auth";
@@ -31,14 +32,14 @@ const StyledContent = styled(Content)`
 
 const menuItems: MenuProps["items"] = [
     { key: PATH.ROOT, label: "대시보드" },
-    { key: PATH.USERS, label: "계정 관리" },
+    { key: PATH.USERS, label: "유저 관리" },
     { key: PATH.BILLING, label: "결제 내역" },
-    { key: PATH.TERMS, label: "약관 관리" },
     { key: PATH.NOTICE, label: "공지사항" },
     { key: PATH.FEEDBACK, label: "피드백" },
+    { key: PATH.TERMS, label: "약관 관리" },
 ];
 
-export default function AdminLayout({ children }: { children: React.ReactNode }) {
+export default function AdminLayout() {
     const navigate = useNavigate();
     const location = useLocation();
     const user = useAuth((s) => s.user);
@@ -58,6 +59,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                     onClick={(info) => navigate(info.key)}
                 />
             </StyledSider>
+
             <Layout>
                 <StyledHeader>
                     <Space>
@@ -68,7 +70,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                         <Button onClick={onLogout}>{TEXT.HEADER.LOGOUT}</Button>
                     </Space>
                 </StyledHeader>
-                <StyledContent>{children}</StyledContent>
+
+                <StyledContent>
+                    {/* 중첩 라우트의 자식 페이지가 이 위치에 렌더링됨 */}
+                    <Outlet />
+                </StyledContent>
             </Layout>
         </Wrap>
     );

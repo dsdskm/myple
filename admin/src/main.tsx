@@ -15,20 +15,32 @@ import AuthProvider from "@/components/AuthProvider";
 import { PATH } from "@/constants/routes";
 
 import "antd/dist/reset.css";
+import UsersPage from "./pages/UsersPage";
+import BillingPage from "./pages/BillingPage";
+import NoticePage from "./pages/NoticePage";
+import FeedbackPage from "./pages/FeedbackPage";
+import TermsPage from "./pages/TermsPage";
 
 const queryClient = new QueryClient();
 
 const router = createBrowserRouter([
   { path: PATH.LOGIN, element: <Login /> },
+
   {
-    path: PATH.ROOT,
-    element: (
-      <PrivateRoute>
-        <AdminLayout>
-          <Dashboard />
-        </AdminLayout>
-      </PrivateRoute>
-    ),
+    element: <PrivateRoute />,
+    children: [
+      {
+        element: <AdminLayout />,
+        children: [
+          { path: PATH.ROOT, element: <Dashboard /> },
+          { path: PATH.USERS, element: <UsersPage /> },
+          { path: PATH.BILLING, element: <BillingPage /> },
+          { path: PATH.NOTICE, element: <NoticePage /> },
+          { path: PATH.FEEDBACK, element: <FeedbackPage /> },
+          { path: PATH.TERMS, element: <TermsPage /> },
+        ],
+      },
+    ],
   },
 ]);
 
