@@ -49,3 +49,20 @@ export const deleteProduct = async (req: Request, res: Response) => {
     res.status(500).json({ message: error.message });
   }
 };
+
+
+export const getProductHistory = async (req: Request, res: Response) => {
+  try {
+    const userKey = req.params.userKey;
+    if (!userKey) {
+      return res.status(400).json({ message: 'userKey is required' });
+    }
+
+    const result = await productService.fetchProductHistoryAll(userKey);
+
+    return res.status(200).json(result);
+  } catch (err: any) {
+    console.error('[getProductHistory] error:', err);
+    return res.status(500).json({ message: err?.message ?? 'Failed to fetch product history' });
+  }
+};
