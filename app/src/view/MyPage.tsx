@@ -22,7 +22,7 @@ import {
 import BottomTabBar from "./BottomTabBar";
 import styled from "styled-components";
 import { useEffect, useState } from "react";
-import { getCategory, getProductInfo, requestLogout, updateCategory } from "../service/api";
+import { getCategory, getPlaces, getProductInfo, requestLogout, updateCategory } from "../service/api";
 import { useNavigate } from "react-router-dom";
 import { useApp } from "../context/AppContext";
 import { ACTION_TYPE_SET_ACCOUNT, initialAccountState } from "../types/account";
@@ -32,6 +32,7 @@ import { Product } from "../types/product";
 import { ToastInfo } from "../types/toast";
 import { getNetworkStatus } from "@apps-in-toss/web-framework";
 import { saveId } from "../common/utils";
+import { Place } from "../types/place";
 
 const Contents = styled.div`
   display: flex;
@@ -52,6 +53,7 @@ const MyPage = () => {
   const { account, setAccount } = useApp();
   console.log(`account`, account)
   const [withdrawDialogOpen, setWithdrawDialogOpen] = useState<boolean>(false);
+  const [placeList, setPlaceList] = useState<Place[]>([])
   const [categoryData, setCategoryData] = useState<Category>({
     id: "",
     list: [],
@@ -74,6 +76,12 @@ const MyPage = () => {
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
   useEffect(() => {
+
+    const loadPlaces = async () => {
+      const list = await getPlaces(account.id);
+      setPlaceList(list)
+    }
+
     const loadCategories = async () => {
       const categoryData = await getCategory(account.id);
       if (categoryData) {
@@ -93,6 +101,7 @@ const MyPage = () => {
         networkStatus !== NETWORK_STATUS.UNKNOWN &&
         networkStatus !== NETWORK_STATUS.WWAN
       ) {
+        loadPlaces()
         loadCategories();
         loadProductInfo();
       } else {
@@ -376,13 +385,8 @@ const MyPage = () => {
                 </Button>
               }
             />
-            <TableRow align="space-between" left={TEXT.PRODUCT_CATEGORY_LIMIT} right={`${product.category_limit} 개`} />
-            <TableRow align="space-between" left={TEXT.PRODUCT_PLACE_LIMIT} right={`${product.place_limit} 개`} />
-            {/* <TableRow
-              align="space-between"
-              left={TEXT.PRODUCT_PLACE_HISTORY_PHOTO_LIMIT}
-              right={product.place_history_photo_limit}
-            /> */}
+            <TableRow align="space-between" left={TEXT.PRODUCT_CATEGORY_LIMIT} right={`${categoryData.list.length} / ${product.category_limit} 개`} />
+            <TableRow align="space-between" left={TEXT.PRODUCT_PLACE_LIMIT} right={`${placeList.length} / ${product.place_limit} 개`} />
           </>
         )}
       </>
@@ -405,7 +409,7 @@ const MyPage = () => {
           size="medium"
           onClick={() => setWithdrawDialogOpen(true)}
         >
-          {TEXT.WITHDRAW}
+          {TEXT.WITHDRAW} / {TEXT.LOGOUT}
         </Button>
       </Contents>
       {logoutDialog()}

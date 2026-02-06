@@ -1,14 +1,16 @@
-import { Asset, Button, List, Modal, Post, Result, Toast } from "@toss/tds-mobile";
+import { Asset, Button, List, Modal, Post, Result, Toast, Text } from "@toss/tds-mobile";
 import BottomTabBar from "./BottomTabBar";
 import styled from "styled-components";
 import { useEffect, useState } from "react";
 import Loading from "./common/Loading";
 import { ToastInfo } from "../types/toast";
 import { IAP, IapProductListItem } from "@apps-in-toss/web-framework";
-import { SKU_DONATION, SORTED_SKU, TEXT } from "../common/constants";
+import { PRODUCT_REASON_PURCHASE, PUBLIC_IMAGES, SKU_DONATION, SORTED_SKU, TEXT } from "../common/constants";
 import { useApp } from "../context/AppContext";
 import { createBill, getProductInfo, sendLog, updateProduct } from "../service/api";
 import { Bill } from "../types/bill";
+import { theme } from "../styles/theme";
+import { Product } from "../types/product";
 
 const Contents = styled.div`
   display: flex;
@@ -25,9 +27,15 @@ const ItemRow = styled.div`
 
 const ItemRowLeft = styled.div`
   display: flex;
-  alignitems: center;
+  align-items: center;
   gap: 10px;
 `;
+
+const Divider = styled.div`
+  height: 1px;
+  margin: 20px;
+  background-color: ${theme.colors.primary}
+`
 
 interface HistoryOrder {
   orderId: string;
@@ -68,34 +76,36 @@ const ItemPage = () => {
 
   const onProcessProductGrant = async (sku: string) => {
     const product = await getProductInfo(account.id);
+    let payload: Partial<Product> & { reason: string } | null = null;
     if (product) {
+
       switch (sku) {
         case SORTED_SKU[0]:
-          // 카테고리 1개
-          product.category_limit += 1;
-          await updateProduct(account.id, product);
+          // 카테고리 1개 증가
+          payload = { category_limit: product.category_limit + 1, reason: PRODUCT_REASON_PURCHASE };
           break;
         case SORTED_SKU[1]:
-          // 카테고리 10개
-          product.category_limit += 10;
-          await updateProduct(account.id, product);
+          // 카테고리 10개 증가
+          payload = { category_limit: product.category_limit + 10, reason: PRODUCT_REASON_PURCHASE };
           break;
         case SORTED_SKU[2]:
-          // 장소 1개
-          product.place_limit += 1;
-          await updateProduct(account.id, product);
+          // 장소 1개 증가
+          payload = { place_limit: product.place_limit + 1, reason: PRODUCT_REASON_PURCHASE };
           break;
         case SORTED_SKU[3]:
-          // 장소 10개
-          product.place_limit += 10;
-          await updateProduct(account.id, product);
+          // 장소 10개 증가
+          payload = { place_limit: product.place_limit + 10, reason: PRODUCT_REASON_PURCHASE };
           break;
         default:
-          break;
+          payload = null;
       }
-    }
-  };
 
+      if (!payload) return;
+      await updateProduct(account.id, payload);
+
+    };
+
+  }
   const onPurchaseClick = async (sku: string) => {
     IAP.createOneTimePurchaseOrder({
       options: {
@@ -187,7 +197,7 @@ const ItemPage = () => {
                   return (
                     <>
                       {item ? (
-                        <ItemRowLeft style={{ margin: 10, alignItems: "center" }}>
+                        <ItemRowLeft style={{ margin: 10 }}>
                           <img src={item.iconUrl} width={36} height={36} alt={item.displayName} />
                           <div style={{ width: "100%" }}>
                             <div>{itemHistory.date}</div>
@@ -199,7 +209,7 @@ const ItemPage = () => {
                           </div>
                         </ItemRowLeft>
                       ) : (
-                        <ItemRowLeft style={{ margin: 10, alignItems: "center" }}>
+                        <ItemRowLeft style={{ margin: 10 }}>
                           <img
                             src={"https://static.toss.im/appsintoss/3847/46c6bea2-9602-4389-9191-702e4b2ea5fd.png"}
                             width={36}
@@ -236,6 +246,13 @@ const ItemPage = () => {
     setProductItemHistoryList(list);
   };
 
+  const warningView = () => {
+    return <div style={{ display: "flex", marginLeft: 15, marginRight: 15, alignItems: "center", gap: 10 }}>
+      <img style={{ width: 30, height: 30 }} src={PUBLIC_IMAGES.MONEY_WARNING} alt={PUBLIC_IMAGES.MONEY_WARNING} />
+      <Text>{TEXT.MSG_REFUND_GUIDE}</Text>
+    </div>
+  }
+
   if (isLoading) {
     return <Loading label={TEXT.MSG_LOAD_ITEMS} />;
   }
@@ -245,6 +262,8 @@ const ItemPage = () => {
       <BottomTabBar />
       <Contents>
         <Post.H1>{TEXT.ITEM_PURCHASE}</Post.H1>
+        {warningView()}
+        <Divider />
         {productView()}
         <Button style={{ marginLeft: 10, marginRight: 10 }} size="medium" onClick={onItemPurchaseHistoryClick}>
           {TEXT.ITEM_PURCHASE_HISTORY}

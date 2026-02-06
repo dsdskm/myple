@@ -10,6 +10,7 @@ import { ACTION_TYPE_SET_ACCOUNT } from "../types/account";
 import { GoogleAdMob } from "@apps-in-toss/web-framework";
 import { useState } from "react";
 import Loading from "./common/Loading";
+import { theme } from "../styles/theme";
 
 /* ---------- animation ---------- */
 const blink = keyframes`
@@ -76,7 +77,7 @@ const AdTextFixed = styled.div`
 const StartText = styled.div`
   text-align: center;
   margin-bottom: 8px;
-  color: #1976d2;
+  color: ${theme.colors.primary};
   font-size: 28px;
   font-weight: 600;
   letter-spacing: 3px;
@@ -208,7 +209,7 @@ const IntroPage = () => {
           <AdTextFixed>*앱 진입 후 광고가 표시됩니다.</AdTextFixed>
 
           {/* 본문 텍스트 (상단/하단과 겹치면 여백 조정하세요) */}
-          <Post.H1 color="#1976d2">마이플 - 나만의 장소</Post.H1>
+          <Post.H1 color={theme.colors.primary}>마이플 - 나만의 장소</Post.H1>
           <Post.Paragraph>나만 알고 싶은 장소를 기록해보세요.</Post.Paragraph>
         </VideoWrapper>
       </Root>

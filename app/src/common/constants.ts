@@ -127,6 +127,7 @@ export const TEXT = {
   MSG_CREATE_PLACE_HISTORY: "방문 내역을 생성중이에요.",
   MSG_UPDATE_PLACE_HISTORY: "방문 내역을 업데이트중이에요.",
   MSG_DELETE_PLACE_HISTORY: "방문 내역을 삭제중이에요.",
+  MSG_REFUND_GUIDE: "환불은 남은 잔여 아이템 개수만큼만 가능해요.",
   MENU_CHOICE_ITEMS: "항목을 선택해주세요",
   MENU_CATEGORY_CHOICE: "카테고리 선택",
   MENU_SORT_NAME_DESC: "장소 이름 내림차순",
@@ -187,6 +188,7 @@ export const PUBLIC_IMAGES = {
   EDIT: "https://static.toss.im/icons/svg/icon-pencil-blue.svg",
   DELETE: "https://static.toss.im/icons/svg/icon-bin.svg",
   CURRENT_LOCATION: "https://static.toss.im/icons/svg/icon-pin-location.svg",
+  MONEY_WARNING: "https://static.toss.im/icons/svg/icon-money-bag-warning-red.svg",
   SHOT_MAP: "shot_map.png",
   SHOT_MAP_DETAIL: "shot_map_detail.png",
   SHOT_PLACE: "shot_place.png",
@@ -235,3 +237,6 @@ export const SORTED_SKU = [
 ];
 
 export const AD_ID = "ait.v2.live.372bc4cbb7dd44e6"; // 전면 광고
+
+export const PRODUCT_REASON_PURCHASE ="구매"
+

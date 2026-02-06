@@ -285,9 +285,14 @@ export const getProductInfo = async (id: string): Promise<Product | null> => {
   }
 };
 
+
+export type UpdateProductPayload = Partial<Omit<Product, "id" | "created">> & {
+  reason?: string;
+};
+
 export const updateProduct = async (
   id: string,
-  data: Partial<Omit<Product, "id" | "created">>,
+  data: UpdateProductPayload,
 ): Promise<Product | null> => {
   try {
     const response = await serverApiClient.put<Product>(`/product/${id}`, data);
@@ -297,6 +302,7 @@ export const updateProduct = async (
     return null;
   }
 };
+
 
 export const sendLog = async (tag: string, message: string): Promise<void> => {
   try {

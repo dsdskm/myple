@@ -17,6 +17,7 @@ import { ToastInfo } from "../types/toast"
 import { useApp } from "../context/AppContext"
 import { Product } from "../types/product"
 import { BottomButtonWrapper, PageWrapper } from "./PlaceEditPage"
+import { theme } from "../styles/theme"
 
 const TagWrapper = styled.div`
     display:flex;
@@ -33,7 +34,7 @@ const TagItemWrapper = styled.div`
 
 const TagItem = styled.div`
     background: #e3f2fd;
-    color: #1976d2;
+    color: ${theme.colors.primary};
     padding: 0.3rem 0.7rem;
     border-radius: 12px;
     font-size: 0.9rem;
