@@ -1,11 +1,12 @@
 import { Account } from "@/types/account";
 import { Bill } from "@/types/bill";
 import { Category } from "@/types/category";
-import { Orders, TossOrders } from "@/types/toss.orders";
+import { TossOrders } from "@/types/toss.orders";
 import { Place } from "@/types/place";
 import { Product } from "@/types/product";
-import https from "https";
 import axios from "axios";
+import { UpdateProductPayload } from "@/pages/AccountDetailPage";
+import { ProductHistoryItem } from "@/types/product.history.item";
 
 export const serverApiClient = axios.create({
   baseURL: import.meta.env.VITE_BACKEND_URL,
@@ -92,6 +93,19 @@ export const getCategory = async (id: string): Promise<Category | null> => {
   }
 };
 
+export const updateProduct = async (
+  id: string,
+  data: UpdateProductPayload,
+): Promise<Product | null> => {
+  try {
+    const response = await serverApiClient.put<Product>(`/product/${id}`, data);
+    return response.data;
+  } catch (error) {
+    console.log(error);
+    return null;
+  }
+};
+
 export const getProductInfo = async (id: string): Promise<Product | null> => {
   try {
     const response = await serverApiClient.get<Product>(`/product/${id}`);
@@ -101,6 +115,16 @@ export const getProductInfo = async (id: string): Promise<Product | null> => {
     return null;
   }
 };
+
+export const getProductHistory = async (userKey: string): Promise<ProductHistoryItem[]> => {
+  try {
+    const response = await serverApiClient.get<ProductHistoryItem[]>(`/product/${userKey}/history`);
+    return response.data;
+  } catch (error) {
+    return [];
+  };
+};
+
 
 export const getPlaces = async (creator: string): Promise<Place[]> => {
   try {
