@@ -40,6 +40,7 @@ const AbsoluteCenter = styled.div`
   display: grid;
   justify-items: center;
   row-gap: 16px;
+  margin-top: 20px;
 `;
 
 /** ✅ 슬라이드 크기를 확실히 제한하는 박스 */

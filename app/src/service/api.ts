@@ -6,6 +6,7 @@ import { Category } from "../types/category";
 import { SubscriptionInfo } from "../types/subscriptionInfo";
 import { Product } from "../types/product";
 import { Bill } from "../types/bill";
+import { Notice } from "../types/notice";
 
 const serverApiClient = axios.create({
   baseURL: process.env.REACT_APP_BACKEND_URL,
@@ -285,15 +286,11 @@ export const getProductInfo = async (id: string): Promise<Product | null> => {
   }
 };
 
-
 export type UpdateProductPayload = Partial<Omit<Product, "id" | "created">> & {
   reason?: string;
 };
 
-export const updateProduct = async (
-  id: string,
-  data: UpdateProductPayload,
-): Promise<Product | null> => {
+export const updateProduct = async (id: string, data: UpdateProductPayload): Promise<Product | null> => {
   try {
     const response = await serverApiClient.put<Product>(`/product/${id}`, data);
     return response.data;
@@ -302,7 +299,6 @@ export const updateProduct = async (
     return null;
   }
 };
-
 
 export const sendLog = async (tag: string, message: string): Promise<void> => {
   try {
@@ -315,6 +311,27 @@ export const sendLog = async (tag: string, message: string): Promise<void> => {
 export const createBill = async (data: Omit<Bill, "id" | "created">): Promise<Bill | null> => {
   try {
     const response = await serverApiClient.post<Bill>("/bill", data);
+    return response.data;
+  } catch (error) {
+    console.log(error);
+    return null;
+  }
+};
+
+// ✅ 지금 노출 가능한 공지 목록 (startAt/endAt + isVisible 조합)
+export const getVisibleNoticesNow = async (): Promise<Notice[]> => {
+  try {
+    const response = await serverApiClient.get<Notice[]>(`/notice/visible/now`);
+    return response.data;
+  } catch (error) {
+    console.log(error);
+    return [];
+  }
+};
+
+export const getNotice = async (id: string): Promise<Notice | null> => {
+  try {
+    const response = await serverApiClient.get<Notice>(`/notice/${id}`);
     return response.data;
   } catch (error) {
     console.log(error);

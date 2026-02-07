@@ -4,13 +4,15 @@ import styled from "styled-components";
 import { BottomSheet, Button, Text, Paragraph, Rating, Toast } from "@toss/tds-mobile";
 import { NETWORK_STATUS, PERMISSIONS, PUBLIC_IMAGES, ROUTES, TEXT } from "../common/constants";
 import BottomTabBar from "./BottomTabBar";
-import { getCategory, getPlaces } from "../service/api";
+import { getCategory, getPlaces, getVisibleNoticesNow } from "../service/api";
 import { useApp } from "../context/AppContext";
 import { Media, Place } from "../types/place";
+import { Notice } from "../types/notice";
 import { Accuracy, getCurrentLocation, getNetworkStatus, startUpdateLocation } from "@apps-in-toss/web-framework";
 import { useLocation, useNavigate } from "react-router-dom";
 import ImagePreview, { ImagePreviewContainer } from "./common/ImagePreview";
 import { ToastInfo } from "../types/toast";
+import NoticePopup, { isNoticeHiddenNow } from "./NoticePopup";
 
 const MapWrapper = styled.div`
   position: relative;
@@ -72,12 +74,19 @@ const PlaceInfoRow = styled.div`
   align-items: space-between;
   width: 100%;
 `;
+
 const DEFAULT_ZOOM = 12;
-export default function MapPage() {
+
+// ✅ 세션 동안 "공지 1회만" 보여주기
+const SESSION_NOTICE_SHOWN_KEY = "place-map-notice-shown-once";
+
+export default function PlaceMapPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const paramPlace: Place = location.state && location.state.selectedPlace ? location.state.selectedPlace : null;
+
   const { account } = useApp();
+
   const [isPlaceInfoOpen, setIsPlaceInfoOpen] = useState<boolean>(false);
   const [myPlaceList, setMyPlaceList] = useState<Place[] | []>([]);
   const [mapCenterLocation, setMapCenterLocation] = useState<any>({ lat: 37.5665, lng: 126.978 });
@@ -86,6 +95,10 @@ export default function MapPage() {
   const [zoom, setZoome] = useState<number>(DEFAULT_ZOOM);
   const [categoryMap, setCategoryMap] = useState<Map<number, string>>();
   const [toast, setToast] = useState<ToastInfo>({ show: false, message: "" });
+
+  // ✅ Notice popup state
+  const [notices, setNotices] = useState<Notice[]>([]);
+  const [isNoticeOpen, setIsNoticeOpen] = useState<boolean>(false);
 
   useEffect(() => {
     startUpdateLocation({
@@ -117,6 +130,23 @@ export default function MapPage() {
         setCategoryMap(map);
       }
     };
+
+    // ✅ 현재 노출 공지 로드 (세션 1회만)
+    const loadNotices = async () => {
+      const alreadyShown = sessionStorage.getItem(SESSION_NOTICE_SHOWN_KEY) === "1";
+      if (alreadyShown) return;
+
+      const list = await getVisibleNoticesNow();
+      const filtered = (Array.isArray(list) ? list : []).filter((n) => !isNoticeHiddenNow(n.id));
+
+      setNotices(filtered);
+
+      if (filtered.length > 0) {
+        setIsNoticeOpen(true);
+        sessionStorage.setItem(SESSION_NOTICE_SHOWN_KEY, "1"); // ✅ 열었으면 세션에 기록
+      }
+    };
+
     const load = async () => {
       const networkStatus = await getNetworkStatus();
       if (
@@ -126,10 +156,12 @@ export default function MapPage() {
       ) {
         loadPlaces();
         loadCategories();
+        loadNotices();
       } else {
         setToast({ show: true, message: TEXT.MSG_NETWORK_ERROR });
       }
     };
+
     if (account) {
       load();
     }
@@ -170,7 +202,9 @@ export default function MapPage() {
         images = images.concat(history.medias as Media[]);
       }
     });
+
     const recentHistory = selectedPlace.historyList.length > 0 ? selectedPlace.historyList[0] : null;
+
     return (
       selectedPlace &&
       categoryMap && (
@@ -200,6 +234,7 @@ export default function MapPage() {
             </PlaceInfoRow>
 
             {selectedPlace.address && <Paragraph.Text>{selectedPlace.address}</Paragraph.Text>}
+
             <ImagePreviewContainer>
               {images.map((image: any) => {
                 return (
@@ -213,6 +248,7 @@ export default function MapPage() {
                 );
               })}
             </ImagePreviewContainer>
+
             {recentHistory && <Text>{recentHistory.memo}</Text>}
             {recentHistory && (
               <Text style={{ fontStyle: "italic", fontSize: 14, marginTop: 5 }}>{Array.from(tags)}</Text>
@@ -226,6 +262,7 @@ export default function MapPage() {
               총 {selectedPlace.historyList.length}회 방문
             </Text>
           </PlaceInfoContents>
+
           <SubmitWrapper>
             <SubmitButton
               size="medium"
@@ -237,7 +274,6 @@ export default function MapPage() {
                 })
               }
             >
-              {" "}
               {TEXT.DETAILS}
             </SubmitButton>
           </SubmitWrapper>
@@ -253,6 +289,10 @@ export default function MapPage() {
         const marker = filteredList[0];
         setSelectedPlace(marker);
         setIsPlaceInfoOpen(true);
+
+        // ✅ 공지 열려있으면, 장소 상세 열 때 공지는 닫아주는 게 UX 좋음(선택)
+        setIsNoticeOpen(false);
+
         setMapCenterLocation({ lat: marker.latitude, lng: marker.longitude });
         setZoome(DEFAULT_ZOOM);
         return;
@@ -314,6 +354,7 @@ export default function MapPage() {
               />
             );
           })}
+
         <Marker
           key={"current"}
           label={{ text: TEXT.CURRENT_LOCATION, color: "#000", fontSize: "20px", fontWeight: "bold" }}
@@ -347,6 +388,16 @@ export default function MapPage() {
       </MapWrapper>
 
       {selectedPlace && placeInfoComponent()}
+
+      {/* ✅ Notice Popup (세션 1회만 open됨) */}
+      <NoticePopup
+        notices={notices}
+        open={isNoticeOpen}
+        onClose={() => {
+          setIsNoticeOpen(false);
+        }}
+      />
+
       <Toast
         position="bottom"
         open={toast.show}
