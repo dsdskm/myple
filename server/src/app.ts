@@ -10,6 +10,7 @@ import fileRouter from "./router/file.router";
 import scriptRouter from "./router/script.router";
 import logRouter from "./router/log.router";
 import billRouter from "./router/bill.router";
+import noticeRouter from "./router/notice.router";
 // .env 파일의 환경 변수를 로드합니다.
 dotenv.config();
 
@@ -62,6 +63,7 @@ app.use("/product", productRouter);
 app.use("/file", fileRouter);
 app.use("/script", scriptRouter);
 app.use("/bill", billRouter);
+app.use("/notice", noticeRouter);
 app.use("/log", logRouter);
 
 // 서버 시작
