@@ -1,5 +1,3 @@
-.DS_Store
-server/.env
-server/key/service_account.json
-server/node_modules
-server/dist
+/admin/.firebase
+/admin/dist
+admin/pnpm-lock.yaml

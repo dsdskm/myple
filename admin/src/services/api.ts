@@ -4,6 +4,7 @@ import { Category } from "@/types/category";
 import { TossOrders } from "@/types/toss.orders";
 import { Place } from "@/types/place";
 import { Product } from "@/types/product";
+import { Notice } from "@/types/notice";
 import axios from "axios";
 import { UpdateProductPayload } from "@/pages/AccountDetailPage";
 import { ProductHistoryItem } from "@/types/product.history.item";
@@ -168,6 +169,83 @@ export const getOrders = async (userKey: string, orderId: string): Promise<TossO
   try {
     const response = await serverApiClient.post<TossOrders>(`/toss/orders`, { userKey, orderId });
     console.log(`response`, response);
+    return response.data;
+  } catch (error) {
+    console.log(error);
+    return null;
+  }
+};
+
+export const createNotice = async (data: Omit<Notice, "id" | "created" | "updated">): Promise<Notice | null> => {
+  try {
+    const response = await serverApiClient.post<Notice>(`/notice`, data);
+    return response.data;
+  } catch (error) {
+    console.log(error);
+    return null;
+  }
+};
+
+export const updateNotice = async (
+  id: string,
+  data: Partial<Omit<Notice, "id" | "created" | "updated">>,
+): Promise<Notice | null> => {
+  try {
+    const response = await serverApiClient.put<Notice>(`/notice/${id}`, data);
+    return response.data;
+  } catch (error) {
+    console.log(error);
+    return null;
+  }
+};
+
+// 전체 공지 목록
+export const getNotices = async (): Promise<Notice[]> => {
+  try {
+    const response = await serverApiClient.get<Notice[]>(`/notice`);
+    return response.data;
+  } catch (error) {
+    console.log(error);
+    return [];
+  }
+};
+
+// ✅ 지금 노출 가능한 공지 목록 (startAt/endAt + isVisible 조합)
+export const getVisibleNoticesNow = async (): Promise<Notice[]> => {
+  try {
+    const response = await serverApiClient.get<Notice[]>(`/notice/visible/now`);
+    return response.data;
+  } catch (error) {
+    console.log(error);
+    return [];
+  }
+};
+
+// 단건 조회
+export const getNoticeById = async (id: string): Promise<Notice | null> => {
+  try {
+    const response = await serverApiClient.get<Notice>(`/notice/${id}`);
+    return response.data;
+  } catch (error) {
+    console.log(error);
+    return null;
+  }
+};
+
+// 삭제
+export const deleteNotice = async (id: string): Promise<boolean> => {
+  try {
+    await serverApiClient.delete(`/notice/${id}`);
+    return true;
+  } catch (error) {
+    console.log(error);
+    return false;
+  }
+};
+
+export const getNotice = async (id: string): Promise<Notice | null> => {
+  try {
+    const response = await serverApiClient.get<Notice>(`/notice/${id}`);
     return response.data;
   } catch (error) {
     console.log(error);

@@ -21,6 +21,7 @@ import NoticePage from "./pages/NoticePage";
 import FeedbackPage from "./pages/FeedbackPage";
 import TermsPage from "./pages/TermsPage";
 import AccountDetailPage from "./pages/AccountDetailPage";
+import NoticeUpsertPage from "./pages/NoticeUpsertPage";
 
 const queryClient = new QueryClient();
 
@@ -38,6 +39,8 @@ const router = createBrowserRouter([
           { path: PATH.ACCOUNT_DETAIL, element: <AccountDetailPage /> },
           { path: PATH.BILLING, element: <BillingPage /> },
           { path: PATH.NOTICE, element: <NoticePage /> },
+          { path: PATH.NOTICE_NEW, element: <NoticeUpsertPage /> },
+          { path: PATH.NOTICE_DETAIL, element: <NoticeUpsertPage /> }, // ✅ 수정도 같은 페이지
           { path: PATH.FEEDBACK, element: <FeedbackPage /> },
           { path: PATH.TERMS, element: <TermsPage /> },
         ],
@@ -56,5 +59,5 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
         </ErrorBoundary>
       </AuthProvider>
     </QueryClientProvider>
-  </ThemeProvider>
+  </ThemeProvider>,
 );

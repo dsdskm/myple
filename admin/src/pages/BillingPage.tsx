@@ -7,7 +7,6 @@ import { Alert, Button, Card, Input, Space, Table, Tag, Typography, Modal, Descr
 import type { ColumnsType, TablePaginationConfig } from "antd/es/table";
 import type { FilterValue, SorterResult } from "antd/es/table/interface";
 import { ReloadOutlined } from "@ant-design/icons";
-import { Orders } from "@/types/toss.orders";
 
 const { Title, Text } = Typography;
 
