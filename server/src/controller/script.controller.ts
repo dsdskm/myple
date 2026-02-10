@@ -147,7 +147,7 @@ export const generatePlaces = async (req: Request, res: Response) => {
                 address: address,
                 created: '',
                 updated: '',
-                creator: 'tothetg@naver.com',
+                creator: 'toss_2105388381',
                 historyList: []
             }
             const createdData = await placeService.createNewPlace(data)

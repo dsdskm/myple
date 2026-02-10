@@ -69,6 +69,9 @@ export const requestTossAccessToken = async (authorizationCode: string, referrer
 };
 
 export const requestTossLogout = async (userKey: string, referrer: string) => {
+  if(!userKey) {
+    return false;
+  }
   const body = JSON.stringify({
     userKey: userKey,
     referrer: referrer,
