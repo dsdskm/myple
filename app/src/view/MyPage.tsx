@@ -7,8 +7,10 @@ import {
   Modal,
   Post,
   TableRow,
+  Text,
   TextField,
   Toast,
+  Tooltip,
 } from "@toss/tds-mobile";
 import {
   ALT,
@@ -18,6 +20,7 @@ import {
   PUBLIC_IMAGES,
   ROUTES,
   TEXT,
+  TOAST_DURATION_DEFAULT,
 } from "../common/constants";
 import BottomTabBar from "./BottomTabBar";
 import styled from "styled-components";
@@ -51,9 +54,8 @@ const modalContentStyle: any = {
 const MyPage = () => {
   const navigate = useNavigate();
   const { account, setAccount } = useApp();
-  console.log(`account`, account)
   const [withdrawDialogOpen, setWithdrawDialogOpen] = useState<boolean>(false);
-  const [placeList, setPlaceList] = useState<Place[]>([])
+  const [placeList, setPlaceList] = useState<Place[]>([]);
   const [categoryData, setCategoryData] = useState<Category>({
     id: "",
     list: [],
@@ -68,6 +70,7 @@ const MyPage = () => {
   const [targetCategoryError, setTargetCategoryError] = useState<boolean>(false);
   const [categoryDialogOpen, setCategoryDialogOpen] = useState<boolean>(false);
   const [categoryModifyDialogOpen, setCategoryModifyDialogOpen] = useState<boolean>(false);
+  const [categoryDisabledTooltipOpen, setCategoryDisabledTooltipOpen] = useState<boolean>(false);
   const [product, setProduct] = useState<Product | null>();
   const [toast, setToast] = useState<ToastInfo>({
     show: false,
@@ -76,11 +79,10 @@ const MyPage = () => {
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
   useEffect(() => {
-
     const loadPlaces = async () => {
       const list = await getPlaces(account.id);
-      setPlaceList(list)
-    }
+      setPlaceList(list);
+    };
 
     const loadCategories = async () => {
       const categoryData = await getCategory(account.id);
@@ -101,7 +103,7 @@ const MyPage = () => {
         networkStatus !== NETWORK_STATUS.UNKNOWN &&
         networkStatus !== NETWORK_STATUS.WWAN
       ) {
-        loadPlaces()
+        loadPlaces();
         loadCategories();
         loadProductInfo();
       } else {
@@ -124,12 +126,14 @@ const MyPage = () => {
         setToast({ show: true, message: TEXT.MSG_NETWORK_ERROR });
         return;
       }
-      await requestLogout(account.userKey, LOGOUT_REFERRER.UNLINK);
+      if (account.userKey) {
+        await requestLogout(account.userKey, LOGOUT_REFERRER.UNLINK);
+      }
       setAccount({
         type: ACTION_TYPE_SET_ACCOUNT,
         payload: initialAccountState,
       });
-      saveId("")
+      saveId("");
       setWithdrawDialogOpen(false);
       navigate(ROUTES.LOGIN, { replace: true });
     } catch (e) {
@@ -358,19 +362,34 @@ const MyPage = () => {
   };
 
   const infoView = () => {
+    let gender = "";
+    let categoryEnabled = false;
+    let placeEnabled = false;
+    if (account && product) {
+      gender = account.gender;
+      if (gender === "MALE") {
+        gender = TEXT.MALE;
+      } else if (gender === "FEMALE") {
+        gender = TEXT.FEMALE;
+      } else {
+        gender = TEXT.INVISIBLE;
+      }
+      categoryEnabled = categoryData.list.length <= product.category_limit;
+      placeEnabled = placeList.length <= product.place_limit;
+    }
     return (
       <>
         {account && product && (
           <>
             <TableRow align="space-between" left={TEXT.ID} right={account.id} />
             <TableRow align="space-between" left={TEXT.NAME} right={account.name} />
+            <TableRow align="space-between" left={TEXT.GENDER} right={gender} />
+            <TableRow align="space-between" left={TEXT.PHONE} right={account.phone ? account.phone : TEXT.INVISIBLE} />
             <TableRow
               align="space-between"
-              left={TEXT.GENDER}
-              right={account.gender === "MALE" ? TEXT.MALE : TEXT.FEMALE}
+              left={TEXT.BIRTHDAY}
+              right={account.birthday ? account.birthday : TEXT.INVISIBLE}
             />
-            <TableRow align="space-between" left={TEXT.PHONE} right={account.phone ? account.phone : TEXT.INVISIBLE} />
-            <TableRow align="space-between" left={TEXT.BIRTHDAY} right={account.birthday ? account.birthday : TEXT.INVISIBLE} />
             <TableRow
               align="space-between"
               left={TEXT.AGREED_TERMS}
@@ -378,15 +397,41 @@ const MyPage = () => {
             />
             <TableRow
               align="space-between"
-              left={TEXT.CATEGORY}
+              left={<Text>{TEXT.PRODUCT_CATEGORY_LIMIT}</Text>}
               right={
-                <Button style={{ marginLeft: 5 }} size="small" onClick={() => setCategoryDialogOpen(true)}>
-                  {TEXT.CATEGORY_MANAGEMENT}
-                </Button>
+                <div>
+                  <Text style={{ color: !categoryEnabled ? "red" : "inherit" }}>{categoryData.list.length}</Text>
+                  {" / "}
+                  <Text>{product.category_limit} 개</Text>
+                  <Tooltip message={TEXT.MSG_CATEGORY_DISABLED} open={categoryDisabledTooltipOpen}>
+                    <Button
+                      style={{ marginLeft: 15 }}
+                      size="small"
+                      onClick={() => {
+                        if (categoryEnabled) {
+                          setCategoryDialogOpen(true);
+                        } else {
+                          setCategoryDisabledTooltipOpen((prv) => !prv);
+                        }
+                      }}
+                    >
+                      {TEXT.VIEW}
+                    </Button>
+                  </Tooltip>
+                </div>
               }
             />
-            <TableRow align="space-between" left={TEXT.PRODUCT_CATEGORY_LIMIT} right={`${categoryData.list.length} / ${product.category_limit} 개`} />
-            <TableRow align="space-between" left={TEXT.PRODUCT_PLACE_LIMIT} right={`${placeList.length} / ${product.place_limit} 개`} />
+            <TableRow
+              align="space-between"
+              left={TEXT.PRODUCT_PLACE_LIMIT}
+              right={
+                <div>
+                  <Text style={{ color: !placeEnabled ? "red" : "inherit" }}>{placeList.length}</Text>
+                  {" / "}
+                  <Text>{product.place_limit} 개</Text>
+                </div>
+              }
+            />
           </>
         )}
       </>
@@ -417,7 +462,7 @@ const MyPage = () => {
         position="bottom"
         open={toast.show}
         text={toast.message}
-        duration={2000}
+        duration={TOAST_DURATION_DEFAULT}
         onClose={() => {
           setToast({ show: false, message: "" });
         }}

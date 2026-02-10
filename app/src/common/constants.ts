@@ -24,7 +24,7 @@ export const TEXT = {
   PLACE_NAME: "장소 이름",
   CATEGORY: "카테고리",
   CATEGORY_MODIFY: "카테고리 수정",
-  CATEGORY_MANAGEMENT: "카테고리 관리",
+  VIEW: "보기",
   ADDRESS: "주소",
   LATITUDE_LONGITUDE: "위도, 경도",
   LOCATION: "위치",
@@ -51,6 +51,7 @@ export const TEXT = {
   TAKE_PHOTO: "사진 촬영하기",
   GET_POHOTO: "사진 가져오기",
   LOGIN: "로그인",
+  LOGIN_SKIP: "건너뛰기",
   LOGOUT: "로그아웃",
   WITHDRAW: "탈퇴",
   PURCHASE: "구매하기",
@@ -89,7 +90,8 @@ export const TEXT = {
   MSG_LOGIN_SUCCESS: "로그인에 성공했어요.",
   MSG_LOGIN_FAILED: "로그인에 실패했어요.",
   MSG_LOGOUT_CONFIRM: "로그아웃 하시겠어요?",
-  MSG_WITHDRAW_CONFIRM: "서비스 탈퇴하시겠어요?",
+  MSG_WITHDRAW_CONFIRM: "서비스 탈퇴하시겠어요?(복구는 불가능해요)",
+  MSG_GUIDE_LOGIN: "토스 로그인 이후 아이템 구매 가능해요. 로그인 하시겠어요?",
   MSG_DELETE_CONFORM: "삭제 하시겠어요?(복구는 불가능해요)",
   MSG_PLACE_NAME: "장소 이름을 입력해주세요.(10자 이내)",
   MSG_CATEGORY: "카테고리를 선택해주세요.",
@@ -116,6 +118,7 @@ export const TEXT = {
   MSG_EMPTY_RESULT_DESC: "장소명과 태그를 다시 입력해주세요.",
   MSG_EMPTY_PURCHASED: "결제 내역이 없어요.",
   MSG_BACK_KEY_EVENT: "마이플을 종료할까요?",
+  MSG_LOGIN_SKIP: "기기가 변경되면 데이터를 복구/이전할 수 없어요. 로그인 없이 이용하시겠어요?",
   MSG_ERROR: "에러가 발생했어요.",
   MSG_MOVE_TO_LOGIN: "광고 및 로그인 화면으로 이동중이에요.",
   MSG_LOAD_ITEMS: "아이템들을 불러오고 있어요.",
@@ -128,6 +131,8 @@ export const TEXT = {
   MSG_UPDATE_PLACE_HISTORY: "방문 내역을 업데이트중이에요.",
   MSG_DELETE_PLACE_HISTORY: "방문 내역을 삭제중이에요.",
   MSG_REFUND_GUIDE: "환불은 남은 잔여 아이템 개수만큼만 가능해요.",
+  MSG_REFUND_WARNING: "잔여 아이템이 없는 경우 기능을 이용할 수 없어요.",
+  MSG_CATEGORY_DISABLED: "카테고리 아이템 구매가 필요해요.",
   MENU_CHOICE_ITEMS: "항목을 선택해주세요",
   MENU_CATEGORY_CHOICE: "카테고리 선택",
   MENU_SORT_NAME_DESC: "장소 이름 내림차순",
@@ -205,11 +210,15 @@ export const PUBLIC_VIDEOS = {
 };
 
 export const getCategoryLimitText = (limit: number) => {
-  return `최대 ${limit}개 까지 카테고리 추가가 가능해요.`;
+  return `최대 ${limit}개 까지 카테고리 추가가 가능해요. 아이템 구매로 한도 확장이 가능해요.`;
 };
 
 export const getPlaceHistoryPhotoLimitText = (limit: number) => {
-  return `최대 ${limit}개 까지 사진 추가가 가능해요.`;
+  return `최대 ${limit}개 까지 사진 추가가 가능해요. 아이템 구매로 한도 확장이 가능해요.`;
+};
+
+export const getPlaceLimitText = (limit: number) => {
+  return `최대 ${limit}개 까지 장소 추가가 가능해요. 아이템 구매로 한도 확장이 가능해요.`;
 };
 
 export const getSearchResult = (tagSearching: boolean, count: number) => {
@@ -238,5 +247,6 @@ export const SORTED_SKU = [
 
 export const AD_ID = "ait.v2.live.372bc4cbb7dd44e6"; // 전면 광고
 
-export const PRODUCT_REASON_PURCHASE ="구매"
+export const PRODUCT_REASON_PURCHASE = "구매";
 
+export const TOAST_DURATION_DEFAULT = 3000

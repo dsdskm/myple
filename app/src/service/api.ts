@@ -103,6 +103,16 @@ export const uploadFiles = async (placeId: string, id: string, pictures: Media[]
   return [];
 };
 
+export const createUser = async (id: string): Promise<Account | null> => {
+  try {
+    const response = await serverApiClient.post<Account>(`/account/${id}`);
+    return response.data;
+  } catch (error) {
+    console.log(error);
+    return null;
+  }
+};
+
 export const updateUser = async (userData: Partial<Account>): Promise<Account | null> => {
   try {
     const response = await serverApiClient.put<Account>(`/account/${userData.id}`, userData);

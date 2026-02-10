@@ -18,7 +18,7 @@ import {
   Toast,
 } from "@toss/tds-mobile";
 import styled from "styled-components";
-import { getSearchResult, NETWORK_STATUS, PUBLIC_IMAGES, ROUTES, TEXT } from "../common/constants";
+import { getSearchResult, NETWORK_STATUS, PUBLIC_IMAGES, ROUTES, TEXT, TOAST_DURATION_DEFAULT } from "../common/constants";
 import { parseKoreanDateTime } from "../common/utils";
 import ImagePreview, { ImagePreviewContainer } from "./common/ImagePreview";
 import { getNetworkStatus } from "@apps-in-toss/web-framework";
@@ -604,7 +604,7 @@ const PlaceListPage = () => {
         position="bottom"
         open={toast.show}
         text={toast.message}
-        duration={2000}
+        duration={TOAST_DURATION_DEFAULT}
         onClose={() => {
           setToast({ show: false, message: "" });
         }}

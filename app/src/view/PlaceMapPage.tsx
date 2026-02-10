@@ -2,9 +2,9 @@ import { useEffect, useState } from "react";
 import { GoogleMap, Marker } from "@react-google-maps/api";
 import styled from "styled-components";
 import { BottomSheet, Button, Text, Paragraph, Rating, Toast } from "@toss/tds-mobile";
-import { NETWORK_STATUS, PERMISSIONS, PUBLIC_IMAGES, ROUTES, TEXT } from "../common/constants";
+import { NETWORK_STATUS, PERMISSIONS, PUBLIC_IMAGES, ROUTES, TEXT, TOAST_DURATION_DEFAULT } from "../common/constants";
 import BottomTabBar from "./BottomTabBar";
-import { getCategory, getPlaces, getVisibleNoticesNow } from "../service/api";
+import { createUser, getCategory, getPlaces, getUser, getVisibleNoticesNow, sendLog } from "../service/api";
 import { useApp } from "../context/AppContext";
 import { Media, Place } from "../types/place";
 import { Notice } from "../types/notice";
@@ -13,6 +13,8 @@ import { useLocation, useNavigate } from "react-router-dom";
 import ImagePreview, { ImagePreviewContainer } from "./common/ImagePreview";
 import { ToastInfo } from "../types/toast";
 import NoticePopup, { isNoticeHiddenNow } from "./NoticePopup";
+import { generateTossId, loadId, saveId } from "../common/utils";
+import { ACTION_TYPE_SET_ACCOUNT } from "../types/account";
 
 const MapWrapper = styled.div`
   position: relative;
@@ -79,13 +81,13 @@ const DEFAULT_ZOOM = 12;
 
 // ✅ 세션 동안 "공지 1회만" 보여주기
 const SESSION_NOTICE_SHOWN_KEY = "place-map-notice-shown-once";
-
+const TAG = "PlaceMapPage";
 export default function PlaceMapPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const paramPlace: Place = location.state && location.state.selectedPlace ? location.state.selectedPlace : null;
 
-  const { account } = useApp();
+  const { account, setAccount } = useApp();
 
   const [isPlaceInfoOpen, setIsPlaceInfoOpen] = useState<boolean>(false);
   const [myPlaceList, setMyPlaceList] = useState<Place[] | []>([]);
@@ -99,6 +101,27 @@ export default function PlaceMapPage() {
   // ✅ Notice popup state
   const [notices, setNotices] = useState<Notice[]>([]);
   const [isNoticeOpen, setIsNoticeOpen] = useState<boolean>(false);
+
+  useEffect(() => {
+    // for skim
+    const checkAccountData = async () => {
+      let account;
+      const id = loadId();
+      if (id) {
+        account = await getUser(id);
+        console.log(`found user with id ${id}, response account ${JSON.stringify(account)}`);
+      } else {
+        const genId = generateTossId();
+        account = await createUser(genId);
+        console.log(`create user with id ${genId}, response account ${JSON.stringify(account)}`);
+        saveId(genId);
+      }
+      if (account) {
+        setAccount({ type: ACTION_TYPE_SET_ACCOUNT, payload: account });
+      }
+    };
+    checkAccountData();
+  }, []);
 
   useEffect(() => {
     startUpdateLocation({
@@ -117,13 +140,31 @@ export default function PlaceMapPage() {
   }, []);
 
   useEffect(() => {
-    const loadPlaces = async () => {
-      const list = await getPlaces(account.id);
+    const checkAccountData = async () => {
+      let account;
+      const id = loadId();
+      if (id) {
+        account = await getUser(id);
+        console.log(`found user with id ${id}, response account ${JSON.stringify(account)}`);
+      } else {
+        const genId = generateTossId();
+        account = await createUser(genId);
+        console.log(`create user with id ${genId}, response account ${JSON.stringify(account)}`);
+        saveId(genId);
+      }
+      if (account && account.id) {
+        load(account.id);
+        setAccount({ type: ACTION_TYPE_SET_ACCOUNT, payload: account });
+      }
+    };
+
+    const loadPlaces = async (id: string) => {
+      const list = await getPlaces(id);
       setMyPlaceList(list);
     };
 
-    const loadCategories = async () => {
-      const categoryData = await getCategory(account.id);
+    const loadCategories = async (id: string) => {
+      const categoryData = await getCategory(id);
       if (categoryData) {
         const map = new Map<number, string>();
         categoryData.list.forEach((c) => map.set(c.id, c.title));
@@ -147,23 +188,27 @@ export default function PlaceMapPage() {
       }
     };
 
-    const load = async () => {
+    const load = async (id: string) => {
+      console.log(`load id ${id}`);
       const networkStatus = await getNetworkStatus();
       if (
         networkStatus !== NETWORK_STATUS.OFFLINE &&
         networkStatus !== NETWORK_STATUS.UNKNOWN &&
         networkStatus !== NETWORK_STATUS.WWAN
       ) {
-        loadPlaces();
-        loadCategories();
+        loadPlaces(id);
+        loadCategories(id);
         loadNotices();
       } else {
         setToast({ show: true, message: TEXT.MSG_NETWORK_ERROR });
       }
     };
 
-    if (account) {
-      load();
+    if (account && account.id) {
+      load(account.id);
+    } else {
+      // skim
+      checkAccountData();
     }
   }, [account]);
 
@@ -389,7 +434,6 @@ export default function PlaceMapPage() {
 
       {selectedPlace && placeInfoComponent()}
 
-      {/* ✅ Notice Popup (세션 1회만 open됨) */}
       <NoticePopup
         notices={notices}
         open={isNoticeOpen}
@@ -402,7 +446,7 @@ export default function PlaceMapPage() {
         position="bottom"
         open={toast.show}
         text={toast.message}
-        duration={2000}
+        duration={TOAST_DURATION_DEFAULT}
         onClose={() => {
           setToast({ show: true, message: "" });
         }}

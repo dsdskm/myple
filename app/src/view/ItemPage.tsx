@@ -1,16 +1,17 @@
-import { Asset, Button, List, Modal, Post, Result, Toast, Text } from "@toss/tds-mobile";
+import { Asset, Button, List, Modal, Post, Result, Toast, Text, ConfirmDialog } from "@toss/tds-mobile";
 import BottomTabBar from "./BottomTabBar";
 import styled from "styled-components";
 import { useEffect, useState } from "react";
 import Loading from "./common/Loading";
 import { ToastInfo } from "../types/toast";
 import { IAP, IapProductListItem } from "@apps-in-toss/web-framework";
-import { PRODUCT_REASON_PURCHASE, PUBLIC_IMAGES, SKU_DONATION, SORTED_SKU, TEXT } from "../common/constants";
+import { PRODUCT_REASON_PURCHASE, PUBLIC_IMAGES, ROUTES, SKU_DONATION, SORTED_SKU, TEXT, TOAST_DURATION_DEFAULT } from "../common/constants";
 import { useApp } from "../context/AppContext";
 import { createBill, getProductInfo, sendLog, updateProduct } from "../service/api";
 import { Bill } from "../types/bill";
 import { theme } from "../styles/theme";
 import { Product } from "../types/product";
+import { useNavigate } from "react-router-dom";
 
 const Contents = styled.div`
   display: flex;
@@ -33,9 +34,27 @@ const ItemRowLeft = styled.div`
 
 const Divider = styled.div`
   height: 1px;
-  margin: 20px;
-  background-color: ${theme.colors.primary}
-`
+  margin-top:10px;
+  margin-bottom:10px;
+  margin-left:20px;
+  margin-right:20px;
+  background-color: ${theme.colors.primary};
+`;
+
+const HistoryButtonWrapper = styled.div`
+  width: 100%;
+  display: flex;
+  flex: 1;
+  justify-content: center;
+  margin-bottom: 10px;
+`;
+
+const WarningTextWrapper = styled.div`
+  display: flex;
+  margin-left: 15px;
+  margin-right: 15px;
+  align-items: center;
+  gap: 10px;`;
 
 interface HistoryOrder {
   orderId: string;
@@ -46,6 +65,7 @@ interface HistoryOrder {
 
 const TAG = "ItemPage";
 const ItemPage = () => {
+  const navigate = useNavigate();
   const { account } = useApp();
   const [toast, setToast] = useState<ToastInfo>({
     show: false,
@@ -56,6 +76,7 @@ const ItemPage = () => {
   const [productItemHistoryList, setProductItemHistoryList] = useState<HistoryOrder[]>([]);
   const [productItemHistoryMap, setProductItemHistoryMap] = useState<Map<string, IapProductListItem>>();
   const [itemHistoryViewOpen, setItemHistoryViewOpen] = useState<boolean>(false);
+  const [loginGuideDialogOpen, setLoginGuideDialogOpen] = useState<boolean>(false);
 
   useEffect(() => {
     const loadProductItemList = async () => {
@@ -76,9 +97,8 @@ const ItemPage = () => {
 
   const onProcessProductGrant = async (sku: string) => {
     const product = await getProductInfo(account.id);
-    let payload: Partial<Product> & { reason: string } | null = null;
+    let payload: (Partial<Product> & { reason: string }) | null = null;
     if (product) {
-
       switch (sku) {
         case SORTED_SKU[0]:
           // 카테고리 1개 증가
@@ -102,10 +122,8 @@ const ItemPage = () => {
 
       if (!payload) return;
       await updateProduct(account.id, payload);
-
-    };
-
-  }
+    }
+  };
   const onPurchaseClick = async (sku: string) => {
     IAP.createOneTimePurchaseOrder({
       options: {
@@ -139,6 +157,26 @@ const ItemPage = () => {
       },
     });
   };
+  const loginGuideDialog = () => {
+    const onLoginGuideClick = () => {
+      navigate(ROUTES.LOGIN);
+    };
+    return (
+      <ConfirmDialog
+        open={loginGuideDialogOpen}
+        title={<ConfirmDialog.Title>{TEXT.MSG_GUIDE_LOGIN}</ConfirmDialog.Title>}
+        cancelButton={
+          <ConfirmDialog.CancelButton onClick={() => setLoginGuideDialogOpen(false)}>
+            {TEXT.NO}
+          </ConfirmDialog.CancelButton>
+        }
+        confirmButton={
+          <ConfirmDialog.ConfirmButton onClick={onLoginGuideClick}>{TEXT.YES}</ConfirmDialog.ConfirmButton>
+        }
+        onClose={() => setLoginGuideDialogOpen(false)}
+      />
+    );
+  };
 
   const productView = () => {
     return (
@@ -161,7 +199,11 @@ const ItemPage = () => {
                     <Button
                       size="small"
                       onClick={() => {
-                        onPurchaseClick(sku);
+                        if (account.id.startsWith("toss_")) {
+                          setLoginGuideDialogOpen(true);
+                        } else {
+                          onPurchaseClick(sku);
+                        }
                       }}
                     >
                       {btnText}
@@ -183,7 +225,7 @@ const ItemPage = () => {
         {productItemHistoryMap && (
           <Modal open={itemHistoryViewOpen} onOpenChange={setItemHistoryViewOpen}>
             <Modal.Overlay />
-            <Modal.Content>
+            <Modal.Content style={{ padding: 10 }}>
               <Post.H3>{TEXT.ITEM_PURCHASE_HISTORY}</Post.H3>
               <List>
                 {(!productItemHistoryList || productItemHistoryList.length === 0) && (
@@ -227,11 +269,11 @@ const ItemPage = () => {
                   );
                 })}
               </List>
-              <div style={{ width: "100%", display: "flex", flex: 1, justifyContent: "center", marginBottom: 10 }}>
+              <HistoryButtonWrapper>
                 <Button size="medium" style={{ width: "75%" }} onClick={() => setItemHistoryViewOpen(false)}>
                   {TEXT.OK}
                 </Button>
-              </div>
+              </HistoryButtonWrapper>
             </Modal.Content>
           </Modal>
         )}
@@ -247,11 +289,16 @@ const ItemPage = () => {
   };
 
   const warningView = () => {
-    return <div style={{ display: "flex", marginLeft: 15, marginRight: 15, alignItems: "center", gap: 10 }}>
-      <img style={{ width: 30, height: 30 }} src={PUBLIC_IMAGES.MONEY_WARNING} alt={PUBLIC_IMAGES.MONEY_WARNING} />
-      <Text>{TEXT.MSG_REFUND_GUIDE}</Text>
-    </div>
-  }
+    return (
+      <WarningTextWrapper>
+        <img style={{ width: 30, height: 30 }} src={PUBLIC_IMAGES.MONEY_WARNING} alt={PUBLIC_IMAGES.MONEY_WARNING} />
+        <div>
+          <Text style={{ fontSize: 14 }}>{TEXT.MSG_REFUND_GUIDE}</Text>
+          <Text style={{ fontSize: 14 }}>{TEXT.MSG_REFUND_WARNING}</Text>
+        </div>
+      </WarningTextWrapper>
+    );
+  };
 
   if (isLoading) {
     return <Loading label={TEXT.MSG_LOAD_ITEMS} />;
@@ -270,11 +317,12 @@ const ItemPage = () => {
         </Button>
       </Contents>
       {itemHistoryView()}
+      {loginGuideDialog()}
       <Toast
         position="bottom"
         open={toast.show}
         text={toast.message}
-        duration={2000}
+        duration={TOAST_DURATION_DEFAULT}
         onClose={() => {
           setToast({ show: false, message: "" });
         }}

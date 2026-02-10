@@ -3,7 +3,7 @@ import { useLocation, useNavigate } from "react-router-dom"
 import { Media, Place, PlaceHistory } from "../types/place"
 import { useEffect, useRef, useState } from "react"
 import { AlertDialog, Button, ConfirmDialog, FixedBottomCTA, Paragraph, Post, Rating, TextArea, TextField, Toast } from "@toss/tds-mobile"
-import { getPlaceHistoryPhotoLimitText, NETWORK_STATUS, PERMISSIONS, TEXT } from "../common/constants"
+import { getPlaceHistoryPhotoLimitText, NETWORK_STATUS, PERMISSIONS, TEXT, TOAST_DURATION_DEFAULT } from "../common/constants"
 import { fetchAlbumPhotos, getNetworkStatus, openCamera } from "@apps-in-toss/web-framework"
 import { DateTimePicker, LocalizationProvider } from "@mui/x-date-pickers"
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs"
@@ -445,7 +445,7 @@ const PlaceHistoryEditPage = () => {
             position="bottom"
             open={toast.show}
             text={toast.message}
-            duration={2000}
+            duration={TOAST_DURATION_DEFAULT}
             onClose={() => {
                 setToast({ show: false, message: "" })
             }}

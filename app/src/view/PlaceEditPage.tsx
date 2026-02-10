@@ -12,7 +12,7 @@ import {
   TextField,
   Toast,
 } from "@toss/tds-mobile";
-import { NETWORK_STATUS, PERMISSIONS, ROUTES, TEXT } from "../common/constants";
+import { getPlaceLimitText, NETWORK_STATUS, PERMISSIONS, ROUTES, TEXT, TOAST_DURATION_DEFAULT } from "../common/constants";
 import { GoogleMap, Marker } from "@react-google-maps/api";
 import { useCallback, useEffect, useState } from "react";
 import { roundToFour } from "../common/utils";
@@ -85,12 +85,12 @@ const PlaceEditPage = () => {
     show: false,
     message: "",
   });
-  const [loading, setLoading] = useState<{ show: boolean, message: string }>({ show: false, message: "" })
+  const [loading, setLoading] = useState<{ show: boolean; message: string }>({ show: false, message: "" });
 
   useEffect(() => {
     const loadPlaces = async () => {
       const list = await getPlaces(account.id);
-      if (list && selectedPlace) {
+      if (selectedPlace) {
         const target = list.filter((p) => p.id === selectedPlace.id)[0];
         if (target) {
           setName(target.name);
@@ -99,9 +99,10 @@ const PlaceEditPage = () => {
           setLatitude(target.latitude);
           setLongitude(target.longitude);
           setHistoryList(target.historyList);
-          setPlaceList(list);
         }
       }
+
+        setPlaceList(list);
     };
     const loadCategories = async () => {
       const categoryData = await getCategory(account.id);
@@ -404,9 +405,9 @@ const PlaceEditPage = () => {
 
   const onDeleteClick = async () => {
     setDeleteDialogOpen(false);
-    setLoading({ show: true, message: TEXT.MSG_DELETE_PLACE })
+    setLoading({ show: true, message: TEXT.MSG_DELETE_PLACE });
     await deletePlace(selectedPlace.id);
-    setLoading({ show: false, message: "" })
+    setLoading({ show: false, message: "" });
     setAlertDialogOpen(true);
   };
 
@@ -421,10 +422,9 @@ const PlaceEditPage = () => {
       setToast({ show: true, message: TEXT.MSG_NETWORK_ERROR });
       return;
     }
-
     if (!isEditMode) {
       if (product && placeList.length >= product.place_limit) {
-        setToast({ show: true, message: `최대 ${product.place_limit}개 까지 장소 추가가 가능합니다.` });
+        setToast({ show: true, message: getPlaceLimitText(product.place_limit) });
         return;
       }
     }
@@ -436,7 +436,7 @@ const PlaceEditPage = () => {
     } else {
       try {
         if (isEditMode) {
-          setLoading({ show: true, message: TEXT.MSG_UPDATE_PLACE })
+          setLoading({ show: true, message: TEXT.MSG_UPDATE_PLACE });
           selectedPlace.name = name;
           selectedPlace.category = category;
           selectedPlace.latitude = latitude;
@@ -444,7 +444,7 @@ const PlaceEditPage = () => {
           selectedPlace.address = address;
           await updatePlace(selectedPlace.id, selectedPlace);
         } else {
-          setLoading({ show: true, message: TEXT.MSG_CREATE_PLACE })
+          setLoading({ show: true, message: TEXT.MSG_CREATE_PLACE });
           const data: Place = {
             id: "",
             name: name,
@@ -459,14 +459,14 @@ const PlaceEditPage = () => {
           };
           await createPlace(data);
         }
-        setLoading({ show: false, message: "" })
+        setLoading({ show: false, message: "" });
         setAlertDialogOpen(true);
       } catch (e) {
         console.log(e);
-        setLoading({ show: false, message: "" })
+        setLoading({ show: false, message: "" });
       }
-    };
-  }
+    }
+  };
 
   const handleNameError = (value: string) => {
     return value.length > 10;
@@ -544,7 +544,7 @@ const PlaceEditPage = () => {
         position="bottom"
         open={toast.show}
         text={toast.message}
-        duration={2000}
+        duration={TOAST_DURATION_DEFAULT}
         onClose={() => {
           setToast({ show: false, message: "" });
         }}
