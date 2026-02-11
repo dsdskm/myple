@@ -10,6 +10,7 @@ export const ROUTES = {
   PLACE_HISTORY_EDIT: "/place/history/edit",
   MY: "/my",
   ITEM: "/item",
+  BRIDGE_MAP: "/bridge/map",
 };
 
 export const TEXT = {
@@ -18,7 +19,7 @@ export const TEXT = {
   TAB_ADD: "생성",
   TAB_MY: "내 정보",
   TAB_ITEM: "아이템",
-  LOOG_TITLE: "나만의 장소",
+  LOGO_TITLE: "나만의 장소 기록 앱",
   SEARCH: "검색",
   ADD: "추가",
   PLACE_NAME: "장소 이름",
@@ -51,7 +52,6 @@ export const TEXT = {
   TAKE_PHOTO: "사진 촬영하기",
   GET_POHOTO: "사진 가져오기",
   LOGIN: "로그인",
-  LOGIN_SKIP: "건너뛰기",
   LOGOUT: "로그아웃",
   WITHDRAW: "탈퇴",
   PURCHASE: "구매하기",
@@ -87,6 +87,14 @@ export const TEXT = {
   ITEM_PURCHASE_HISTORY: "결제 내역",
   PURCHASED: "구매완료",
   REFUNDED: "환불완료",
+  START: "시작하기",
+  APP_NAME: "마이플 - 나만의 장소",
+  GO_LOGIN: "로그인하러 가기",
+  BRIDGE_MAP_NAME: "마이플 - 나만의 지도",
+  MSG_APP_DESCRIPTION: "나만 알고 싶은 장소를 기록해보세요",
+  MSG_BRIDGE_MAP_DESCRIPTION: "나만의 장소들을 지도에서 확인할 수 있어요",
+  MSG_LOGIN_GUIDE: "로그인이 필요한 서비스에요",
+  MSG_AD_GUIDE: "*광고 시청 후 앱에 진입할 수 있어요",
   MSG_LOGIN_SUCCESS: "로그인에 성공했어요.",
   MSG_LOGIN_FAILED: "로그인에 실패했어요.",
   MSG_LOGOUT_CONFIRM: "로그아웃 하시겠어요?",
@@ -118,7 +126,6 @@ export const TEXT = {
   MSG_EMPTY_RESULT_DESC: "장소명과 태그를 다시 입력해주세요.",
   MSG_EMPTY_PURCHASED: "결제 내역이 없어요.",
   MSG_BACK_KEY_EVENT: "마이플을 종료할까요?",
-  MSG_LOGIN_SKIP: "기기가 변경되면 데이터를 복구/이전할 수 없어요. 로그인 없이 이용하시겠어요?",
   MSG_ERROR: "에러가 발생했어요.",
   MSG_MOVE_TO_LOGIN: "광고 및 로그인 화면으로 이동중이에요.",
   MSG_LOAD_ITEMS: "아이템들을 불러오고 있어요.",
@@ -194,13 +201,20 @@ export const PUBLIC_IMAGES = {
   DELETE: "https://static.toss.im/icons/svg/icon-bin.svg",
   CURRENT_LOCATION: "https://static.toss.im/icons/svg/icon-pin-location.svg",
   MONEY_WARNING: "https://static.toss.im/icons/svg/icon-money-bag-warning-red.svg",
-  SHOT_MAP: "shot_map.png",
-  SHOT_MAP_DETAIL: "shot_map_detail.png",
-  SHOT_PLACE: "shot_place.png",
-  SHOT_LIST: "shot_list.png",
-  SHOT_ITEMS: "shot_items.png",
-  SHOT_HISTORY: "shot_history.png",
-  SHOT_CATEGORY: "shot_category.png",
+  SHOT_MAP:
+    "https://firebasestorage.googleapis.com/v0/b/myple-15ea9.firebasestorage.app/o/resources%2Fshot_map.png?alt=media&token=14507079-ddec-46ca-804e-554a137560b8",
+  SHOT_MAP_DETAIL:
+    "https://firebasestorage.googleapis.com/v0/b/myple-15ea9.firebasestorage.app/o/resources%2Fshot_map_detail.png?alt=media&token=e7355501-4e42-4d2e-8252-924bfd202c66",
+  SHOT_PLACE:
+    "https://firebasestorage.googleapis.com/v0/b/myple-15ea9.firebasestorage.app/o/resources%2Fshot_place.png?alt=media&token=6ffef430-a2bf-4195-8043-1ffb0861c0db",
+  SHOT_LIST:
+    "https://firebasestorage.googleapis.com/v0/b/myple-15ea9.firebasestorage.app/o/resources%2Fshot_list.png?alt=media&token=0d245ba9-c794-4406-891f-344d726afc43",
+  SHOT_ITEMS:
+    "https://firebasestorage.googleapis.com/v0/b/myple-15ea9.firebasestorage.app/o/resources%2Fshot_items.png?alt=media&token=0d125807-845c-4de0-9f06-5dfe74944cbe",
+  SHOT_HISTORY:
+    "https://firebasestorage.googleapis.com/v0/b/myple-15ea9.firebasestorage.app/o/resources%2Fshot_history.png?alt=media&token=602363d0-8f78-4f82-83ad-e4f85404bcf6",
+  SHOT_CATEGORY:
+    "https://firebasestorage.googleapis.com/v0/b/myple-15ea9.firebasestorage.app/o/resources%2Fshot_category.png?alt=media&token=97cf0fdb-c9c3-46b2-a662-b1b4ff25482d",
 };
 
 export const PUBLIC_VIDEOS = {
@@ -249,4 +263,4 @@ export const AD_ID = "ait.v2.live.372bc4cbb7dd44e6"; // 전면 광고
 
 export const PRODUCT_REASON_PURCHASE = "구매";
 
-export const TOAST_DURATION_DEFAULT = 3000
+export const TOAST_DURATION_DEFAULT = 3000;

@@ -1,5 +1,5 @@
-import { Asset, Post } from "@toss/tds-mobile";
-import { AD_ID, PUBLIC_VIDEOS, ROUTES, TEXT } from "../common/constants";
+import { Post } from "@toss/tds-mobile";
+import { AD_ID, ROUTES, TEXT } from "../common/constants";
 import { useNavigate } from "react-router-dom";
 import styled, { keyframes } from "styled-components";
 import SlideImages from "./common/SlideImages";
@@ -12,26 +12,17 @@ import { useState } from "react";
 import Loading from "./common/Loading";
 import { theme } from "../styles/theme";
 
-/* ---------- animation ---------- */
 const blink = keyframes`
   0% { opacity: 1; }
   50% { opacity: 0.3; }
   100% { opacity: 1; }
 `;
 
-/* ---------- styled components ---------- */
-
 const Root = styled.div`
   min-height: 100vh;
   position: relative;
 `;
 
-const VideoWrapper = styled.div`
-  min-height: 100vh;
-  position: relative;
-`;
-
-/** ✅ 중앙 정렬만 담당 (크기 지정 제거) */
 const AbsoluteCenter = styled.div`
   position: absolute;
   top: 46%; /* 살짝 아래로 */
@@ -43,16 +34,17 @@ const AbsoluteCenter = styled.div`
   margin-top: 20px;
 `;
 
-/** ✅ 슬라이드 크기를 확실히 제한하는 박스 */
 const SlideBox = styled.div`
-  width: 250px;        /* 최대 가로폭 제한 */
-  height:400px;
+  width: 250px; /* 최대 가로폭 제한 */
+  height: 400px;
   border-radius: 12px;
   overflow: hidden;
   background: rgba(0, 0, 0, 0.04);
 
   /* 내부 미디어가 박스를 넘치지 않도록 */
-  & img, & video, & canvas {
+  & img,
+  & video,
+  & canvas {
     width: 100%;
     height: 100%;
     object-fit: contain;
@@ -67,12 +59,12 @@ const AdTextFixed = styled.div`
   transform: translateX(-50%);
   width: 100%;
   max-width: 960px;
-  margin-bottom:20px;
+  margin-bottom: 20px;
   text-align: center;
   color: rgba(0, 0, 0, 0.7);
   font-size: 14px;
   z-index: 10;
-  pointer-events: none;  
+  pointer-events: none;
 `;
 
 const StartText = styled.div`
@@ -82,7 +74,7 @@ const StartText = styled.div`
   font-size: 28px;
   font-weight: 600;
   letter-spacing: 3px;
-  margin-top:50px;
+  margin-top: 50px;
   cursor: pointer;
   animation: ${blink} 1.5s ease-in-out infinite;
   text-shadow: 0 0 12px rgba(255, 255, 255, 0.4);
@@ -93,10 +85,8 @@ const StartText = styled.div`
   }
 `;
 
-/* ---------- component ---------- */
 const TAG = "IntroPage";
 const IntroPage = () => {
-
   const navigate = useNavigate();
   const { setAccount } = useApp();
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -125,19 +115,19 @@ const IntroPage = () => {
               onError: (error) => {
                 console.log(`ad show error`, error);
                 sendLog(TAG, `ad show error ${JSON.stringify(error)}`);
-                setIsLoading(false)
+                setIsLoading(false);
                 goNext();
               },
             });
             break;
           default:
-            setIsLoading(false)
+            setIsLoading(false);
             break;
         }
       },
       onError: (error) => {
         console.log(`ad load error`, error);
-        setIsLoading(false)
+        setIsLoading(false);
       },
     });
   };
@@ -156,7 +146,7 @@ const IntroPage = () => {
   };
 
   const onStartClick = async () => {
-    setIsLoading(true)
+    setIsLoading(true);
     if (GoogleAdMob.loadAppsInTossAdMob.isSupported()) {
       showAd();
     } else {
@@ -171,48 +161,17 @@ const IntroPage = () => {
   return (
     <>
       <Root>
-        {/* 필요 시 배경 비디오 */}
-        {/* 
-        <Asset.Video
-          as="video"
-          src={PUBLIC_VIDEOS.INTRO}
-          autoPlay
-          loop
-          muted
-          style={{
-            position: "fixed",
-            inset: 0,
-            width: "100vw",
-            height: "100vh",
-            objectFit: "cover",
-            zIndex: -1,
-          }}
-        />
-        */}
+        <AbsoluteCenter>
+          <SlideBox>
+            <SlideImages />
+          </SlideBox>
 
-        <VideoWrapper>
-          {/* 중앙: 슬라이드/영상 박스를 작게 제한 */}
-          <AbsoluteCenter>
-            <SlideBox>
-              <SlideImages />
-              {/*
-                SlideImages가 내부에서 자체 크기 스타일을 강제한다면
-                해당 컴포넌트의 최상위 래퍼에
-                width: 100%; height: 100%; object-fit: contain; 
-                을 적용하세요.
-              */}
-            </SlideBox>
+          <StartText onClick={onStartClick}>{TEXT.START}</StartText>
+        </AbsoluteCenter>
 
-            <StartText onClick={onStartClick}>START</StartText>
-          </AbsoluteCenter>
-
-          {/* 하단 고정 문구 */}
-          <AdTextFixed>*앱 진입 후 광고가 표시됩니다.</AdTextFixed>
-
-          {/* 본문 텍스트 (상단/하단과 겹치면 여백 조정하세요) */}
-          <Post.H1 color={theme.colors.primary}>마이플 - 나만의 장소</Post.H1>
-          <Post.Paragraph>나만 알고 싶은 장소를 기록해보세요.</Post.Paragraph>
-        </VideoWrapper>
+        <AdTextFixed>{TEXT.MSG_AD_GUIDE}</AdTextFixed>
+        <Post.H1 color={theme.colors.primary}>{TEXT.APP_NAME}</Post.H1>
+        <Post.Paragraph>{TEXT.MSG_APP_DESCRIPTION}</Post.Paragraph>
       </Root>
     </>
   );

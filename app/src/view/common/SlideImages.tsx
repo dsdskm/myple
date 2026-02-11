@@ -3,7 +3,12 @@ import { Asset } from "@toss/tds-mobile";
 import { PUBLIC_IMAGES } from "../../common/constants";
 
 const SlideImages = () => {
-  const images = [PUBLIC_IMAGES.SHOT_MAP, PUBLIC_IMAGES.SHOT_LIST, PUBLIC_IMAGES.SHOT_CATEGORY];
+  const images = [
+    PUBLIC_IMAGES.SHOT_MAP,
+    PUBLIC_IMAGES.SHOT_LIST,
+    PUBLIC_IMAGES.SHOT_PLACE,
+    PUBLIC_IMAGES.SHOT_CATEGORY,
+  ];
 
   // 마지막에 첫 장을 하나 더 붙여서 "3 -> (클론1)"로 자연스럽게 넘김
   const slides = [...images, images[0]];

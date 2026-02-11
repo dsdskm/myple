@@ -1,4 +1,4 @@
-import { Route, Routes, useNavigate } from "react-router-dom";
+import { Route, Routes } from "react-router-dom";
 import LoginPage from "./view/LoginPage";
 import MapPage from "./view/PlaceMapPage";
 import PlaceEditPage from "./view/PlaceEditPage";
@@ -8,6 +8,7 @@ import MyPage from "./view/MyPage";
 import PlaceHistoryEditPage from "./view/PlaceHistoryEditPage";
 import ItemPage from "./view/ItemPage";
 import IntroPage from "./view/IntroPage";
+import BridgeMapPage from "./view/BridgeMapPage";
 
 function App() {
   return (
@@ -21,6 +22,7 @@ function App() {
         <Route path={ROUTES.PLACE_HISTORY_EDIT} element={<PlaceHistoryEditPage />} />
         <Route path={ROUTES.MY} element={<MyPage />} />
         <Route path={ROUTES.ITEM} element={<ItemPage />} />
+        <Route path={ROUTES.BRIDGE_MAP} element={<BridgeMapPage />} />
       </Routes>
     </div>
   );

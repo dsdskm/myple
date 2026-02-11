@@ -5,12 +5,12 @@ import { useEffect, useState } from "react";
 import Loading from "./common/Loading";
 import { useNavigate } from "react-router-dom";
 import { appLogin } from "@apps-in-toss/web-framework";
-import { createUser, getUser, requestUserInfo, sendLog } from "../service/api";
+import { requestUserInfo, sendLog } from "../service/api";
 import { Account, ACTION_TYPE_SET_ACCOUNT, initialAccountState } from "../types/account";
 import { useApp } from "../context/AppContext";
 import { ToastInfo } from "../types/toast";
 import { closeView, graniteEvent } from "@apps-in-toss/web-framework";
-import { generateTossId, loadId, saveId } from "../common/utils";
+import { saveId } from "../common/utils";
 
 const Wrapper = styled.div`
   height: 100vh;
@@ -41,12 +41,6 @@ const CreatorTextFixed = styled.div`
   pointer-events: none;
 `;
 
-const LoginSkipText = styled.div`
-  text-decoration: underline;
-  font-style: italic;
-  margin-top: 20px;
-`;
-
 const TAG = "LoginPage";
 const LoginPage = () => {
   const navigate = useNavigate();
@@ -56,7 +50,6 @@ const LoginPage = () => {
     message: "",
   });
   const [exitDialogOpen, setExitDialogOpen] = useState<boolean>(false);
-  const [skipDialogOpen, setSkipDialogOpen] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
   useEffect(() => {
@@ -121,41 +114,6 @@ const LoginPage = () => {
     );
   };
 
-  const skipDialog = () => {
-    const onSkipClick = async () => {
-      const id = loadId();
-      let account;
-      if (id) {
-        account = await getUser(id);
-      } else {
-        const genId = generateTossId();
-        account = await createUser(genId);
-        saveId(genId);
-      }
-      if (account) {
-        setAccount({ type: ACTION_TYPE_SET_ACCOUNT, payload: account });
-        navigate(ROUTES.MAP, { replace: true });
-      }
-      setSkipDialogOpen(false);
-    };
-    return (
-      <ConfirmDialog
-        open={skipDialogOpen}
-        title={
-          <ConfirmDialog.Title>
-            {TEXT.LOGIN} {TEXT.LOGIN_SKIP}
-          </ConfirmDialog.Title>
-        }
-        description={<ConfirmDialog.Description>{TEXT.MSG_LOGIN_SKIP}</ConfirmDialog.Description>}
-        cancelButton={
-          <ConfirmDialog.CancelButton onClick={() => setSkipDialogOpen(false)}>{TEXT.NO}</ConfirmDialog.CancelButton>
-        }
-        confirmButton={<ConfirmDialog.ConfirmButton onClick={onSkipClick}>{TEXT.YES}</ConfirmDialog.ConfirmButton>}
-        onClose={() => setSkipDialogOpen(false)}
-      />
-    );
-  };
-
   if (isLoading) {
     return <Loading label={TEXT.MSG_LOGIN} />;
   }
@@ -163,9 +121,8 @@ const LoginPage = () => {
   return (
     <Wrapper>
       <LogoImage alt={ALT.LOGO} src={PUBLIC_IMAGES.LOGO} />
-      <Paragraph.Text style={{ marginTop: 15, marginBottom: 30 }}>{TEXT.LOOG_TITLE}</Paragraph.Text>
+      <Paragraph.Text style={{ marginTop: 15, marginBottom: 30 }}>{TEXT.LOGO_TITLE}</Paragraph.Text>
       <Button onClick={onLoginClick}>{TEXT.LOGIN}</Button>
-      <LoginSkipText onClick={() => setSkipDialogOpen(true)}>{TEXT.LOGIN} {TEXT.LOGIN_SKIP}</LoginSkipText>
       <CreatorTextFixed>{TEXT.CREATOR}</CreatorTextFixed>
       <Toast
         position="bottom"
@@ -178,7 +135,6 @@ const LoginPage = () => {
         }}
       />
       {exitDialog()}
-      {skipDialog()}
     </Wrapper>
   );
 };
