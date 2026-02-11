@@ -18,7 +18,6 @@ type FormValues = {
 export default function NoticeUpsertPage() {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
-  console.log(`id ${id}`)
   const isEdit = useMemo(() => !!id, [id]);
 
   const [loading, setLoading] = useState(false); // 수정 모드에서 초기 데이터 로딩
@@ -28,7 +27,6 @@ export default function NoticeUpsertPage() {
   // ✅ 수정 모드면 기존 공지 불러와서 form 채우기
   useEffect(() => {
     const load = async () => {
-      console.log(`isEdit ${isEdit} id ${id}`)
       if (!isEdit || !id) return;
 
       try {

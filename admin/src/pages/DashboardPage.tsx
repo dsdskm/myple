@@ -7,6 +7,5 @@ const Box = styled.div`
 `;
 
 export default function DashboardPage() {
-  console.log(`DashboardPage`)
   return <Box>Dashboard</Box>;
 }
