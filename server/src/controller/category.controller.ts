@@ -48,12 +48,8 @@ export const updateCategory = async (req: Request, res: Response) => {
 export const deleteCategory = async (req: Request, res: Response) => {
     try {
         const { id } = req.params;
-        const deleted = await categoryService.deleteCategory(id);
-
-        if (!deleted) {
-            return res.status(404).json({ message: 'Category not found' });
-        }
-        res.status(200).json({ message: 'Category deleted successfully' }); // 204 No Content를 반환할 수도 있습니다.
+        await categoryService.deleteCategory(id);
+        res.status(204).json({ message: 'Category deleted successfully' }); // 204 No Content를 반환할 수도 있습니다.
     } catch (error) {
         console.error('Error deleting category:', error); // 에러 로깅
         res.status(500).json({ message: 'Error deleting category', error: error instanceof Error ? error.message : 'Unknown error' });

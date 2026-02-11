@@ -45,8 +45,15 @@ export const findAll = async (): Promise<Account[]> => {
 };
 
 export const findById = async (id: string): Promise<Account | null> => {
-  const doc = await accountCollection.doc(id).get();
-  return doc.exists ? ({ id: doc.id, ...doc.data() } as Account) : null;
+  try {
+    const doc = await accountCollection.doc(id).get();
+    const data = doc.data() as Account
+    return doc.data() as Account
+  } catch (e) {
+    console.log(e)
+    return null
+  }
+
 };
 
 export const update = async (id: string, accountData: Partial<Account>): Promise<void> => {

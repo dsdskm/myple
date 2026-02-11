@@ -92,7 +92,6 @@ export const getAllPlaceHistories = async (req: Request, res: Response) => {
 export const getPlaceByCreator = async (req: Request, res: Response) => {
     try {
         const { creator } = req.params;
-        console.log(`getPlaceByCreator creator`,creator)
         const place = await placeService.findPlacesByCreator(creator);
         if (!place) {
             return res.status(404).json({ message: 'Place not found' });

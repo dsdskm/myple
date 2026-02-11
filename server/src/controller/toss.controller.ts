@@ -71,11 +71,17 @@ export const getUserInfo = async (req: Request, res: Response) => {
   }
 };
 
-export const logout = async (req: Request, res: Response) => {
-  console.log(`logout`);
+export const withdraw = async (req: Request, res: Response) => {
   try {
     const { userKey, referrer } = req.body;
-    await tossService.requestLogout(userKey, referrer);
+    const id = userKey.toString()
+    if (!id.startsWith("toss_")) {
+      await tossService.requestLogout(userKey, referrer);
+    }
+    const accountData = await accountService.findById(id);
+    if (accountData) {
+      await accountService.update(id, { status: "deactive" });
+    }
     res.status(200).json(true);
   } catch (error) {
     res.status(500);
