@@ -102,26 +102,6 @@ export default function PlaceMapPage() {
   const [notices, setNotices] = useState<Notice[]>([]);
   const [isNoticeOpen, setIsNoticeOpen] = useState<boolean>(false);
 
-  useEffect(() => {
-    // for skim
-    const checkAccountData = async () => {
-      let account;
-      const id = loadId();
-      if (id) {
-        account = await getUser(id);
-        console.log(`found user with id ${id}, response account ${JSON.stringify(account)}`);
-      } else {
-        const genId = generateTossId();
-        account = await createUser(genId);
-        console.log(`create user with id ${genId}, response account ${JSON.stringify(account)}`);
-        saveId(genId);
-      }
-      if (account) {
-        setAccount({ type: ACTION_TYPE_SET_ACCOUNT, payload: account });
-      }
-    };
-    checkAccountData();
-  }, []);
 
   useEffect(() => {
     startUpdateLocation({
@@ -140,24 +120,6 @@ export default function PlaceMapPage() {
   }, []);
 
   useEffect(() => {
-    const checkAccountData = async () => {
-      let account;
-      const id = loadId();
-      if (id) {
-        account = await getUser(id);
-        console.log(`found user with id ${id}, response account ${JSON.stringify(account)}`);
-      } else {
-        const genId = generateTossId();
-        account = await createUser(genId);
-        console.log(`create user with id ${genId}, response account ${JSON.stringify(account)}`);
-        saveId(genId);
-      }
-      if (account && account.id) {
-        load(account.id);
-        setAccount({ type: ACTION_TYPE_SET_ACCOUNT, payload: account });
-      }
-    };
-
     const loadPlaces = async (id: string) => {
       const list = await getPlaces(id);
       setMyPlaceList(list);
@@ -206,9 +168,6 @@ export default function PlaceMapPage() {
 
     if (account && account.id) {
       load(account.id);
-    } else {
-      // skim
-      checkAccountData();
     }
   }, [account]);
 
@@ -287,7 +246,7 @@ export default function PlaceMapPage() {
                     key={image.fileName}
                     src={image.url}
                     id={image.fileName}
-                    onClick={() => {}}
+                    onClick={() => { }}
                     onDelete={null}
                   />
                 );
