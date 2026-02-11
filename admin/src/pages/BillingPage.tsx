@@ -262,7 +262,6 @@ export default function BillingPage() {
         }
         extra={
           <Space>
-            <Button onClick={() => navigate(PATH.ROOT)}>대시보드</Button>
             <Button icon={<ReloadOutlined />} onClick={load} loading={loading}>
               새로고침
             </Button>

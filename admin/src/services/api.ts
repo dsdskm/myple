@@ -137,9 +137,9 @@ export const getPlaces = async (creator: string): Promise<Place[]> => {
   }
 };
 
-export const requestLogout = async (userKey: number): Promise<void> => {
+export const requestLogout = async (id: string): Promise<void> => {
   try {
-    await serverApiClient.post("/toss/logout", { userKey: userKey, referrer: "UNLINK" });
+    await serverApiClient.post("/toss/logout", { userKey: id, referrer: "UNLINK" });
   } catch (error) {
     console.log(error);
   }
@@ -252,3 +252,27 @@ export const getNotice = async (id: string): Promise<Notice | null> => {
     return null;
   }
 };
+
+export const deleteAllData = async (id: string): Promise<void> => {
+  try {
+    await serverApiClient.delete(`/account/${id}`);
+    await serverApiClient.delete(`/category/${id}`);
+    await serverApiClient.delete(`/product/${id}`);
+  } catch (error) {
+    console.log(error)
+
+  }
+}
+
+export const deleteAllDataByIds = async (ids: string[]): Promise<void> => {
+  try {
+    for (const id of ids) {
+      await requestLogout(id)
+      console.log(`requestLogout ${id}`)
+      await deleteAllData(id)
+      console.log(`deleteAllData ${id}`)
+    }
+  } catch (error) {
+    console.log(error)
+  }
+}

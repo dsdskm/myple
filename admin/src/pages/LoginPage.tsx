@@ -19,15 +19,13 @@ const CardWrap = styled(Card)`
 
 export default function LoginPage() {
     const navigate = useNavigate();
-    const location = useLocation() as { state?: { from?: string } };
-    const from = location.state?.from || PATH.ROOT;
     const [resetEmail, setResetEmail] = useState("");
 
     const onFinish = async (values: { email: string; password: string }) => {
         try {
             await signInWithEmailAndPassword(auth, values.email, values.password);
             message.success(TEXT.LOGIN.SUCCESS);
-            navigate(from, { replace: true });
+            navigate(PATH.ACCOUNT, { replace: true });
         } catch (e: any) {
             const msg = AUTH_ERROR_MSG[e?.code] ?? TEXT.LOGIN.FAIL_GENERIC;
             message.error(msg);

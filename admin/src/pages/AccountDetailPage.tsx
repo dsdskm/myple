@@ -12,8 +12,8 @@ import {
   message,
   Modal,
   InputNumber,
-  Select,       // ✅ [added]
-  Input,        // ✅ [added]
+  Select,
+  Input,
 } from "antd";
 import { useNavigate, useParams } from "react-router-dom";
 import { PATH } from "@/constants/routes";
@@ -25,6 +25,7 @@ import {
   getUser,
   requestLogout,
   updateProduct,
+  deleteAllData, // ✅ deleteAllData(id)
 } from "@/services/api";
 import type { Account } from "@/types/account";
 import type { Category } from "@/types/category";
@@ -44,7 +45,7 @@ export type UpdateProductPayload = Partial<Omit<Product, "id" | "created">> & {
 
 export default function AccountDetailPage() {
   const navigate = useNavigate();
-  const { userKey } = useParams<{ userKey: string }>();
+  const { userKey: id } = useParams<{ userKey: string }>();
 
   const [account, setAccount] = useState<Account | null>(null);
   const [category, setCategory] = useState<Category | null>(null);
@@ -63,12 +64,32 @@ export default function AccountDetailPage() {
   const [reasonType, setReasonType] = useState<ReasonOption | null>(null);
   const [reasonText, setReasonText] = useState<string>("");
 
+  // ✅ delete all state (탈퇴와 별개)
+  const [deletingAll, setDeletingAll] = useState(false);
+
+  // ✅ status 기반 버튼 비활성화 (active / deactive 두 가지만)
+  const accountStatus = (account?.status ?? "").toString().trim().toLowerCase();
+  const disableWithdrawByStatus = accountStatus === "deactive"; // deactive이면 탈퇴 비활성화
+  const disableDeleteByStatus = accountStatus === "active"; // active이면 삭제 비활성화
+
+  // ✅ 작업 중에는 서로 버튼도 잠그기(중복 실행 방지)
+  const disableDelete = disableDeleteByStatus || deletingAll || loading;
+  const disableWithdraw = disableWithdrawByStatus || loading || deletingAll;
+
+  // ✅ A/B 비교에 따른 A 색상
+  // A > B : red, A = B : black, A < B : blue
+  const getCountColor = useCallback((a: number, b: number) => {
+    if (a > b) return "#ff4d4f"; // red
+    if (a < b) return "#1677ff"; // blue
+    return "rgba(0,0,0,0.88)"; // black(antd 기본 텍스트 느낌)
+  }, []);
+
   // ✅ CSS 파일 없이 라벨(필드명) 배경색 넣기
   const labelStyle = useMemo(
     () => ({
       background: "#7fdad6",
       fontWeight: 600,
-      width: 170,
+      width: 200,
       padding: "10px 14px",
     }),
     [],
@@ -85,15 +106,15 @@ export default function AccountDetailPage() {
   // ✅ reloadAll: 페이지 소프트 리프레시(데이터 재조회)
   const reloadAll = useCallback(async () => {
     try {
-      if (!userKey) return;
+      if (!id) return;
       setLoading(true);
       setErrorMsg("");
 
       const [accountData, categoryData, productData, placeListRes] = await Promise.all([
-        getUser(userKey),
-        getCategory(userKey),
-        getProductInfo(userKey),
-        getPlaces(userKey),
+        getUser(id),
+        getCategory(id),
+        getProductInfo(id),
+        getPlaces(id),
       ]);
 
       setAccount(accountData ?? null);
@@ -109,18 +130,18 @@ export default function AccountDetailPage() {
     } finally {
       setLoading(false);
     }
-  }, [userKey]);
+  }, [id]);
 
   useEffect(() => {
     reloadAll();
   }, [reloadAll]);
 
   const handleWithdraw = async () => {
-    if (!userKey) return;
+    if (!id) return;
 
     try {
       setLoading(true);
-      await requestLogout(Number(userKey));
+      await requestLogout(id);
       message.success("탈퇴 처리 완료");
       navigate(PATH.ACCOUNT);
     } catch (e: any) {
@@ -128,6 +149,42 @@ export default function AccountDetailPage() {
     } finally {
       setLoading(false);
     }
+  };
+
+  // ✅ 2단계 컨펌 후 전체 데이터 삭제
+  const handleDeleteAll = async () => {
+    if (!id) return;
+
+    Modal.confirm({
+      title: "정말 모든 데이터를 삭제할까요?",
+      content: (
+        <div>
+          <Text>
+            이 작업은 <Text strong type="danger">되돌릴 수 없습니다.</Text>
+          </Text>
+          <br />
+          <Text type="secondary">
+            계정/상품/카테고리/장소/이력 등 관련 데이터가 모두 삭제될 수 있습니다.
+          </Text>
+        </div>
+      ),
+      okText: "삭제 진행",
+      okType: "danger",
+      cancelText: "취소",
+      centered: true,
+      onOk: async () => {
+        try {
+          setDeletingAll(true);
+          await deleteAllData(id);
+          message.success("전체 데이터 삭제 완료");
+          navigate(PATH.ACCOUNT);
+        } catch (e: any) {
+          message.error(e?.message ?? "전체 데이터 삭제 실패");
+        } finally {
+          setDeletingAll(false);
+        }
+      },
+    });
   };
 
   // ✅ open edit modal
@@ -142,14 +199,7 @@ export default function AccountDetailPage() {
     setReasonText("");
   };
 
-  // ✅ dynamic min value for validation
-  const minValue = useMemo(() => {
-    if (!editField) return 0;
-    if (editField === "category_limit") {
-      return category?.list?.length ?? 0;
-    }
-    return placeList.length;
-  }, [editField, category, placeList]);
+  const minValue = 0;
 
   // ✅ 유효한 reason 산출
   const effectiveReason = useMemo(() => {
@@ -169,7 +219,8 @@ export default function AccountDetailPage() {
   const handleSave = async () => {
     if (!product || !editField || draftValue == null) return;
 
-    const min = editField === "category_limit" ? (category?.list?.length ?? 0) : placeList.length;
+    // const min = editField === "category_limit" ? (category?.list?.length ?? 0) : placeList.length;
+    const min = 0;
     if (draftValue < min) {
       message.error(
         editField === "category_limit"
@@ -187,24 +238,19 @@ export default function AccountDetailPage() {
     try {
       setSaving(true);
 
-      // ✅ reason 포함해서 페이로드 구성
       const payload: UpdateProductPayload =
         editField === "category_limit"
           ? { category_limit: draftValue, reason: effectiveReason }
           : { place_limit: draftValue, reason: effectiveReason };
 
-      // 타입 충돌이 있을 경우 (서버 타입 미확장 시):
-      // const updated = await updateProduct(product.id, payload as any);
       const updated = await updateProduct(product.id, payload);
 
       if (updated) {
         message.success("변경되었습니다.");
-        // 모달 먼저 닫고
         setEditField(null);
         setDraftValue(null);
         setReasonType(null);
         setReasonText("");
-        // 전체 데이터 소프트 리프레시
         await reloadAll();
       } else {
         message.error("변경에 실패했습니다.");
@@ -216,13 +262,18 @@ export default function AccountDetailPage() {
     }
   };
 
-  // ✅ cancel modal
   const handleCancel = () => {
     setEditField(null);
     setDraftValue(null);
     setReasonType(null);
     setReasonText("");
   };
+
+  // ✅ A/B 값 미리 계산 (JSX 깔끔하게)
+  const categoryCount = category?.list?.length ?? 0;
+  const categoryLimit = product?.category_limit ?? 0;
+  const placeCount = placeList.length;
+  const placeLimit = product?.place_limit ?? 0;
 
   return (
     <Space direction="vertical" size={12} style={{ width: "100%" }}>
@@ -239,9 +290,11 @@ export default function AccountDetailPage() {
         }
         style={{ borderRadius: 12 }}
       >
-        {errorMsg ? <Alert type="error" showIcon message={errorMsg} style={{ marginBottom: 12 }} /> : null}
+        {errorMsg ? (
+          <Alert type="error" showIcon message={errorMsg} style={{ marginBottom: 12 }} />
+        ) : null}
 
-        <Spin spinning={loading}>
+        <Spin spinning={loading || deletingAll}>
           {/* Account */}
           <Card type="inner" title="Account" style={{ borderRadius: 10 }} bodyStyle={{ paddingTop: 12 }}>
             {account ? (
@@ -252,13 +305,15 @@ export default function AccountDetailPage() {
                 </Descriptions.Item>
 
                 <Descriptions.Item label="status">
-                  <Tag color={account.status === "active" ? "green" : "red"}>{account.status}</Tag>
+                  <Tag color={accountStatus === "active" ? "green" : "red"}>{account.status}</Tag>
                 </Descriptions.Item>
                 <Descriptions.Item label="userKey">{account.userKey}</Descriptions.Item>
 
                 <Descriptions.Item label="name">{account.name || "-"}</Descriptions.Item>
                 <Descriptions.Item label="phone">
-                  {account.phone ? `${account.callingCode ? `+${account.callingCode} ` : ""}${account.phone}` : "-"}
+                  {account.phone
+                    ? `${account.callingCode ? `+${account.callingCode} ` : ""}${account.phone}`
+                    : "-"}
                 </Descriptions.Item>
 
                 <Descriptions.Item label="birthday">{account.birthday || "-"}</Descriptions.Item>
@@ -328,58 +383,71 @@ export default function AccountDetailPage() {
           {/* Product */}
           <Card type="inner" title="Product" style={{ borderRadius: 10 }} bodyStyle={{ paddingTop: 12 }}>
             {product ? (
-              <Descriptions
-                bordered
-                size="small"
-                column={2}
-                labelStyle={labelStyle}
-                contentStyle={contentStyle}
-              >
-                {/* 1행: id (한 줄 전체) */}
+              <Descriptions bordered size="small" column={2} labelStyle={labelStyle} contentStyle={contentStyle}>
                 <Descriptions.Item label="id" span={2}>
                   {product.id || "-"}
                 </Descriptions.Item>
 
-                {/* 2행: category_limit (수정 버튼 포함) */}
-                <Descriptions.Item label="category_limit">
+                <Descriptions.Item label="category_limit(사용/제한)">
                   <Space size={8}>
-                    <span>{(category?.list?.length ?? 0)} / {product.category_limit}</span>
+                    {/* ✅ A/B에서 A만 컬러 적용 */}
+                    <span>
+                      <Text style={{ color: getCountColor(categoryCount, categoryLimit), fontWeight: 600 }}>
+                        {categoryCount}
+                      </Text>
+                      {" / "}
+                      <Text>{categoryLimit}</Text>
+                    </span>
                     <Button size="small" type="link" onClick={() => openEdit("category_limit")}>
                       수정
                     </Button>
                   </Space>
                 </Descriptions.Item>
 
-                {/* 2행: place_limit (수정 버튼 포함) */}
-                <Descriptions.Item label="place_limit">
+                <Descriptions.Item label="place_limit(사용/제한)">
                   <Space size={8}>
-                    <span>{placeList.length} / {product.place_limit}</span>
+                    {/* ✅ A/B에서 A만 컬러 적용 */}
+                    <span>
+                      <Text style={{ color: getCountColor(placeCount, placeLimit), fontWeight: 600 }}>
+                        {placeCount}
+                      </Text>
+                      {" / "}
+                      <Text>{placeLimit}</Text>
+                    </span>
                     <Button size="small" type="link" onClick={() => openEdit("place_limit")}>
                       수정
                     </Button>
                   </Space>
                 </Descriptions.Item>
 
-                {/* 3행: created, updated */}
-                <Descriptions.Item label="created">
-                  {product.created || "-"}
-                </Descriptions.Item>
-                <Descriptions.Item label="updated">
-                  {product.updated || "-"}
-                </Descriptions.Item>
+                <Descriptions.Item label="created">{product.created || "-"}</Descriptions.Item>
+                <Descriptions.Item label="updated">{product.updated || "-"}</Descriptions.Item>
               </Descriptions>
             ) : (
               <Text type="secondary">데이터가 없습니다.</Text>
             )}
           </Card>
 
+          {id ? <ProductHistoryTable userKey={id} /> : null}
 
-          {userKey ? (
-            <ProductHistoryTable userKey={userKey} />
-          ) : null}
-
-
+          {/* ✅ 탈퇴 + 삭제 버튼 */}
           <Space style={{ width: "100%", justifyContent: "flex-end", marginTop: 20 }}>
+            {/* 삭제: status가 active면 비활성화 */}
+            <Popconfirm
+              title="정말 전체 데이터를 삭제할까요?"
+              description="삭제 후 복구할 수 없습니다. (2단계 확인이 한 번 더 뜹니다)"
+              okText="다음"
+              cancelText="취소"
+              okButtonProps={{ danger: true }}
+              onConfirm={handleDeleteAll}
+              disabled={disableDelete}
+            >
+              <Button danger loading={deletingAll} disabled={disableDelete}>
+                삭제
+              </Button>
+            </Popconfirm>
+
+            {/* 탈퇴: status가 deactive면 비활성화 */}
             <Popconfirm
               title="정말 탈퇴시키겠습니까?"
               description="이 작업은 되돌릴 수 없습니다."
@@ -387,8 +455,9 @@ export default function AccountDetailPage() {
               cancelText="취소"
               okButtonProps={{ danger: true }}
               onConfirm={handleWithdraw}
+              disabled={disableWithdraw}
             >
-              <Button danger type="primary" loading={loading}>
+              <Button danger type="primary" loading={loading} disabled={disableWithdraw}>
                 탈퇴
               </Button>
             </Popconfirm>
@@ -412,10 +481,9 @@ export default function AccountDetailPage() {
         destroyOnClose
         okText="저장"
         cancelText="취소"
-        okButtonProps={{ disabled: !canSave }}   // ✅ 저장 가능 여부 반영
+        okButtonProps={{ disabled: !canSave }}
       >
         <Space direction="vertical" size={12} style={{ width: "100%" }}>
-          {/* 숫자 입력 */}
           <div>
             <Text type="secondary">
               최소값: <Text strong>{minValue}</Text> (현재 {editField === "category_limit" ? "카테고리" : "장소"} 개수)
@@ -429,7 +497,6 @@ export default function AccountDetailPage() {
             />
           </div>
 
-          {/* 사유 선택 */}
           <div>
             <Text strong>변경 사유</Text>
             <Select
@@ -449,7 +516,6 @@ export default function AccountDetailPage() {
             />
           </div>
 
-          {/* 직접 입력 사유 */}
           {reasonType === "직접입력" && (
             <Input
               placeholder="사유를 입력하세요"
@@ -458,7 +524,6 @@ export default function AccountDetailPage() {
             />
           )}
 
-          {/* 안내 */}
           <Text type="secondary">
             사유는 이력(Audit) 기록에 함께 저장되어 추후 변경 내역 조회 시 표시됩니다.
           </Text>
