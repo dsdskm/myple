@@ -124,28 +124,7 @@ export const update = async (
  */
 export const remove = async (id: string, reason?: string): Promise<void> => {
     const productRef = productCollection.doc(id);
-    const historyColRef = productRef.collection("history");
-    const historyDocId = `${Date.now()}`;
-
-    await db.runTransaction(async (tx) => {
-        const snap = await tx.get(productRef);
-        if (!snap.exists) return;
-
-        const before = snap.data() as Product;
-
-        const historyPayload: ProductHistoryRecord<Product, null> = {
-            action: "delete",
-            before,                   // 전체 스냅샷
-            after: null,
-            changedFields: Object.keys(before ?? {}),
-            reason: reason ?? null,
-            updated: getFormattedDateForAccount(new Date()),
-            // updatedAtMs: Number(historyDocId),
-        };
-
-        tx.set(historyColRef.doc(historyDocId), historyPayload);
-        tx.delete(productRef);
-    });
+    await db.recursiveDelete(productRef);
 };
 
 

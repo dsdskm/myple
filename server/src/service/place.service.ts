@@ -132,7 +132,7 @@ export const deletePlace = async (id: string): Promise<boolean> => {
     if (!doc.exists) {
         return false; // 장소를 찾을 수 없음
     }
-    await docRef.delete();
+    await db.recursiveDelete(docRef);
     return true;
 };
 
