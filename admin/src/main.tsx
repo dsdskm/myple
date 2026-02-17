@@ -7,7 +7,6 @@ import { theme } from "@/styles/theme";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 
 import Login from "@/pages/LoginPage";
-import Dashboard from "@/pages/DashboardPage";
 import PrivateRoute from "@/components/PrivateRoute";
 import AdminLayout from "@/layouts/AdminLayout";
 import AuthProvider from "@/components/AuthProvider";

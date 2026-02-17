@@ -1,16 +1,16 @@
 import { deleteAllDataByIds, getUsers } from "@/services/api";
 import { Account } from "@/types/account";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useRef } from "react";
 import type { ColumnsType, TablePaginationConfig } from "antd/es/table";
 import type { FilterValue, SorterResult, TableRowSelection } from "antd/es/table/interface";
-import { Button, Card, Input, Modal, Space, Table, Tag, Typography } from "antd";
+import { Button, Card, Input, Modal, Space, Table, Tag, Typography, Grid } from "antd";
 import { DeleteOutlined, ReloadOutlined } from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
 import { PATH } from "@/constants/routes";
-import { useRef } from "react";
 import type { TableRef } from "antd/es/table";
 
 const { Text } = Typography;
+const { useBreakpoint } = Grid;
 
 const safe = (v: unknown) => (v === null || v === undefined ? "" : String(v));
 const normalize = (v: unknown) => safe(v).trim().toLowerCase();
@@ -28,6 +28,9 @@ const statusColor = (status: string) => {
 export default function AccountPage() {
   const navigate = useNavigate();
   const tableRef = useRef<TableRef>(null);
+
+  const screens = useBreakpoint();
+  const isMobile = !screens.md;
 
   const [data, setData] = useState<Account[]>([]);
   const [loading, setLoading] = useState(false);
@@ -147,60 +150,96 @@ export default function AccountPage() {
     });
   };
 
-  const columns: ColumnsType<Account> = [
-    {
-      title: "id",
-      dataIndex: "id",
-      key: "id",
-      width: 170,
-      sorter: (a, b) => safe(a.id).localeCompare(safe(b.id), "en"),
-      sortDirections: ["ascend", "descend"],
-      render: (v) => <Text strong>{v}</Text>,
-    },
-    {
-      title: "name",
-      dataIndex: "name",
-      key: "name",
-      width: 160,
-      sorter: (a, b) => safe(a.name).localeCompare(safe(b.name), "ko"),
-      sortDirections: ["ascend", "descend"],
-      ellipsis: true,
-      render: (v) => (v ? <Text>{v}</Text> : <Text type="secondary">-</Text>),
-    },
-    {
-      title: "status",
-      dataIndex: "status",
-      key: "status",
-      width: 140,
-      filters: statusFilters,
-      onFilter: (value, record) => safe((record as any).status) === value,
-      sorter: (a, b) => safe((a as any).status).localeCompare(safe((b as any).status), "ko"),
-      sortDirections: ["ascend", "descend"],
-      render: (v) => {
-        const s = safe(v);
-        if (!s) return <Text type="secondary">-</Text>;
-        return <Tag color={statusColor(s)}>{s}</Tag>;
+  // ✅ 모바일: name, status만 표시 (좌우 스크롤 제거)
+  const columns: ColumnsType<Account> = useMemo(() => {
+    if (isMobile) {
+      return [
+        {
+          title: "name",
+          dataIndex: "name",
+          key: "name",
+          sorter: (a, b) => safe(a.name).localeCompare(safe(b.name), "ko"),
+          sortDirections: ["ascend", "descend"],
+          ellipsis: true,
+          render: (v) => (v ? <Text>{v}</Text> : <Text type="secondary">-</Text>),
+        },
+        {
+          title: "status",
+          dataIndex: "status",
+          key: "status",
+          filters: statusFilters,
+          onFilter: (value, record) => safe((record as any).status) === value,
+          sorter: (a, b) => safe((a as any).status).localeCompare(safe((b as any).status), "ko"),
+          sortDirections: ["ascend", "descend"],
+          render: (v) => {
+            const s = safe(v);
+            if (!s) return <Text type="secondary">-</Text>;
+            return (
+              <Tag color={statusColor(s)} style={{ whiteSpace: "nowrap" }}>
+                {s}
+              </Tag>
+            );
+          },
+        },
+      ];
+    }
+
+    // ✅ 데스크톱: 기존 전체 컬럼
+    return [
+      {
+        title: "id",
+        dataIndex: "id",
+        key: "id",
+        width: 170,
+        sorter: (a, b) => safe(a.id).localeCompare(safe(b.id), "en"),
+        sortDirections: ["ascend", "descend"],
+        render: (v) => <Text strong>{v}</Text>,
       },
-    },
-    {
-      title: "email",
-      dataIndex: "email",
-      key: "email",
-      width: 280,
-      sorter: (a, b) => safe(a.email).localeCompare(safe(b.email), "ko"),
-      sortDirections: ["ascend", "descend"],
-      ellipsis: true,
-      render: (v) => (v ? <Text>{v}</Text> : <Text type="secondary">-</Text>),
-    },
-    {
-      title: "created",
-      dataIndex: "created",
-      key: "created",
-      sorter: (a, b) => new Date(a.created ?? 0).getTime() - new Date(b.created ?? 0).getTime(),
-      sortDirections: ["ascend", "descend"],
-      render: (v) => (v ? <Text>{v}</Text> : <Text type="secondary">-</Text>),
-    },
-  ];
+      {
+        title: "name",
+        dataIndex: "name",
+        key: "name",
+        width: 160,
+        sorter: (a, b) => safe(a.name).localeCompare(safe(b.name), "ko"),
+        sortDirections: ["ascend", "descend"],
+        ellipsis: true,
+        render: (v) => (v ? <Text>{v}</Text> : <Text type="secondary">-</Text>),
+      },
+      {
+        title: "status",
+        dataIndex: "status",
+        key: "status",
+        width: 140,
+        filters: statusFilters,
+        onFilter: (value, record) => safe((record as any).status) === value,
+        sorter: (a, b) => safe((a as any).status).localeCompare(safe((b as any).status), "ko"),
+        sortDirections: ["ascend", "descend"],
+        render: (v) => {
+          const s = safe(v);
+          if (!s) return <Text type="secondary">-</Text>;
+          return <Tag color={statusColor(s)}>{s}</Tag>;
+        },
+      },
+      {
+        title: "email",
+        dataIndex: "email",
+        key: "email",
+        width: 280,
+        sorter: (a, b) => safe(a.email).localeCompare(safe(b.email), "ko"),
+        sortDirections: ["ascend", "descend"],
+        ellipsis: true,
+        render: (v) => (v ? <Text>{v}</Text> : <Text type="secondary">-</Text>),
+      },
+      {
+        title: "created",
+        dataIndex: "created",
+        key: "created",
+        sorter: (a, b) => new Date(a.created ?? 0).getTime() - new Date(b.created ?? 0).getTime(),
+        sortDirections: ["ascend", "descend"],
+        render: (v) => (v ? <Text>{v}</Text> : <Text type="secondary">-</Text>),
+      },
+    ];
+  }, [isMobile, statusFilters]);
 
   const handleTableChange = (
     nextPagination: TablePaginationConfig,
@@ -223,10 +262,10 @@ export default function AccountPage() {
     () => ({
       selectedRowKeys,
       onChange: (keys) => setSelectedRowKeys(keys.map(String)),
-      fixed: "right",
-      columnWidth: 72,
+      fixed: isMobile ? undefined : "right",
+      columnWidth: isMobile ? 48 : 72,
 
-      renderCell: (checked, record, index, originNode) => {
+      renderCell: (_checked, record, index, originNode) => {
         const key = rowKey(record, index);
 
         return (
@@ -238,20 +277,15 @@ export default function AccountPage() {
               justifyContent: "center",
               height: "100%",
               minHeight: 32,
-              padding: "0 10px",
+              padding: isMobile ? "0 6px" : "0 10px",
               cursor: "pointer",
               userSelect: "none",
             }}
-            onMouseDown={(e) => {
-              // ✅ 드래그/텍스트 선택 방지
-              e.preventDefault();
-            }}
+            onMouseDown={(e) => e.preventDefault()}
             onClick={(e) => {
-              // ✅ row click(상세 이동)로 전파 방지
               e.preventDefault();
               e.stopPropagation();
 
-              // ✅ 체크박스 input을 찾아 click해서 토글
               const wrapper = e.currentTarget as HTMLDivElement;
               const input = wrapper.querySelector("input[type='checkbox']") as HTMLInputElement | null;
 
@@ -260,7 +294,6 @@ export default function AccountPage() {
                 return;
               }
 
-              // fallback: input 못 찾으면 상태로 토글
               setSelectedRowKeys((prev) => {
                 const set = new Set(prev);
                 const k = String(key);
@@ -275,36 +308,81 @@ export default function AccountPage() {
         );
       },
     }),
-    [selectedRowKeys, rowKey],
+    [selectedRowKeys, rowKey, isMobile],
   );
 
   const canDelete = selectedRowKeys.length > 0;
 
+  // ✅ 모바일 pagination 단순화(선택)
+  const tablePagination = useMemo(() => {
+    const base: TablePaginationConfig = {
+      ...pagination,
+      total: filteredData.length,
+      showTotal: (t, range) => `${range[0]}-${range[1]} / ${t}`,
+    };
+
+    if (!isMobile) return base;
+
+    return {
+      ...base,
+      showSizeChanger: false,
+      simple: true,
+    };
+  }, [pagination, filteredData.length, isMobile]);
+
   return (
     <Card
       title="Accounts"
+      // ✅ 모바일에선 extra 오른쪽에 두면 답답해서 아래로 내림
       extra={
-        <Space>
-          <Button icon={<ReloadOutlined />} onClick={load} loading={loading}>
-            새로고침
-          </Button>
+        !isMobile ? (
+          <Space>
+            <Button icon={<ReloadOutlined />} onClick={load} loading={loading}>
+              새로고침
+            </Button>
 
-          <Button
-            danger
-            icon={<DeleteOutlined />}
-            disabled={!canDelete}
-            loading={deleting}
-            onClick={handleDeleteSelected}
-          >
-            선택 탈퇴 및 삭제 ({selectedRowKeys.length})
-          </Button>
-        </Space>
+            <Button
+              danger
+              icon={<DeleteOutlined />}
+              disabled={!canDelete}
+              loading={deleting}
+              onClick={handleDeleteSelected}
+            >
+              선택 탈퇴 및 삭제 ({selectedRowKeys.length})
+            </Button>
+          </Space>
+        ) : null
       }
       style={{ borderRadius: 12 }}
       bodyStyle={{ paddingTop: 12 }}
     >
       <Space direction="vertical" size={12} style={{ width: "100%" }}>
-        <Space style={{ width: "100%", justifyContent: "space-between" }} wrap>
+        {/* ✅ 모바일: 버튼을 위에 2개로 배치 */}
+        {isMobile && (
+          <Space style={{ width: "100%", justifyContent: "space-between" }} wrap>
+            <Button icon={<ReloadOutlined />} onClick={load} loading={loading} style={{ flex: 1 }}>
+              새로고침
+            </Button>
+
+            <Button
+              danger
+              icon={<DeleteOutlined />}
+              disabled={!canDelete}
+              loading={deleting}
+              onClick={handleDeleteSelected}
+              style={{ flex: 1 }}
+            >
+              삭제 ({selectedRowKeys.length})
+            </Button>
+          </Space>
+        )}
+
+        <Space
+          style={{ width: "100%", justifyContent: "space-between" }}
+          wrap
+          direction={isMobile ? "vertical" : "horizontal"}
+          size={isMobile ? 8 : 12}
+        >
           <Input.Search
             placeholder="검색: id, 이름, status, 이메일"
             allowClear
@@ -317,9 +395,11 @@ export default function AccountPage() {
               setSearch(v);
               setPagination((p) => ({ ...p, current: 1 }));
             }}
-            style={{ width: 420, maxWidth: "100%" }}
+            style={{ width: isMobile ? "100%" : 420, maxWidth: "100%" }}
           />
-          <Text type="secondary">{topCountText}</Text>
+          <Text type="secondary" style={{ width: isMobile ? "100%" : "auto" }}>
+            {topCountText}
+          </Text>
         </Space>
 
         {errorMsg ? <Text type="danger">{errorMsg}</Text> : null}
@@ -331,16 +411,13 @@ export default function AccountPage() {
           loading={loading}
           columns={columns}
           dataSource={filteredData}
-          pagination={{
-            ...pagination,
-            total: filteredData.length,
-            showTotal: (t, range) => `${range[0]}-${range[1]} / ${t}`,
-          }}
+          pagination={tablePagination}
           onChange={handleTableChange}
-          size="middle"
+          size={isMobile ? "small" : "middle"}
           bordered={false}
           style={{ width: "100%" }}
-          scroll={{ x: 900 }}
+          // ✅ 모바일은 scroll 제거 -> 좌우 스크롤 없음
+          scroll={isMobile ? undefined : { x: 900 }}
           onRow={(record) => ({
             onClick: (e) => {
               const el = e.target as HTMLElement;

@@ -1,14 +1,13 @@
 import { getBills, getOrders } from "@/services/api";
 import type { Bill } from "@/types/bill";
 import { useEffect, useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { PATH } from "@/constants/routes";
-import { Alert, Button, Card, Input, Space, Table, Tag, Typography, Modal, Descriptions, Spin } from "antd";
+import { Alert, Button, Card, Input, Space, Table, Tag, Typography, Modal, Descriptions, Spin, Grid } from "antd";
 import type { ColumnsType, TablePaginationConfig } from "antd/es/table";
 import type { FilterValue, SorterResult } from "antd/es/table/interface";
 import { ReloadOutlined } from "@ant-design/icons";
 
 const { Title, Text } = Typography;
+const { useBreakpoint } = Grid;
 
 const safe = (v: unknown) => (v === null || v === undefined ? "" : String(v));
 const normalize = (v: unknown) => safe(v).trim().toLowerCase();
@@ -22,16 +21,15 @@ type OrderStatusResponse = {
 };
 
 export default function BillingPage() {
-  const navigate = useNavigate();
+  const screens = useBreakpoint();
+  const isMobile = !screens.md;
 
   const [data, setData] = useState<Bill[]>([]);
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string>("");
 
-  // Search
   const [search, setSearch] = useState("");
 
-  // Pagination
   const [pagination, setPagination] = useState<TablePaginationConfig>({
     current: 1,
     pageSize: 20,
@@ -39,7 +37,6 @@ export default function BillingPage() {
     pageSizeOptions: [10, 20, 50, 100],
   });
 
-  // Modal state
   const [detailOpen, setDetailOpen] = useState(false);
   const [selectedBill, setSelectedBill] = useState<Bill | null>(null);
   const [orderLoading, setOrderLoading] = useState(false);
@@ -95,91 +92,139 @@ export default function BillingPage() {
     return `총 ${totalCount.toLocaleString()}건 (현재 ${visibleCount}건 표시)`;
   }, [loading, search, filteredData.length, totalCount, visibleCount]);
 
-  const columns: ColumnsType<Bill> = [
-    {
-      title: "id",
-      dataIndex: "id",
-      key: "id",
-      ellipsis: true,
-      sorter: (a, b) => safe(a.id).localeCompare(safe(b.id), "ko"),
-      sortDirections: ["ascend", "descend"],
-      render: (v) => <Text strong>{v}</Text>,
-    },
-    {
-      title: "creator",
-      dataIndex: "creator",
-      key: "creator",
-      width: 160,
-      sorter: (a, b) => safe(a.creator).localeCompare(safe(b.creator), "ko"),
-      sortDirections: ["ascend", "descend"],
-      ellipsis: true,
-    },
-    {
-      title: "type",
-      dataIndex: "type",
-      key: "type",
-      width: 120,
-      sorter: (a, b) => safe(a.type).localeCompare(safe(b.type), "ko"),
-      sortDirections: ["ascend", "descend"],
-      render: (v) => (v ? <Tag>{v}</Tag> : <Text type="secondary">-</Text>),
-    },
-    {
-      title: "orderId",
-      dataIndex: "orderId",
-      key: "orderId",
-      width: 180,
-      sorter: (a, b) => safe(a.orderId).localeCompare(safe(b.orderId), "ko"),
-      sortDirections: ["ascend", "descend"],
-      ellipsis: true,
-      render: (v) => (v ? <Text code>{v}</Text> : <Text type="secondary">-</Text>),
-    },
-    {
-      title: "displayName",
-      dataIndex: "displayName",
-      key: "displayName",
-      width: 240,
-      sorter: (a, b) => safe(a.displayName).localeCompare(safe(b.displayName), "ko"),
-      sortDirections: ["ascend", "descend"],
-      ellipsis: true,
-    },
-    {
-      title: "displayAmount",
-      dataIndex: "displayAmount",
-      key: "displayAmount",
-      width: 140,
-      sorter: (a, b) => safe(a.displayAmount).localeCompare(safe(b.displayAmount), "ko"),
-      sortDirections: ["ascend", "descend"],
-      align: "right",
-    },
-    {
-      title: "amount",
-      dataIndex: "amount",
-      key: "amount",
-      width: 120,
-      sorter: (a, b) => (a.amount ?? 0) - (b.amount ?? 0),
-      sortDirections: ["ascend", "descend"],
-      align: "right",
-      render: (v) => <Text>{Number(v ?? 0).toLocaleString()}</Text>,
-    },
-    {
-      title: "currency",
-      dataIndex: "currency",
-      key: "currency",
-      width: 120,
-      sorter: (a, b) => safe(a.currency).localeCompare(safe(b.currency), "ko"),
-      sortDirections: ["ascend", "descend"],
-      render: (v) => (v ? <Tag color="blue">{v}</Tag> : <Text type="secondary">-</Text>),
-    },
-    {
-      title: "created",
-      dataIndex: "created",
-      key: "created",
-      width: 180,
-      sorter: (a, b) => new Date(a.created ?? 0).getTime() - new Date(b.created ?? 0).getTime(),
-      sortDirections: ["ascend", "descend"],
-      ellipsis: true,
-    },
-  ];
+  const statusTagColor = (status?: string) => {
+    switch (status) {
+      case "PAID":
+      case "COMPLETED":
+      case "DONE":
+        return "green";
+      case "REFUNDED":
+        return "red";
+      case "CANCELED":
+      case "CANCELLED":
+        return "volcano";
+      case "PENDING":
+      case "PROCESSING":
+        return "blue";
+      default:
+        return "default";
+    }
+  };
+
+  // ✅ 가로스크롤 방지: 모바일은 핵심 컬럼만 표시
+  const columns: ColumnsType<Bill> = useMemo(() => {
+    if (isMobile) {
+      return [
+        {
+          title: "name",
+          dataIndex: "displayName",
+          key: "displayName",
+          ellipsis: true,
+          render: (v) => (v ? <Text>{v}</Text> : <Text type="secondary">-</Text>),
+        },
+        {
+          title: "amount",
+          dataIndex: "displayAmount",
+          key: "displayAmount",
+          align: "right",
+          ellipsis: true,
+          render: (v, r) => (
+            <Space size={6} style={{ justifyContent: "flex-end", width: "100%" }}>
+              <Text>{safe(v) || Number(r.amount ?? 0).toLocaleString()}</Text>
+              {r.currency ? <Tag color="blue">{r.currency}</Tag> : null}
+            </Space>
+          ),
+        },
+      ];
+    }
+
+    // 데스크톱은 기존 컬럼 유지
+    return [
+      {
+        title: "id",
+        dataIndex: "id",
+        key: "id",
+        ellipsis: true,
+        sorter: (a, b) => safe(a.id).localeCompare(safe(b.id), "ko"),
+        sortDirections: ["ascend", "descend"],
+        render: (v) => <Text strong>{v}</Text>,
+      },
+      {
+        title: "creator",
+        dataIndex: "creator",
+        key: "creator",
+        width: 160,
+        sorter: (a, b) => safe(a.creator).localeCompare(safe(b.creator), "ko"),
+        sortDirections: ["ascend", "descend"],
+        ellipsis: true,
+      },
+      {
+        title: "type",
+        dataIndex: "type",
+        key: "type",
+        width: 120,
+        sorter: (a, b) => safe(a.type).localeCompare(safe(b.type), "ko"),
+        sortDirections: ["ascend", "descend"],
+        render: (v) => (v ? <Tag>{v}</Tag> : <Text type="secondary">-</Text>),
+      },
+      {
+        title: "orderId",
+        dataIndex: "orderId",
+        key: "orderId",
+        width: 180,
+        sorter: (a, b) => safe(a.orderId).localeCompare(safe(b.orderId), "ko"),
+        sortDirections: ["ascend", "descend"],
+        ellipsis: true,
+        render: (v) => (v ? <Text code>{v}</Text> : <Text type="secondary">-</Text>),
+      },
+      {
+        title: "displayName",
+        dataIndex: "displayName",
+        key: "displayName",
+        width: 240,
+        sorter: (a, b) => safe(a.displayName).localeCompare(safe(b.displayName), "ko"),
+        sortDirections: ["ascend", "descend"],
+        ellipsis: true,
+      },
+      {
+        title: "displayAmount",
+        dataIndex: "displayAmount",
+        key: "displayAmount",
+        width: 140,
+        sorter: (a, b) => safe(a.displayAmount).localeCompare(safe(b.displayAmount), "ko"),
+        sortDirections: ["ascend", "descend"],
+        align: "right",
+      },
+      {
+        title: "amount",
+        dataIndex: "amount",
+        key: "amount",
+        width: 120,
+        sorter: (a, b) => (a.amount ?? 0) - (b.amount ?? 0),
+        sortDirections: ["ascend", "descend"],
+        align: "right",
+        render: (v) => <Text>{Number(v ?? 0).toLocaleString()}</Text>,
+      },
+      {
+        title: "currency",
+        dataIndex: "currency",
+        key: "currency",
+        width: 120,
+        sorter: (a, b) => safe(a.currency).localeCompare(safe(b.currency), "ko"),
+        sortDirections: ["ascend", "descend"],
+        render: (v) => (v ? <Tag color="blue">{v}</Tag> : <Text type="secondary">-</Text>),
+      },
+      {
+        title: "created",
+        dataIndex: "created",
+        key: "created",
+        width: 180,
+        sorter: (a, b) => new Date(a.created ?? 0).getTime() - new Date(b.created ?? 0).getTime(),
+        sortDirections: ["ascend", "descend"],
+        ellipsis: true,
+      },
+    ];
+  }, [isMobile]);
 
   const handleTableChange = (
     nextPagination: TablePaginationConfig,
@@ -202,10 +247,7 @@ export default function BillingPage() {
 
     try {
       setOrderLoading(true);
-
-      // getOrders가 axios response 전체를 반환할 수 있으니 방어적으로 파싱
       const res = await getOrders(bill.creator, bill.orderId);
-      console.log(`res`, res);
       setOrderData(res);
     } catch (e: any) {
       setOrderError(e?.message ?? "주문 상태 조회 실패");
@@ -215,151 +257,186 @@ export default function BillingPage() {
     }
   };
 
-  const statusTagColor = (status?: string) => {
-    switch (status) {
-      case "PAID":
-      case "COMPLETED":
-      case "DONE":
-        return "green";
-      case "REFUNDED":
-        return "red";
-      case "CANCELED":
-      case "CANCELLED":
-        return "volcano";
-      case "PENDING":
-      case "PROCESSING":
-        return "blue";
-      default:
-        return "default";
-    }
-  };
-
+  // ✅ Modal Descriptions도 가로스크롤 방지
   const labelStyle = useMemo(
     () => ({
       background: "#7fdad6",
       fontWeight: 600,
-      width: 180,
-      padding: "10px 14px",
+      width: "auto",
+      maxWidth: "45%",
+      padding: isMobile ? "10px 12px" : "10px 14px",
+      whiteSpace: "normal" as const,
+      wordBreak: "break-word" as const,
     }),
-    [],
+    [isMobile],
   );
 
   const contentStyle = useMemo(
     () => ({
       background: "#ffffff",
-      padding: "10px 14px",
+      padding: isMobile ? "10px 12px" : "10px 14px",
+      whiteSpace: "normal" as const,
+      wordBreak: "break-word" as const,
+      overflowWrap: "anywhere" as const,
+      maxWidth: "100%",
     }),
-    [],
+    [isMobile],
   );
 
+  const tablePagination = useMemo(() => {
+    const base: TablePaginationConfig = {
+      ...pagination,
+      total: filteredData.length,
+      showTotal: (t, range) => `${range[0]}-${range[1]} / ${t}`,
+    };
+
+    if (!isMobile) return base;
+
+    return {
+      ...base,
+      showSizeChanger: false,
+      simple: true,
+    };
+  }, [pagination, filteredData.length, isMobile]);
+
   return (
-    <Space direction="vertical" size={12} style={{ width: "100%" }}>
-      <Card
-        title={
-          <Title level={4} style={{ margin: 0 }}>
-            Billing
-          </Title>
-        }
-        extra={
-          <Space>
-            <Button icon={<ReloadOutlined />} onClick={load} loading={loading}>
+    <div style={{ width: "100%", maxWidth: "100%", overflowX: "hidden" }}>
+      <Space direction="vertical" size={12} style={{ width: "100%", maxWidth: "100%" }}>
+        <Card
+          title={
+            <Title level={4} style={{ margin: 0 }}>
+              Billing
+            </Title>
+          }
+          // ✅ 모바일은 extra에 버튼 두면 답답해서 아래로 내리기
+          extra={
+            !isMobile ? (
+              <Space>
+                <Button icon={<ReloadOutlined />} onClick={load} loading={loading}>
+                  새로고침
+                </Button>
+              </Space>
+            ) : null
+          }
+          style={{ borderRadius: 12, maxWidth: "100%", overflow: "hidden" }}
+          bodyStyle={{ paddingTop: 12, maxWidth: "100%", overflowX: "hidden" }}
+        >
+          {isMobile && (
+            <Button icon={<ReloadOutlined />} onClick={load} loading={loading} block style={{ marginBottom: 12 }}>
               새로고침
             </Button>
-          </Space>
-        }
-        style={{ borderRadius: 12 }}
-        bodyStyle={{ paddingTop: 12 }}
-      >
-        {errorMsg ? <Alert type="error" showIcon message={errorMsg} style={{ marginBottom: 12 }} /> : null}
+          )}
 
-        {/* 검색 / 상태 표시 */}
-        <Space style={{ width: "100%", justifyContent: "space-between", marginBottom: 12 }} wrap>
-          <Input.Search
-            placeholder="검색: id, creator, type, orderId, displayName, displayAmount, amount, currency, created"
-            allowClear
-            value={search}
-            onChange={(e) => {
-              setSearch(e.target.value);
-              setPagination((p) => ({ ...p, current: 1 }));
-            }}
-            onSearch={(v) => {
-              setSearch(v);
-              setPagination((p) => ({ ...p, current: 1 }));
-            }}
-            style={{ width: 520, maxWidth: "100%" }}
+          {errorMsg ? <Alert type="error" showIcon message={errorMsg} style={{ marginBottom: 12 }} /> : null}
+
+          {/* 검색 / 상태 표시 */}
+          <Space
+            style={{ width: "100%", justifyContent: "space-between", marginBottom: 12 }}
+            wrap
+            direction={isMobile ? "vertical" : "horizontal"}
+            size={isMobile ? 8 : 12}
+          >
+            <Input.Search
+              placeholder="검색: id, creator, type, orderId, displayName, displayAmount, amount, currency, created"
+              allowClear
+              value={search}
+              onChange={(e) => {
+                setSearch(e.target.value);
+                setPagination((p) => ({ ...p, current: 1 }));
+              }}
+              onSearch={(v) => {
+                setSearch(v);
+                setPagination((p) => ({ ...p, current: 1 }));
+              }}
+              style={{ width: isMobile ? "100%" : 520, maxWidth: "100%" }}
+            />
+            <Text type="secondary" style={{ width: isMobile ? "100%" : "auto" }}>
+              {topCountText}
+            </Text>
+          </Space>
+
+          <Table<Bill>
+            rowKey={(r) => r.id}
+            loading={loading}
+            columns={columns}
+            dataSource={filteredData}
+            pagination={tablePagination}
+            onChange={handleTableChange}
+            size={isMobile ? "small" : "middle"}
+            bordered={false}
+            style={{ width: "100%" }}
+            // ✅ 모바일 가로스크롤 완전 제거
+            scroll={isMobile ? undefined : { x: 1200 }}
+            onRow={(record) => ({
+              onClick: () => openOrderModal(record),
+              style: { cursor: "pointer" },
+            })}
           />
-          <Text type="secondary">{topCountText}</Text>
-        </Space>
 
-        <Table<Bill>
-          rowKey={(r) => r.id}
-          loading={loading}
-          columns={columns}
-          dataSource={filteredData}
-          pagination={{
-            ...pagination,
-            total: filteredData.length,
-            showTotal: (t, range) => `${range[0]}-${range[1]} / ${t}`,
-          }}
-          onChange={handleTableChange}
-          size="middle"
-          bordered={false}
-          style={{ width: "100%" }}
-          scroll={{ x: 1200 }}
-          onRow={(record) => ({
-            onClick: () => openOrderModal(record),
-            style: { cursor: "pointer" },
-          })}
-        />
-
-        <Modal
-          open={detailOpen}
-          title="Order Status"
-          onCancel={() => setDetailOpen(false)}
-          footer={<Button onClick={() => setDetailOpen(false)}>닫기</Button>}
-          destroyOnClose
-        >
-          <Space direction="vertical" size={12} style={{ width: "100%" }}>
-            {selectedBill ? (
-              <Card type="inner" title="Bill" style={{ borderRadius: 10 }} bodyStyle={{ paddingTop: 12 }}>
-                <Descriptions bordered size="small" column={1} labelStyle={labelStyle} contentStyle={contentStyle}>
-                  <Descriptions.Item label="orderId">{selectedBill.orderId || "-"}</Descriptions.Item>
-                  <Descriptions.Item label="displayName">{selectedBill.displayName || "-"}</Descriptions.Item>
-                  <Descriptions.Item label="displayAmount">{selectedBill.displayAmount || "-"}</Descriptions.Item>
-                  <Descriptions.Item label="currency">{selectedBill.currency || "-"}</Descriptions.Item>
-                </Descriptions>
-              </Card>
-            ) : null}
-
-            <Card type="inner" title="Order Result" style={{ borderRadius: 10 }} bodyStyle={{ paddingTop: 12 }}>
-              {orderError ? <Alert type="error" showIcon message={orderError} style={{ marginBottom: 12 }} /> : null}
-
-              <Spin spinning={orderLoading}>
-                {orderData ? (
+          <Modal
+            open={detailOpen}
+            title="Order Status"
+            onCancel={() => setDetailOpen(false)}
+            footer={<Button onClick={() => setDetailOpen(false)}>닫기</Button>}
+            destroyOnClose
+            centered
+            width={isMobile ? "95vw" : 520}
+          >
+            <Space direction="vertical" size={12} style={{ width: "100%", maxWidth: "100%" }}>
+              {selectedBill ? (
+                <Card
+                  type="inner"
+                  title="Bill"
+                  style={{ borderRadius: 10, maxWidth: "100%", overflow: "hidden" }}
+                  bodyStyle={{ paddingTop: 12 }}
+                >
                   <Descriptions bordered size="small" column={1} labelStyle={labelStyle} contentStyle={contentStyle}>
-                    <Descriptions.Item label="orderId">{orderData.orderId || "-"}</Descriptions.Item>
-                    <Descriptions.Item label="sku">{orderData.sku || "-"}</Descriptions.Item>
-                    <Descriptions.Item label="status">
-                      {orderData.status ? <Tag color={statusTagColor(orderData.status)}>{orderData.status}</Tag> : "-"}
-                    </Descriptions.Item>
-                    <Descriptions.Item label="statusDeterminedAt">
-                      {orderData.statusDeterminedAt || "-"}
-                    </Descriptions.Item>
-                    <Descriptions.Item label="reason">{orderData.reason || "-"}</Descriptions.Item>
+                    <Descriptions.Item label="orderId">{selectedBill.orderId || "-"}</Descriptions.Item>
+                    <Descriptions.Item label="displayName">{selectedBill.displayName || "-"}</Descriptions.Item>
+                    <Descriptions.Item label="displayAmount">{selectedBill.displayAmount || "-"}</Descriptions.Item>
+                    <Descriptions.Item label="currency">{selectedBill.currency || "-"}</Descriptions.Item>
                   </Descriptions>
-                ) : (
-                  <Text type="secondary">{orderLoading ? "조회 중..." : "주문 정보를 불러오지 못했습니다."}</Text>
-                )}
-              </Spin>
-            </Card>
+                </Card>
+              ) : null}
 
-            {/* REFUNDED일 때 안내 문구(요청 스펙 반영) */}
-            {orderData?.status === "REFUNDED" ? (
-              <Alert type="info" showIcon message="REFUNDED 상태인 경우 statusDeterminedAt은 환불 완료 일시입니다." />
-            ) : null}
-          </Space>
-        </Modal>
-      </Card>
-    </Space>
+              <Card
+                type="inner"
+                title="Order Result"
+                style={{ borderRadius: 10, maxWidth: "100%", overflow: "hidden" }}
+                bodyStyle={{ paddingTop: 12 }}
+              >
+                {orderError ? <Alert type="error" showIcon message={orderError} style={{ marginBottom: 12 }} /> : null}
+
+                <Spin spinning={orderLoading}>
+                  {orderData ? (
+                    <Descriptions bordered size="small" column={1} labelStyle={labelStyle} contentStyle={contentStyle}>
+                      <Descriptions.Item label="orderId">{orderData.orderId || "-"}</Descriptions.Item>
+                      <Descriptions.Item label="sku">{orderData.sku || "-"}</Descriptions.Item>
+                      <Descriptions.Item label="status">
+                        {orderData.status ? (
+                          <Tag color={statusTagColor(orderData.status)}>{orderData.status}</Tag>
+                        ) : (
+                          "-"
+                        )}
+                      </Descriptions.Item>
+                      <Descriptions.Item label="statusDeterminedAt">
+                        {orderData.statusDeterminedAt || "-"}
+                      </Descriptions.Item>
+                      <Descriptions.Item label="reason">{orderData.reason || "-"}</Descriptions.Item>
+                    </Descriptions>
+                  ) : (
+                    <Text type="secondary">{orderLoading ? "조회 중..." : "주문 정보를 불러오지 못했습니다."}</Text>
+                  )}
+                </Spin>
+              </Card>
+
+              {orderData?.status === "REFUNDED" ? (
+                <Alert type="info" showIcon message="REFUNDED 상태인 경우 statusDeterminedAt은 환불 완료 일시입니다." />
+              ) : null}
+            </Space>
+          </Modal>
+        </Card>
+      </Space>
+    </div>
   );
 }
