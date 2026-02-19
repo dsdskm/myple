@@ -137,6 +137,16 @@ export const getPlaces = async (creator: string): Promise<Place[]> => {
   }
 };
 
+export const getAllPlaces = async():Promise<Place[]> => {
+  try {
+    const response = await serverApiClient.get<Place[]>(`/place`);
+    return response.data;
+  } catch (error) {
+    console.log(error);
+    return [];
+  }
+}
+
 export const requestLogout = async (id: string): Promise<void> => {
   try {
     await serverApiClient.post("/toss/logout", { userKey: id, referrer: "UNLINK" });

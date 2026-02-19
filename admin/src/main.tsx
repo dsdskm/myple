@@ -21,6 +21,7 @@ import FeedbackPage from "./pages/FeedbackPage";
 import TermsPage from "./pages/TermsPage";
 import AccountDetailPage from "./pages/AccountDetailPage";
 import NoticeUpsertPage from "./pages/NoticeUpsertPage";
+import PlacePage from "./pages/PlacePage";
 
 const queryClient = new QueryClient();
 
@@ -35,6 +36,7 @@ const router = createBrowserRouter([
         children: [
           { path: PATH.ACCOUNT, element: <UsersPage /> },
           { path: PATH.ACCOUNT_DETAIL, element: <AccountDetailPage /> },
+          { path: PATH.PLACE, element: <PlacePage /> },
           { path: PATH.BILLING, element: <BillingPage /> },
           { path: PATH.NOTICE, element: <NoticePage /> },
           { path: PATH.NOTICE_NEW, element: <NoticeUpsertPage /> },

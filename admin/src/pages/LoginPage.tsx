@@ -1,10 +1,11 @@
-import { Card, Form, Input, Button, Typography, message, Switch, Space } from "antd";
+import { Card, Form, Input, Button, Typography, message, Switch, Space, Spin } from "antd";
 import {
   signInWithEmailAndPassword,
   sendPasswordResetEmail,
   setPersistence,
   browserLocalPersistence,
   browserSessionPersistence,
+  onAuthStateChanged,
 } from "firebase/auth";
 import { auth } from "@/libs/firebase";
 import { useNavigate } from "react-router-dom";
@@ -59,11 +60,27 @@ const CardWrap = styled(Card)`
 export default function LoginPage() {
   const navigate = useNavigate();
   const [resetEmail, setResetEmail] = useState("");
-
-  // ✅ 로그인 유지 토글 (기본: 유지)
   const [rememberMe, setRememberMe] = useState(true);
+  
+  // ✅ 인증 상태 확인 중인지 여부 (초기값 true)
+  const [loading, setLoading] = useState(true);
 
-  // (선택) 마지막 선택값 로컬 저장
+  // 1️⃣ [추가] 접속 시 로그인 여부 확인 및 리다이렉트
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (user) {
+        // 이미 로그인된 상태라면 바로 이동
+        navigate(PATH.ACCOUNT, { replace: true });
+      } else {
+        // 로그인이 안 되어 있다면 로그인 폼 표시
+        setLoading(false);
+      }
+    });
+
+    return () => unsubscribe();
+  }, [navigate]);
+
+  // 2️⃣ 로그인 유지 설정 로드
   useEffect(() => {
     const v = localStorage.getItem("rememberMe");
     if (v === "0") setRememberMe(false);
@@ -75,7 +92,7 @@ export default function LoginPage() {
 
   const onFinish = async (values: { email: string; password: string }) => {
     try {
-      // ✅ 여기서 세션 유지 방식 설정 후 로그인
+      // ✅ 세션 유지 방식 설정 (Local vs Session)
       await setPersistence(auth, rememberMe ? browserLocalPersistence : browserSessionPersistence);
 
       await signInWithEmailAndPassword(auth, values.email, values.password);
@@ -99,10 +116,24 @@ export default function LoginPage() {
     }
   };
 
+  // ✅ 인증 확인 중일 때는 아무것도 보여주지 않거나 로딩 스피너를 보여줌
+  if (loading) {
+    return (
+      <Center>
+        <Spin size="large" />
+      </Center>
+    );
+  }
+
   return (
     <Center>
       <CardWrap title={TEXT.LOGIN.TITLE}>
-        <Form layout="vertical" onFinish={onFinish} requiredMark={false} initialValues={{ rememberMe: true }}>
+        <Form 
+          layout="vertical" 
+          onFinish={onFinish} 
+          requiredMark={false} 
+          initialValues={{ rememberMe: true }}
+        >
           <Form.Item
             label={TEXT.LOGIN.EMAIL_LABEL}
             name="email"
@@ -127,7 +158,6 @@ export default function LoginPage() {
             <Input.Password placeholder={TEXT.LOGIN.PLACEHOLDER_PASSWORD} autoComplete="current-password" />
           </Form.Item>
 
-          {/* ✅ 로그인 유지 UI */}
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
             <Space size={8}>
               <Switch checked={rememberMe} onChange={setRememberMe} />

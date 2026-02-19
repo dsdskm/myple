@@ -62,6 +62,7 @@ const StyledContent = styled(Content)`
 
 const menuItems: MenuProps["items"] = [
   { key: PATH.ACCOUNT, label: "유저 관리" },
+  { key: PATH.PLACE, label: "장소 목록" },
   { key: PATH.BILLING, label: "결제 내역" },
   { key: PATH.NOTICE, label: "공지사항" },
   { key: PATH.FEEDBACK, label: "피드백" },

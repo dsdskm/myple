@@ -8,4 +8,5 @@ export const PATH = {
   NOTICE_NEW: "/notice/new",
   NOTICE_DETAIL: "/notice/:id",
   FEEDBACK: "/feedback",
+  PLACE: "/place",
 } as const;
