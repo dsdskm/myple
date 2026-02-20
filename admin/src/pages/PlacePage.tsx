@@ -1,11 +1,9 @@
 import { getAllPlaces } from "@/services/api";
 import { Place } from "@/types/place";
-import { useEffect, useMemo, useState, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { ColumnsType, TablePaginationConfig } from "antd/es/table";
 import { Card, Input, Space, Table, Tag, Typography, Grid, Tooltip, Button } from "antd";
 import { ReloadOutlined, EnvironmentOutlined } from "@ant-design/icons";
-import { useNavigate } from "react-router-dom";
-import { PATH } from "@/constants/routes";
 import type { TableRef } from "antd/es/table";
 
 const { Text } = Typography;
@@ -14,21 +12,8 @@ const { useBreakpoint } = Grid;
 const safe = (v: unknown) => (v === null || v === undefined ? "" : String(v));
 const normalize = (v: unknown) => safe(v).trim().toLowerCase();
 
-/** 카테고리 번호별 컬러/텍스트 매핑 */
-const getCategoryInfo = (cat: number) => {
-  const mapping: Record<number, { label: string; color: string }> = {
-    1: { label: "음식점", color: "orange" },
-    2: { label: "카페", color: "gold" },
-    3: { label: "숙소", color: "cyan" },
-    4: { label: "명소", color: "green" },
-  };
-  return mapping[cat] || { label: `기타(${cat})`, color: "default" };
-};
-
 export default function PlacePage() {
-  const navigate = useNavigate();
   const tableRef = useRef<TableRef>(null);
-
   const screens = useBreakpoint();
   const isMobile = !screens.md;
 
@@ -51,8 +36,14 @@ export default function PlacePage() {
     try {
       setLoading(true);
       setErrorMsg("");
-      const list = await getAllPlaces();
-      setData(Array.isArray(list) ? list : []);
+
+      // ✅ 장소 목록 + 카테고리 문서 병렬 로드
+      const [places] = await Promise.all([
+        getAllPlaces(),
+      ]);
+
+      const list = Array.isArray(places) ? places : [];
+      setData(list);
     } catch (e: any) {
       setErrorMsg(e?.message ?? "장소 데이터를 불러오지 못했습니다.");
       setData([]);
@@ -63,10 +54,13 @@ export default function PlacePage() {
 
   useEffect(() => {
     load();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const rowKey = (record: Place, index?: number): string => {
-    return safe(record.id) || `place-${index ?? 0}`;
+    // Place.id 타입이 string/number 섞여도 안전하게 처리
+    const id = (record as any).id;
+    return safe(id) || `place-${index ?? 0}`;
   };
 
   // ✅ 검색 대상: id, name, address, creator
@@ -75,49 +69,65 @@ export default function PlacePage() {
     if (!q) return data;
 
     return data.filter((p) => {
-      const hay = [p.id, p.name, p.address, p.creator].map(normalize).join(" ");
+      const hay = [(p as any).id, (p as any).name, (p as any).address, (p as any).creator]
+        .map(normalize)
+        .join(" ");
       return hay.includes(q);
     });
   }, [data, search]);
 
   const totalCount = data.length;
 
-  // ✅ 카테고리 필터 자동 생성
-  const categoryFilters = useMemo(() => {
-    const set = new Set<number>();
-    data.forEach((p) => set.add(p.category));
-    return Array.from(set)
-      .sort((a, b) => a - b)
-      .map((cat) => ({ text: getCategoryInfo(cat).label, value: cat }));
-  }, [data]);
-
   const columns: ColumnsType<Place> = useMemo(() => {
     if (isMobile) {
+      /**
+       * ✅ 모바일: "장소", "방문내역" 2개 컬럼만
+       * - 가로 스크롤 유발하는 width 고정 최소화
+       * - 긴 텍스트는 줄바꿈(wordBreak) 처리
+       */
       return [
         {
-          title: "장소명",
+          title: "장소",
+          key: "place",
           dataIndex: "name",
-          key: "name",
-          sorter: (a, b) => safe(a.name).localeCompare(safe(b.name), "ko"),
-          render: (v, record) => (
-            <Space direction="vertical" size={0}>
-              <Text strong>{v}</Text>
-              <Text type="secondary" style={{ fontSize: "12px" }}>
-                {getCategoryInfo(record.category).label}
-              </Text>
-            </Space>
-          ),
+          render: (v, record) => {
+            return (
+              <Space direction="vertical" size={2} style={{ width: "100%" }}>
+                <Text strong style={{ wordBreak: "break-word" }}>
+                  {safe(v)}
+                </Text>
+
+                <Space size={6} wrap>
+                  <Text type="secondary" style={{ fontSize: 12 }}>
+                    {safe((record as any).creator)}
+                  </Text>
+                </Space>
+
+                <Text
+                  type="secondary"
+                  style={{
+                    fontSize: 12,
+                    wordBreak: "break-word",
+                    lineHeight: 1.2,
+                  }}
+                >
+                  {safe((record as any).address)}
+                </Text>
+              </Space>
+            );
+          },
         },
         {
-          title: "주소",
-          dataIndex: "address",
-          key: "address",
-          ellipsis: true,
-          render: (v) => <Text type="secondary">{v}</Text>,
+          title: "방문내역",
+          key: "history",
+          align: "center",
+          width: 90,
+          render: (_, record) => <Tag>{(record as any).historyList?.length ?? 0}건</Tag>,
         },
       ];
     }
 
+    // ✅ 데스크탑: 기존 컬럼 유지 + 카테고리 title은 API에서 매칭
     return [
       {
         title: "생성자",
@@ -126,26 +136,13 @@ export default function PlacePage() {
         width: 150,
         ellipsis: true,
       },
-
       {
         title: "장소명",
         dataIndex: "name",
         key: "name",
         width: 200,
-        sorter: (a, b) => safe(a.name).localeCompare(safe(b.name), "ko"),
+        sorter: (a, b) => safe((a as any).name).localeCompare(safe((b as any).name), "ko"),
         render: (v) => <Text strong>{v}</Text>,
-      },
-      {
-        title: "카테고리",
-        dataIndex: "category",
-        key: "category",
-        width: 120,
-        filters: categoryFilters,
-        onFilter: (value, record) => record.category === value,
-        render: (v) => {
-          const info = getCategoryInfo(v);
-          return <Tag color={info.color}>{info.label}</Tag>;
-        },
       },
       {
         title: "주소",
@@ -159,23 +156,23 @@ export default function PlacePage() {
           </Tooltip>
         ),
       },
-
       {
         title: "히스토리",
         key: "history",
         width: 100,
         align: "center",
-        render: (_, record) => <Tag>{record.historyList?.length ?? 0}건</Tag>,
+        render: (_, record) => <Tag>{(record as any).historyList?.length ?? 0}건</Tag>,
       },
       {
         title: "등록일",
         dataIndex: "created",
         key: "created",
         width: 180,
-        sorter: (a, b) => new Date(a.created).getTime() - new Date(b.created).getTime(),
+        sorter: (a, b) =>
+          new Date((a as any).created).getTime() - new Date((b as any).created).getTime(),
       },
     ];
-  }, [isMobile, categoryFilters]);
+  }, [isMobile]);
 
   return (
     <Card
@@ -228,13 +225,9 @@ export default function PlacePage() {
             showTotal: (t) => `Total ${t}`,
           }}
           onChange={(next) => setPagination(next)}
+          // ✅ 모바일: 가로 스크롤 없게 / 데스크탑만 x스크롤 허용
           scroll={isMobile ? undefined : { x: 1000 }}
-          onRow={(record) => ({
-            onClick: () => {
-              navigate(`${PATH.PLACE}/${record.id}`);
-            },
-            style: { cursor: "pointer" },
-          })}
+        // ✅ row 클릭 이벤트 제거: onRow 자체를 넣지 않음
         />
       </Space>
     </Card>
